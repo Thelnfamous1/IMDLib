@@ -17,7 +17,7 @@ apply plugin: net.minecraftforge.gradle.mcp.MCPPlugin
 apply plugin: net.minecraftforge.gradle.userdev.UserDevPlugin
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-version = "${project.mc_version}-" + System.getenv('SHA_VERSION')
+version = "${project.mc_version}-" + (System.getenv('SHA_VERSION') || "dev")
 group = "${project.maven_group}"
 archivesBaseName = "${project.mod_id}"
 def at_name = project.hasProperty('at_name') ? "${project.at_name}" : ""
@@ -63,7 +63,7 @@ jar {
             "Specification-Vendor": "its_meow",
             "Specification-Version": "1",
             "Implementation-Title": archivesBaseName,
-            "Implementation-Version": System.getenv('SHA_VERSION'),
+            "Implementation-Version": System.getenv('SHA_VERSION') || "dev",
             "Implementation-Vendor": "its_meow",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
             "Built-On-Java": "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
@@ -83,7 +83,7 @@ task sourceJar(type: Jar, dependsOn: classes) {
             "Specification-Vendor": "its_meow",
             "Specification-Version": "1",
             "Implementation-Title": archivesBaseName + '-sources',
-            "Implementation-Version": System.getenv('SHA_VERSION'),
+            "Implementation-Version": System.getenv('SHA_VERSION') || "dev",
             "Implementation-Vendor": "its_meow",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
             "Built-On-Java": "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
