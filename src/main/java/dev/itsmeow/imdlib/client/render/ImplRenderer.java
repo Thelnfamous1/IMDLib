@@ -7,8 +7,9 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.renderer.entity.model.EntityModel;
@@ -36,9 +37,24 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     }
 
     @Override
-    protected void preRenderCallback(T e, float p) {
+    protected void applyRotations(T e, MatrixStack s, float a, float y, float p) {
+        if(applyRotations == null) {
+            super.applyRotations(e, s, a, y, p);
+        } else {
+            if(applyRotationsSuper == SuperCallApplyRotations.PRE) {
+                super.applyRotations(e, s, a, y, p);
+            }
+            applyRotations.applyRotations(e, s, a, y, p);
+            if(applyRotationsSuper == SuperCallApplyRotations.POST) {
+                super.applyRotations(e, s, a, y, p);
+            }
+        }
+    }
+
+    @Override
+    protected void preRenderCallback(T e, MatrixStack s, float p) {
         if(preRenderCallback != null) {
-            preRenderCallback.preRenderCallback(e, p);
+            preRenderCallback.preRenderCallback(e, s, p);
         }
     }
 
@@ -47,30 +63,15 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         return handleRotation == null ? super.handleRotationFloat(e, p) : handleRotation.handleRotation(e, p);
     }
 
-    @Override
-    protected void applyRotations(T e, float a, float y, float p) {
-        if(applyRotations == null) {
-            super.applyRotations(e, a, y, p);
-        } else {
-            if(applyRotationsSuper == SuperCallApplyRotations.PRE) {
-                super.applyRotations(e, a, y, p);
-            }
-            applyRotations.applyRotations(e, a, y, p);
-            if(applyRotationsSuper == SuperCallApplyRotations.POST) {
-                super.applyRotations(e, a, y, p);
-            }
-        }
-    }
-
     @SuppressWarnings("unchecked")
     @Override
-    public void doRender(T entity, double x, double y, double z, float entityYaw, float partialTicks) {
-        this.entityModel = (A) modelContainer.getModel(entity);
-        super.doRender(entity, x, y, z, entityYaw, partialTicks);
+    public void render(T e, float p_225623_2_, float p_225623_3_, MatrixStack p_225623_4_, IRenderTypeBuffer p_225623_5_, int p_225623_6_) {
+        this.entityModel = (A) modelContainer.getModel(e);
+        super.render(e, p_225623_2_, p_225623_3_, p_225623_4_, p_225623_5_, p_225623_6_);
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(T entity) {
+    public ResourceLocation getEntityTexture(T entity) {
         return textureContainer.getTexture(entity);
     }
 
@@ -228,9 +229,9 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> childScale(Predicate<T> isChild, float xScale, float yScale, float zScale) {
-            preRender((e, p) -> {
+            preRender((e, s, p) -> {
                 if(isChild.test(e)) {
-                    GlStateManager.scalef(xScale, yScale, zScale);
+                    s.scale(xScale, yScale, zScale);
                 }
             });
             return this;
@@ -273,7 +274,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
     @FunctionalInterface
     public static interface PreRenderCallback<T extends MobEntity> {
-        public void preRenderCallback(T entity, float partialTicks);
+        public void preRenderCallback(T entity, MatrixStack stack, float partialTicks);
     }
 
     @FunctionalInterface
@@ -283,7 +284,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
     @FunctionalInterface
     public static interface ApplyRotations<T extends MobEntity> {
-        public void applyRotations(T entity, float ageInTicks, float rotationYaw, float partialTicks);
+        public void applyRotations(T entity, MatrixStack stack, float ageInTicks, float rotationYaw, float partialTicks);
     }
 
     @FunctionalInterface

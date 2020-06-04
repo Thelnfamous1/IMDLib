@@ -1,17 +1,18 @@
 package dev.itsmeow.imdlib.client.util;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
-import net.minecraft.client.renderer.entity.model.RendererModel;
+import net.minecraft.client.renderer.Vector3f;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.util.math.Vec3d;
 
 public class RenderUtil {
 
-    public static Vec3d partLocation(RendererModel... parts) {
+    public static Vec3d partLocation(ModelRenderer... parts) {
         float x = 0F;
         float y = 0F;
         float z = 0F;
-        for(RendererModel part : parts) {
+        for(ModelRenderer part : parts) {
             x += part.rotateAngleX + xOffset(part);
             y += part.rotateAngleY + yOffset(part);
             z += part.rotateAngleZ + zOffset(part);
@@ -19,74 +20,74 @@ public class RenderUtil {
         return new Vec3d(x, y, z);
     }
 
-    public static void partTranslateRotate(RendererModel... parts) {
-        for(RendererModel part : parts) {
-            RenderUtil.offsetTranslate(part);
-            RenderUtil.pointTranslate(part);
-            GlStateManager.rotatef((float) Math.toDegrees(part.rotateAngleX), 1.0F, 0F, 0F);
-            GlStateManager.rotatef((float) Math.toDegrees(part.rotateAngleY), 0F, 1.0F, 0F);
-            GlStateManager.rotatef((float) Math.toDegrees(part.rotateAngleZ), 0F, 0F, 1.0F);
+    public static void partTranslateRotate(MatrixStack stack, ModelRenderer... parts) {
+        for(ModelRenderer part : parts) {
+            RenderUtil.offsetTranslate(stack, part);
+            RenderUtil.pointTranslate(stack, part);
+            stack.rotate(Vector3f.XP.rotation(part.rotateAngleX));
+            stack.rotate(Vector3f.YP.rotation(part.rotateAngleY));
+            stack.rotate(Vector3f.ZP.rotation(part.rotateAngleZ));
         }
     }
 
-    public static void partScaleTranslate(RendererModel part, float scale) {
-        RenderUtil.offsetTranslate(part);
-        RenderUtil.pointTranslate(part);
-        RenderUtil.scale(scale);
-        RenderUtil.negativeOffsetTranslate(part);
-        RenderUtil.negativePointTranslate(part);
+    public static void partScaleTranslate(MatrixStack stack, ModelRenderer part, float scale) {
+        RenderUtil.offsetTranslate(stack, part);
+        RenderUtil.pointTranslate(stack, part);
+        RenderUtil.scale(stack, scale);
+        RenderUtil.negativeOffsetTranslate(stack, part);
+        RenderUtil.negativePointTranslate(stack, part);
     }
 
-    public static void partScaleTranslate(RendererModel part, double scale) {
-        partScaleTranslate(part, (float) scale);
+    public static void partScaleTranslate(MatrixStack stack, ModelRenderer part, double scale) {
+        partScaleTranslate(stack, part, (float) scale);
     }
 
-    public static void partScaleTranslate(RendererModel part, float scaleX, float scaleY, float scaleZ) {
-        RenderUtil.offsetTranslate(part);
-        RenderUtil.pointTranslate(part);
-        GlStateManager.scalef(scaleX, scaleY, scaleZ);
-        RenderUtil.negativeOffsetTranslate(part);
-        RenderUtil.negativePointTranslate(part);
+    public static void partScaleTranslate(MatrixStack stack, ModelRenderer part, float scaleX, float scaleY, float scaleZ) {
+        RenderUtil.offsetTranslate(stack, part);
+        RenderUtil.pointTranslate(stack, part);
+        stack.scale(scaleX, scaleY, scaleZ);
+        RenderUtil.negativeOffsetTranslate(stack, part);
+        RenderUtil.negativePointTranslate(stack, part);
     }
 
-    public static void partScaleTranslate(RendererModel part, double scaleX, double scaleY, double scaleZ) {
-        partScaleTranslate(part, (float) scaleX, (float) scaleY, (float) scaleZ);
+    public static void partScaleTranslate(MatrixStack stack, ModelRenderer part, double scaleX, double scaleY, double scaleZ) {
+        partScaleTranslate(stack, part, (float) scaleX, (float) scaleY, (float) scaleZ);
     }
 
-    public static void offsetTranslate(RendererModel part) {
-        GlStateManager.translatef(xOffset(part), yOffset(part), zOffset(part));
+    public static void offsetTranslate(MatrixStack stack, ModelRenderer part) {
+        stack.translate(xOffset(part), yOffset(part), zOffset(part));
     }
 
-    public static void negativeOffsetTranslate(RendererModel part) {
-        GlStateManager.translatef(-xOffset(part), -yOffset(part), -zOffset(part));
+    public static void negativeOffsetTranslate(MatrixStack stack, ModelRenderer part) {
+        stack.translate(-xOffset(part), -yOffset(part), -zOffset(part));
     }
 
-    public static void pointTranslate(RendererModel part) {
-        GlStateManager.translatef(part.rotationPointX / 16, part.rotationPointY / 16, part.rotationPointZ / 16);
+    public static void pointTranslate(MatrixStack stack, ModelRenderer part) {
+        stack.translate(part.rotationPointX / 16, part.rotationPointY / 16, part.rotationPointZ / 16);
     }
 
-    public static void negativePointTranslate(RendererModel part) {
-        GlStateManager.translatef(-part.rotationPointX / 16, -part.rotationPointY / 16, -part.rotationPointZ / 16);
+    public static void negativePointTranslate(MatrixStack stack, ModelRenderer part) {
+        stack.translate(-part.rotationPointX / 16, -part.rotationPointY / 16, -part.rotationPointZ / 16);
     }
 
-    public static void scale(float scale) {
-        GlStateManager.scalef(scale, scale, scale);
+    public static void scale(MatrixStack stack, float scale) {
+        stack.scale(scale, scale, scale);
     }
 
-    public static void scale(double scale) {
-        scale((float) scale);
+    public static void scale(MatrixStack stack, double scale) {
+        scale(stack, (float) scale);
     }
 
-    public static float xOffset(RendererModel part) {
-        return part.offsetX / 16;
+    public static float xOffset(ModelRenderer part) {
+        return part.cubeList.get(0).posX1 / 16;
     }
 
-    public static float yOffset(RendererModel part) {
-        return part.offsetY / 16;
+    public static float yOffset(ModelRenderer part) {
+        return part.cubeList.get(0).posY1 / 16;
     }
 
-    public static float zOffset(RendererModel part) {
-        return part.offsetZ / 16;
+    public static float zOffset(ModelRenderer part) {
+        return part.cubeList.get(0).posZ1 / 16;
     }
 
 }

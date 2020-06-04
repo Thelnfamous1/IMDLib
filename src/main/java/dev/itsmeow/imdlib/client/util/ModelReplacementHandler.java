@@ -17,6 +17,7 @@ import dev.itsmeow.imdlib.client.render.ImplRenderer.RenderDef;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -90,10 +91,10 @@ public class ModelReplacementHandler {
                             return (EntityRenderer<LivingEntity>) def.factory.createRenderFor(manager);
                         }
                     };
-                    RenderingRegistry.registerEntityRenderingHandler(def.clazz, factory);
-                    LOG.debug(String.format("[%s] Overriding %s / %s in %s", parent_modid, pair.getRight(), def.clazz.getSimpleName(), pair.getLeft()));
+                    RenderingRegistry.registerEntityRenderingHandler(def.type, factory);
+                    LOG.debug(String.format("[%s] Overriding %s / %s in %s", parent_modid, pair.getRight(), def.type.getName(), pair.getLeft()));
                 } else {
-                    LOG.debug(String.format("[%s] Was going to override %s / %s in %s, but it is disabled!", parent_modid, pair.getRight(), def.clazz.getSimpleName(), pair.getLeft()));
+                    LOG.debug(String.format("[%s] Was going to override %s / %s in %s, but it is disabled!", parent_modid, pair.getRight(), def.type.getName(), pair.getLeft()));
                 }
             } else {
                 LOG.debug(String.format("[%s] %s was not replaced, because %s is not loaded! Config %s", parent_modid, pair.getRight(), pair.getLeft(), doReplace));
@@ -120,11 +121,11 @@ public class ModelReplacementHandler {
 
     public static class ReplaceDefinition<T extends LivingEntity> {
 
-        public final Class<T> clazz;
+        public final EntityType<T> type;
         public final IRenderFactory<T> factory;
 
-        public ReplaceDefinition(Class<T> clazz, IRenderFactory<T> factory) {
-            this.clazz = clazz;
+        public ReplaceDefinition(EntityType<T> type, IRenderFactory<T> factory) {
+            this.type = type;
             this.factory = factory;
         }
 
@@ -163,8 +164,8 @@ public class ModelReplacementHandler {
 
     }
 
-    public <T extends MobEntity, A extends EntityModel<T>> ReplaceDefinition<T> lambdaReplace(Class<T> clazz, float shadowSize, RenderDef<T, A> renderDef) {
-        return new ReplaceDefinition<T>(clazz, renderDef.apply(ImplRenderer.<T, A>factory(parent_modid, shadowSize)).done());
+    public <T extends MobEntity, A extends EntityModel<T>> ReplaceDefinition<T> lambdaReplace(EntityType<T> type, float shadowSize, RenderDef<T, A> renderDef) {
+        return new ReplaceDefinition<T>(type, renderDef.apply(ImplRenderer.<T, A>factory(parent_modid, shadowSize)).done());
     }
 
 }
