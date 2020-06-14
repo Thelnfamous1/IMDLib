@@ -20,7 +20,11 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
             if(!this.getImplementation().isChild()) {
                 Biome biome = world.getBiome(this.getImplementation().getPosition());
                 String[] validTypes = this.getTypesFor(biome, BiomeDictionary.getTypes(biome));
-                String variant = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
+                String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
+                IVariant variant = this.getContainer().getVariantForName(varStr);
+                if(variant == null || variant == EntityVariantList.EMPTY_VARIANT) {
+                    throw new RuntimeException("Received invalid variant string from selective type: " + varStr + " on entity " + this.getContainer().entityName);
+                }
                 if(livingdata instanceof TypeData) {
                     variant = ((TypeData) livingdata).typeData;
                 } else {
@@ -30,7 +34,7 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
             }
         } else {
             if(!this.getImplementation().isChild()) {
-                String variant = this.getRandomType().getName();
+                IVariant variant = this.getRandomType();
                 if(livingdata instanceof TypeData) {
                     variant = ((TypeData) livingdata).typeData;
                 } else {

@@ -3,46 +3,39 @@ package dev.itsmeow.imdlib.entity.util;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.google.common.collect.ImmutableList;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 
-import net.minecraft.util.ResourceLocation;
+import com.google.common.collect.ImmutableList;
 
 public class EntityVariantList {
 
     private final ArrayList<IVariant> variantList;
     private final HashMap<String, IVariant> nameMap;
-    private static final IVariant EMPTY_VARIANT = new EntityVariant("minecraft", "empty", false);
+    public static final IVariant EMPTY_VARIANT = new EntityVariant("minecraft", "empty", false);
 
     public EntityVariantList(int size) {
         this.variantList = new ArrayList<IVariant>(size);
         this.nameMap = new HashMap<String, IVariant>(size);
     }
 
-    public IVariant getVariant(int index) {
+    @Deprecated
+    public IVariant getVariantForIndex(int index) {
         return variantList.get(index);
     }
 
-    public int getVariantIndex(String variant) {
-        return variantList.indexOf(getVariant(variant));
-    }
-
+    @Deprecated
     public int getVariantIndex(IVariant variant) {
         return variantList.indexOf(variant);
     }
 
-    public IVariant getVariant(String name) {
-        if(!nameMap.containsKey(name)) {
+    @Nullable
+    @CheckForNull
+    public IVariant getVariantForName(String name) {
+        if(name == null || "".equals(name) || !nameMap.containsKey(name)) {
             return EMPTY_VARIANT; // stop crashing if name is invalid
         }
         return nameMap.get(name);
-    }
-
-    public ResourceLocation getTexture(String name) {
-        return getVariant(name).getTexture();
-    }
-
-    public String getName(String name) {
-        return getVariant(name).getName();
     }
 
     public ImmutableList<IVariant> getVariantList() {

@@ -1,5 +1,7 @@
 package dev.itsmeow.imdlib.entity.util;
 
+import java.util.Optional;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.ILivingEntityData;
@@ -22,7 +24,10 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     }
 
     default IVariantTypes<T> setType(String variantKey) {
-        this.getImplementation().getDataManager().set(getContainer().getVariantDataKey(), this.getContainer().getVariant(variantKey).getName());
+        if(getContainer().getVariantForName(variantKey) == null) {
+            variantKey = getRandomType().getName();
+        }
+        this.getImplementation().getDataManager().set(getContainer().getVariantDataKey(), variantKey);
         return this;
     }
 
@@ -32,7 +37,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     }
 
     default void writeType(CompoundNBT compound) {
-        compound.putString("VariantId", this.getVariant().getName());
+        compound.putString("VariantId", this.getVariantName());
     }
 
     default void readType(CompoundNBT compound) {
@@ -40,24 +45,24 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     }
 
     default IVariant getOffspringType(IVariantTypes<?> parent1, IVariantTypes<?> parent2) {
-        return this.getImplementation().getRNG().nextBoolean() ? parent1.getVariant() : parent2.getVariant();
+        return this.getImplementation().getRNG().nextBoolean() ? parent1.getVariant().orElseGet(() -> parent2.getVariant().orElseGet(this::getRandomType)) : parent2.getVariant().orElseGet(() -> parent1.getVariant().orElseGet(this::getRandomType));
     }
 
     default IVariant getRandomType() {
-        return getContainer().getVariant(this.getImplementation().getRNG().nextInt(getContainer().getVariantMax()));
+        return getContainer().getVariants().get(this.getImplementation().getRNG().nextInt(getContainer().getVariantMax()));
     }
 
     public static class TypeData implements ILivingEntityData {
-        public String typeData;
+        public IVariant typeData;
 
-        public TypeData(String type) {
+        public TypeData(IVariant type) {
             this.typeData = type;
         }
     }
 
     @Nullable
     default ILivingEntityData initData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
-        String variant = this.getRandomType().getName();
+        IVariant variant = this.getRandomType();
         if(livingdata instanceof TypeData) {
             variant = ((TypeData) livingdata).typeData;
         } else {
@@ -67,16 +72,23 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
         return livingdata;
     }
 
-    default IVariant getVariant() {
-        return this.getContainer().getVariant(this.getVariantString());
+    /**
+     * Uses optional to ensure null-safety
+     */
+    default Optional<IVariant> getVariant() {
+        return Optional.ofNullable(this.getContainer().getVariantForName(this.getVariantString()));
     }
 
+    @Nullable
     default ResourceLocation getVariantTexture() {
-        return getVariant().getTexture();
+        Optional<IVariant> variant = getVariant();
+        return variant.isPresent() ? variant.get().getTexture() : null;
     }
 
+    @Nullable
     default String getVariantName() {
-        return getVariant().getName();
+        Optional<IVariant> variant = getVariant();
+        return variant.isPresent() ? variant.get().getName() : "";
     }
 
 }

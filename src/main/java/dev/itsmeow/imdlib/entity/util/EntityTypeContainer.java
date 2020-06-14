@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
@@ -396,22 +397,22 @@ public class EntityTypeContainer<T extends MobEntity> {
         return this.variantMax;
     }
 
-    public IVariant getVariant(String name) {
-        return this.variantList.getVariant(name);
+    @Nullable
+    @CheckForNull
+    public IVariant getVariantForName(String name) {
+        return this.variantList.getVariantForName(name);
     }
 
-    public IVariant getVariant(int index) {
-        return this.variantList.getVariant(index);
+    @Deprecated
+    public IVariant getVariantForIndex(int index) {
+        return this.variantList.getVariantForIndex(index);
     }
 
     public ImmutableList<IVariant> getVariants() {
         return this.variantList.getVariantList();
     }
 
-    public int getVariantIndex(String variant) {
-        return this.variantList.getVariantIndex(variant);
-    }
-
+    @Deprecated
     public int getVariantIndex(IVariant variant) {
         return this.variantList.getVariantIndex(variant);
     }
