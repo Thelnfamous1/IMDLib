@@ -207,6 +207,21 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             return this;
         }
 
+        public Builder<T, A> tSingleRaw(ResourceLocation texture) {
+            this.tex = new TextureContainer<T, A>(texture);
+            return this;
+        }
+
+        public Builder<T, A> tConditionRaw(Predicate<T> condition, ResourceLocation trueTex, ResourceLocation falseTex) {
+            this.tex = new TextureContainer<T, A>(condition, trueTex, falseTex);
+            return this;
+        }
+
+        public Builder<T, A> tMappedRaw(Function<T, ResourceLocation> texMapper) {
+            this.tex = new TextureContainer<T, A>(texMapper);
+            return this;
+        }
+
         public Builder<T, A> mSingle(A model) {
             this.model = new ModelContainer<T, A>(model);
             return this;
