@@ -133,7 +133,7 @@ public class EntityRegistrarHandler {
                         for(Biome biome : entry.getBiomes()) {
                             try {
                                 biome.addSpawn(entry.spawnType, new SpawnListEntry((EntityType<? extends MobEntity>) type, entry.spawnWeight, entry.spawnMinGroup, entry.spawnMaxGroup));
-                            } catch(RuntimeException e) {
+                            } catch(IllegalAccessError e) {
                                 try {
                                     ADDSPAWN.invoke(biome, entry.spawnType, new SpawnListEntry((EntityType<? extends MobEntity>) type, entry.spawnWeight, entry.spawnMinGroup, entry.spawnMaxGroup));
                                 } catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
