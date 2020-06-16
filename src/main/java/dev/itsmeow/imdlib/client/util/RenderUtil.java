@@ -1,12 +1,22 @@
 package dev.itsmeow.imdlib.client.util;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import com.mojang.blaze3d.matrix.MatrixStack;
 
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import net.minecraft.client.renderer.Vector3f;
 import net.minecraft.client.renderer.model.ModelRenderer;
+import net.minecraft.client.renderer.model.ModelRenderer.ModelBox;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class RenderUtil {
+
+    private static final Map<ModelRenderer, ModelBox> cubeList = new WeakHashMap<ModelRenderer, ModelBox>();
+    private static final Field cubeListField = ObfuscationReflectionHelper.findField(ModelRenderer.class, "field_78804_l");
 
     public static Vec3d partLocation(ModelRenderer... parts) {
         float x = 0F;
@@ -79,15 +89,31 @@ public class RenderUtil {
     }
 
     public static float xOffset(ModelRenderer part) {
-        return part.cubeList.get(0).posX1 / 16;
+        return getPartBox(part).posX1 / 16;
     }
 
     public static float yOffset(ModelRenderer part) {
-        return part.cubeList.get(0).posY1 / 16;
+        return getPartBox(part).posY1 / 16;
     }
 
     public static float zOffset(ModelRenderer part) {
-        return part.cubeList.get(0).posZ1 / 16;
+        return getPartBox(part).posZ1 / 16;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ModelBox getPartBox(ModelRenderer part) {
+        if(cubeList.containsKey(part)) {
+            return cubeList.get(part);
+        } else {
+            try {
+                ModelBox box = ((ObjectList<ModelBox>) cubeListField.get(part)).get(0);
+                cubeList.put(part, box);
+                return box;
+            } catch(IllegalArgumentException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
 }
