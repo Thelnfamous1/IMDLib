@@ -153,10 +153,11 @@ public class EntityRegistrarHandler {
             "saves/(world)/serverconfig/" + modid + "-server.toml",
             "or, on a dedicated server:",
             "(world)/serverconfig/" + modid + "-server.toml");
-            for(EntityTypeContainer<?> cont : ENTITIES.values()) {
-                cont.clientCustomConfigurationInit(builder);
+            builder.push("entities");
+            {
+                ENTITIES.values().forEach(c -> c.clientCustomConfigurationInit(builder));
             }
-            ENTITIES.values().forEach(c -> c.clientCustomConfigurationInit(builder));
+            builder.pop();
         }
 
         public void onLoad() {
