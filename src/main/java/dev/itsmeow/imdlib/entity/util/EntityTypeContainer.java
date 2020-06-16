@@ -69,8 +69,11 @@ public class EntityTypeContainer<T extends MobEntity> {
     protected EntityVariantList variantList;
     protected int variantMax;
     protected DataParameter<String> variantDataKey;
+    
+    protected final String modid;
 
-    protected EntityTypeContainer(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate) {
+    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate) {
+        this.modid = modid;
         this.entityClass = EntityClass;
         this.factory = func;
         this.entityName = entityNameIn;
@@ -117,11 +120,13 @@ public class EntityTypeContainer<T extends MobEntity> {
         protected EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate;
         protected int variantCount = 0;
         protected IVariant[] variants;
+        protected final String modid;
 
-        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn) {
+        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
             this.entityClass = EntityClass;
             this.factory = func;
             this.entityName = entityNameIn;
+            this.modid = modid;
             this.eggColorSolid = 0x000000;
             this.eggColorSpot = 0xffffff;
             this.spawnWeight = 1;
@@ -213,7 +218,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             this.variants = new EntityVariant[nameTextures.length];
             for(int i = 0; i < nameTextures.length; i++) {
                 String nameTex = nameTextures[i];
-                variants[i] = new EntityVariant(nameTex, this.entityName + "_" + nameTex);
+                variants[i] = new EntityVariant(modid, nameTex, this.entityName + "_" + nameTex);
             }
             return this;
         }
@@ -224,7 +229,7 @@ public class EntityTypeContainer<T extends MobEntity> {
                 this.variants = new EntityVariant[max];
                 for(int i = 0; i < max; i++) {
                     String nameTex = String.valueOf(i + 1);
-                    variants[i] = new EntityVariant(nameTex, this.entityName + "_" + nameTex);
+                    variants[i] = new EntityVariant(modid, nameTex, this.entityName + "_" + nameTex);
                 }
             } else {
                 throw new RuntimeException("what are you doing kid");
@@ -240,13 +245,13 @@ public class EntityTypeContainer<T extends MobEntity> {
 
         public EntityTypeContainer<T> build() {
             preBuild();
-            EntityTypeContainer<T> container = new EntityTypeContainer<T>(entityClass, factory, entityName, spawnType, eggColorSolid, eggColorSpot, spawnWeight, spawnMinGroup, spawnMaxGroup, width, height, despawn, variantCount, variants, customConfig, customClientConfig, defaultBiomeSupplier, placementType, heightMapType, placementPredicate);
+            EntityTypeContainer<T> container = new EntityTypeContainer<T>(modid, entityClass, factory, entityName, spawnType, eggColorSolid, eggColorSpot, spawnWeight, spawnMinGroup, spawnMaxGroup, width, height, despawn, variantCount, variants, customConfig, customClientConfig, defaultBiomeSupplier, placementType, heightMapType, placementPredicate);
             postBuild(container);
             return container;
         }
 
-        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn) {
-            return new Builder<T>(EntityClass, func, entityNameIn);
+        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
+            return new Builder<T>(EntityClass, func, entityNameIn, modid);
         }
 
     }
@@ -387,6 +392,10 @@ public class EntityTypeContainer<T extends MobEntity> {
                 placementRegistered = true;
             }
         }
+    }
+
+    public String getModId() {
+        return modid;
     }
 
     public boolean hasVariants() {
