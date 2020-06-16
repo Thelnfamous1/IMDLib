@@ -32,10 +32,7 @@ public class EntityVariantList {
     @Nullable
     @CheckForNull
     public IVariant getVariantForName(String name) {
-        if(name == null || "".equals(name) || !nameMap.containsKey(name)) {
-            return EMPTY_VARIANT; // stop crashing if name is invalid
-        }
-        return nameMap.get(name);
+        return nameMap.getOrDefault(name, EMPTY_VARIANT);
     }
 
     public ImmutableList<IVariant> getVariantList() {
