@@ -91,7 +91,11 @@ public class EntityRegistrarHandler {
     public class ServerEntityConfiguration {
 
         ServerEntityConfiguration(ForgeConfigSpec.Builder builder) {
-            ENTITIES.values().forEach(c -> c.initConfiguration(builder));
+            builder.push("entities");
+            {
+                ENTITIES.values().forEach(c -> c.initConfiguration(builder));
+            }
+            builder.pop();
         }
 
         public void onLoad() {
