@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.entity.util;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
 public class EntityVariant implements IVariant {
@@ -35,7 +36,7 @@ public class EntityVariant implements IVariant {
     }
 
     @Override
-    public ResourceLocation getTexture() {
+    public ResourceLocation getTexture(Entity entity) {
         return texture;
     }
 

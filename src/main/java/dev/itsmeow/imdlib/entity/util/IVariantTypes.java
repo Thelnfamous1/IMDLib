@@ -82,7 +82,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     @Nullable
     default ResourceLocation getVariantTexture() {
         Optional<IVariant> variant = getVariant();
-        return variant.isPresent() ? variant.get().getTexture() : null;
+        return variant.isPresent() ? variant.get().getTexture(this.getImplementation()) : null;
     }
 
     @Nullable
