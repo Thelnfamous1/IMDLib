@@ -37,7 +37,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     }
 
     default void writeType(CompoundNBT compound) {
-        compound.putString("VariantId", this.getVariantName());
+        compound.putString("VariantId", this.getVariantNameOrEmpty());
     }
 
     default void readType(CompoundNBT compound) {
@@ -80,13 +80,12 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     }
 
     @Nullable
-    default ResourceLocation getVariantTexture() {
+    default ResourceLocation getVariantTextureOrNull() {
         Optional<IVariant> variant = getVariant();
         return variant.isPresent() ? variant.get().getTexture(this.getImplementation()) : null;
     }
 
-    @Nullable
-    default String getVariantName() {
+    default String getVariantNameOrEmpty() {
         Optional<IVariant> variant = getVariant();
         return variant.isPresent() ? variant.get().getName() : "";
     }
