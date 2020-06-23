@@ -10,22 +10,22 @@ public class EntityVariant implements IVariant {
     protected boolean hasHead = true;
 
     public EntityVariant(String modid, String nameTexture) {
-        this.texture = new ResourceLocation(modid, "textures/entities/" + nameTexture + ".png");
+        this.texture = new ResourceLocation(modid, "textures/entity/" + nameTexture + ".png");
         this.name = nameTexture;
     }
 
     public EntityVariant(String modid, String nameTexture, boolean hasHead) {
-        this.texture = new ResourceLocation(modid, "textures/entities/" + nameTexture + ".png");
+        this.texture = new ResourceLocation(modid, "textures/entity/" + nameTexture + ".png");
         this.hasHead = hasHead;
     }
 
     public EntityVariant(String modid, String name, String texture) {
-        this.texture = new ResourceLocation(modid, "textures/entities/" + texture + ".png");
+        this.texture = new ResourceLocation(modid, "textures/entity/" + texture + ".png");
         this.name = name;
     }
 
     public EntityVariant(String modid, String name, String texture, boolean hasHead) {
-        this.texture = new ResourceLocation(modid, "textures/entities/" + texture + ".png");
+        this.texture = new ResourceLocation(modid, "textures/entity/" + texture + ".png");
         this.name = name;
         this.hasHead = hasHead;
     }
