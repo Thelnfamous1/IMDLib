@@ -10,9 +10,11 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import dev.itsmeow.imdlib.entity.util.IVariantTypes;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.renderer.entity.model.EntityModel;
+import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
@@ -223,6 +225,15 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             return this;
         }
 
+        public Builder<T, A> tVariant() {
+            return tMappedRaw(e -> {
+                if(e instanceof IVariantTypes<?>) {
+                    return ((IVariantTypes<?>) e).getVariantTextureOrNull();
+                }
+                return null;
+            });
+        }
+
         public Builder<T, A> mSingle(A model) {
             this.model = new ModelContainer<T, A>(model);
             return this;
@@ -242,18 +253,63 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             this.preRender = preRender;
             return this;
         }
-
-        public Builder<T, A> childScale(Predicate<T> isChild, float xScale, float yScale, float zScale) {
+            
+        public Builder<T, A> condScale(Predicate<T> cond, float xScale, float yScale, float zScale) {
             preRender((e, s, p) -> {
-                if(isChild.test(e)) {
+                if(cond.test(e)) {
                     s.scale(xScale, yScale, zScale);
                 }
             });
             return this;
         }
 
-        public Builder<T, A> childScale(Predicate<T> isChild, float scale) {
-            return childScale(isChild, scale, scale, scale);
+        public Builder<T, A> condScale(Predicate<T> cond, float scale) {
+            return condScale(cond, scale, scale, scale);
+        }
+
+        public Builder<T, A> condDualScale(Predicate<T> cond, float truexScale, float trueyScale, float truezScale, float falsexScale, float falseyScale, float falsezScale) {
+            preRender((e, s, p) -> {
+                if(cond.test(e)) {
+                    s.scale(truexScale, trueyScale, truezScale);
+                } else {
+                    s.scale(falsexScale, falseyScale, falsezScale);
+                }
+            });
+            return this;
+        }
+
+        public Builder<T, A> childDualScale(Predicate<T> cond, float trueScale, float falseScale) {
+            return condDualScale(cond, trueScale, trueScale, trueScale, falseScale, falseScale, falseScale);
+        }
+
+        public Builder<T, A> childScale(float xScale, float yScale, float zScale) {
+            preRender((e, s, p) -> {
+                if(e instanceof AgeableEntity && e.isChild()) {
+                    s.scale(xScale, yScale, zScale);
+                }
+            });
+            return this;
+        }
+
+        public Builder<T, A> childScale(float scale) {
+            return childScale(scale, scale, scale);
+        }
+
+        public Builder<T, A> ageScale(float adultxScale, float adultyScale, float adultzScale, float childxScale, float childyScale, float childzScale) {
+            preRender((e, s, p) -> {
+                if(e instanceof AgeableEntity) {
+                    if(e.isChild()) {
+                        s.scale(childxScale, childyScale, childzScale);
+                    } else {
+                        s.scale(adultxScale, adultyScale, adultzScale);
+                    }
+                }
+            });
+            return this;
+        }
+
+        public Builder<T, A> ageScale(float adultScale, float childScale) {
+            return ageScale(adultScale, adultScale, adultScale, childScale, childScale, childScale);
         }
 
         public Builder<T, A> handleRotation(HandleRotation<T> handleRotationFunc) {
