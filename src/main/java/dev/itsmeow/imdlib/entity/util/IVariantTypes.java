@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.entity.AgeableEntity.AgeableData;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
@@ -60,6 +61,54 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
         }
     }
 
+    public static class AgeableTypeData extends AgeableData {
+        public IVariant typeData;
+        private int inc;
+        private boolean bool = true;
+        private float num = 0.05F;
+
+        public AgeableTypeData(IVariant type) {
+            this.typeData = type;
+        }
+
+        public AgeableTypeData(AgeableData data, IVariant type) {
+            this.typeData = type;
+            this.inc = data.func_226257_a_();
+            this.bool = data.func_226261_c_();
+            this.num = data.func_226262_d_();
+        }
+
+        @Override
+        public int func_226257_a_() {
+            return this.inc;
+        }
+
+        @Override
+        public void func_226260_b_() {
+            ++this.inc;
+        }
+
+        @Override
+        public boolean func_226261_c_() {
+            return this.bool;
+        }
+
+        @Override
+        public void func_226259_a_(boolean newBool) {
+            this.bool = newBool;
+        }
+
+        @Override
+        public float func_226262_d_() {
+            return this.num;
+        }
+
+        @Override
+        public void func_226258_a_(float newVal) {
+            this.num = newVal;
+        }
+    }
+
     @Nullable
     default ILivingEntityData initData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
         IVariant variant = this.getRandomType();
@@ -67,6 +116,20 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
             variant = ((TypeData) livingdata).typeData;
         } else {
             livingdata = new TypeData(variant);
+        }
+        this.setType(variant);
+        return livingdata;
+    }
+
+    @Nullable
+    default ILivingEntityData initAgeableData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
+        IVariant variant = this.getRandomType();
+        if(livingdata instanceof AgeableTypeData) {
+            variant = ((AgeableTypeData) livingdata).typeData;
+        } else if(livingdata instanceof AgeableData) {
+            livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
+        } else {
+            livingdata = new AgeableTypeData(variant);
         }
         this.setType(variant);
         return livingdata;
