@@ -84,6 +84,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private ResourceLocation trueTex;
         private ResourceLocation falseTex;
         private Predicate<T> condition;
+        private ResourceLocation conditionTex;
 
         public TextureContainer(ResourceLocation singleTexture) {
             this.strategy = Strategy.SINGLE;
@@ -93,6 +94,13 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         public TextureContainer(Function<T, ResourceLocation> texMapper) {
             this.strategy = Strategy.MAPPER;
             this.texMapper = texMapper;
+        }
+
+        public TextureContainer(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+            this.strategy = Strategy.MAPPER_CONDITION;
+            this.texMapper = texMapper;
+            this.condition = condition;
+            this.conditionTex = conditionTex;
         }
 
         public TextureContainer(Predicate<T> condition, ResourceLocation trueTex, ResourceLocation falseTex) {
@@ -110,6 +118,10 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
                 return texMapper.apply(entity);
             case CONDITION:
                 return condition.test(entity) ? trueTex : falseTex;
+            case MAPPER_CONDITION:
+                return condition.test(entity) ? conditionTex : texMapper.apply(entity);
+            default:
+                break;
             }
             return null;
         }
@@ -123,6 +135,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private A trueModel;
         private EntityModel<T> falseModel;
         private Predicate<T> condition;
+        private EntityModel<T> conditionModel;
 
         public ModelContainer(A baseModel) {
             this.strategy = Strategy.SINGLE;
@@ -133,6 +146,14 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             this.strategy = Strategy.MAPPER;
             this.modelMapper = modelMapper;
             this.baseModel = baseModel;
+        }
+
+        public ModelContainer(Predicate<T> condition, Function<T, EntityModel<T>> modelMapper, A baseModel, EntityModel<T> conditionModel) {
+            this.strategy = Strategy.MAPPER;
+            this.modelMapper = modelMapper;
+            this.baseModel = baseModel;
+            this.conditionModel = conditionModel;
+            this.condition = condition;
         }
 
         public ModelContainer(Predicate<T> condition, A trueModel, EntityModel<T> falseModel) {
@@ -151,6 +172,10 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
                 return modelMapper.apply(entity);
             case CONDITION:
                 return condition.test(entity) ? trueModel : falseModel;
+            case MAPPER_CONDITION:
+                return condition.test(entity) ? conditionModel : modelMapper.apply(entity);
+            default:
+                break;
             }
             return null;
         }
@@ -163,6 +188,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     public enum Strategy {
         SINGLE,
         MAPPER,
+        MAPPER_CONDITION,
         CONDITION;
     }
 
@@ -231,6 +257,43 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
                 }
                 return null;
             });
+        }
+
+        public Builder<T, A> tMappedConditionRaw(Predicate<T> condition, Function<T, ResourceLocation> texMapper, String conditionTex) {
+            return tMappedConditionRaw(condition, texMapper, tex(modid, conditionTex));
+        }
+
+        public Builder<T, A> tMappedConditionRaw(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+            this.tex = new TextureContainer<T, A>(condition, texMapper, conditionTex);
+            return this;
+        }
+
+        public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, String conditionTex) {
+            return tVariantCondition(condition, texMapper, tex(modid, conditionTex));
+        }
+
+        public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+            this.tex = new TextureContainer<T, A>(condition, e -> {
+                if(e instanceof IVariantTypes<?>) {
+                    return ((IVariantTypes<?>) e).getVariantTextureOrNull();
+                }
+                return null;
+            }, conditionTex);
+            return this;
+        }
+
+        public Builder<T, A> tBabyVariant(String babyTex) {
+            return tVariantCondition(e -> {
+                if(e instanceof AgeableEntity) {
+                    return e.isChild();
+                }
+                return false;
+            }, e -> {
+                if(e instanceof IVariantTypes<?>) {
+                    return ((IVariantTypes<?>) e).getVariantTextureOrNull();
+                }
+                return null;
+            }, tex(modid, babyTex));
         }
 
         public Builder<T, A> mSingle(A model) {
