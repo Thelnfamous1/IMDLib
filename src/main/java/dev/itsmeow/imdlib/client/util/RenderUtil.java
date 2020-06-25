@@ -32,6 +32,15 @@ public class RenderUtil {
 
     public static void partTranslateRotate(MatrixStack stack, ModelRenderer... parts) {
         for(ModelRenderer part : parts) {
+            RenderUtil.pointTranslate(stack, part);
+            stack.rotate(Vector3f.XP.rotation(part.rotateAngleX));
+            stack.rotate(Vector3f.YP.rotation(part.rotateAngleY));
+            stack.rotate(Vector3f.ZP.rotation(part.rotateAngleZ));
+        }
+    }
+
+    public static void partTranslateOffsetRotate(MatrixStack stack, ModelRenderer... parts) {
+        for(ModelRenderer part : parts) {
             RenderUtil.offsetTranslate(stack, part);
             RenderUtil.pointTranslate(stack, part);
             stack.rotate(Vector3f.XP.rotation(part.rotateAngleX));
