@@ -381,6 +381,7 @@ public class EntityTypeContainer<T extends MobEntity> {
         void customConfigurationLoad();
     }
 
+    @SuppressWarnings("deprecation")
     protected static <T extends MobEntity> boolean waterSpawn(EntityType<T> type, IWorld world, SpawnReason reason, BlockPos pos, Random rand) {
         return pos.getY() > 45 && pos.getY() < (world.getSeaLevel() - 1) && world.getBlockState(pos).getBlock() == Blocks.WATER;
     }

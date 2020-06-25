@@ -7,10 +7,10 @@ import java.util.WeakHashMap;
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import net.minecraft.client.renderer.Vector3f;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.client.renderer.model.ModelRenderer.ModelBox;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class RenderUtil {
@@ -18,7 +18,7 @@ public class RenderUtil {
     private static final Map<ModelRenderer, ModelBox> cubeList = new WeakHashMap<ModelRenderer, ModelBox>();
     private static final Field cubeListField = ObfuscationReflectionHelper.findField(ModelRenderer.class, "field_78804_l");
 
-    public static Vec3d partLocation(ModelRenderer... parts) {
+    public static Vector3d partLocation(ModelRenderer... parts) {
         float x = 0F;
         float y = 0F;
         float z = 0F;
@@ -27,7 +27,7 @@ public class RenderUtil {
             y += part.rotateAngleY + yOffset(part);
             z += part.rotateAngleZ + zOffset(part);
         }
-        return new Vec3d(x, y, z);
+        return new Vector3d(x, y, z);
     }
 
     public static void partTranslateRotate(MatrixStack stack, ModelRenderer... parts) {

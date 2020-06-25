@@ -19,7 +19,7 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
     default ILivingEntityData initData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
         if(!this.getImplementation().isChild()) {
             if(this.getContainer().biomeVariants && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL)) {
-                Biome biome = world.getBiome(this.getImplementation().getPosition());
+                Biome biome = world.getBiome(this.getImplementation().func_233580_cy_());
                 String[] validTypes = this.getTypesFor(biome, BiomeDictionary.getTypes(biome));
                 String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
                 IVariant variant = this.getContainer().getVariantForName(varStr);
@@ -50,7 +50,7 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
     default ILivingEntityData initAgeableData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
         if(!this.getImplementation().isChild()) {
             if(this.getContainer().biomeVariants && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL)) {
-                Biome biome = world.getBiome(this.getImplementation().getPosition());
+                Biome biome = world.getBiome(this.getImplementation().func_233580_cy_());
                 String[] validTypes = this.getTypesFor(biome, BiomeDictionary.getTypes(biome));
                 String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
                 IVariant variant = this.getContainer().getVariantForName(varStr);
