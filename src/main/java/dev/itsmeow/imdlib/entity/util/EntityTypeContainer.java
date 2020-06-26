@@ -21,6 +21,7 @@ import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -71,8 +72,9 @@ public class EntityTypeContainer<T extends MobEntity> {
     protected DataParameter<String> variantDataKey;
     
     protected final String modid;
+    protected final AttributeModifierMap.MutableAttribute attributeMap;
 
-    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate) {
+    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate, AttributeModifierMap.MutableAttribute attributeMap) {
         this.modid = modid;
         this.entityClass = EntityClass;
         this.factory = func;
@@ -97,6 +99,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             variantList = new EntityVariantList(variantMax);
             variantList.add(variants);
         }
+        this.attributeMap = attributeMap;
     }
 
     public static class Builder<T extends MobEntity> {
@@ -121,8 +124,9 @@ public class EntityTypeContainer<T extends MobEntity> {
         protected int variantCount = 0;
         protected IVariant[] variants;
         protected final String modid;
+        protected final AttributeModifierMap.MutableAttribute attributes;
 
-        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
+        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, AttributeModifierMap.MutableAttribute attributeMap, String modid) {
             this.entityClass = EntityClass;
             this.factory = func;
             this.entityName = entityNameIn;
@@ -141,6 +145,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             this.placementType = null;
             this.heightMapType = null;
             this.placementPredicate = null;
+            this.attributes = attributeMap;
         }
 
         public Builder<T> spawn(EntityClassification type, int weight, int min, int max) {
@@ -245,13 +250,13 @@ public class EntityTypeContainer<T extends MobEntity> {
 
         public EntityTypeContainer<T> build() {
             preBuild();
-            EntityTypeContainer<T> container = new EntityTypeContainer<T>(modid, entityClass, factory, entityName, spawnType, eggColorSolid, eggColorSpot, spawnWeight, spawnMinGroup, spawnMaxGroup, width, height, despawn, variantCount, variants, customConfig, customClientConfig, defaultBiomeSupplier, placementType, heightMapType, placementPredicate);
+            EntityTypeContainer<T> container = new EntityTypeContainer<T>(modid, entityClass, factory, entityName, spawnType, eggColorSolid, eggColorSpot, spawnWeight, spawnMinGroup, spawnMaxGroup, width, height, despawn, variantCount, variants, customConfig, customClientConfig, defaultBiomeSupplier, placementType, heightMapType, placementPredicate, attributes);
             postBuild(container);
             return container;
         }
 
-        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            return new Builder<T>(EntityClass, func, entityNameIn, modid);
+        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, AttributeModifierMap.MutableAttribute attributeMap, String modid) {
+            return new Builder<T>(EntityClass, func, entityNameIn, attributeMap, modid);
         }
 
     }
@@ -397,6 +402,10 @@ public class EntityTypeContainer<T extends MobEntity> {
 
     public String getModId() {
         return modid;
+    }
+
+    public AttributeModifierMap.MutableAttribute getAttributeBuilder() {
+        return attributeMap;
     }
 
     public boolean hasVariants() {
