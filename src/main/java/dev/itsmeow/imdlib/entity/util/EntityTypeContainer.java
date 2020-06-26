@@ -22,6 +22,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -72,9 +73,9 @@ public class EntityTypeContainer<T extends MobEntity> {
     protected DataParameter<String> variantDataKey;
     
     protected final String modid;
-    protected final AttributeModifierMap.MutableAttribute attributeMap;
+    protected final Supplier<AttributeModifierMap.MutableAttribute> attributeMap;
 
-    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate, AttributeModifierMap.MutableAttribute attributeMap) {
+    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate, Supplier<AttributeModifierMap.MutableAttribute> attributeMap) {
         this.modid = modid;
         this.entityClass = EntityClass;
         this.factory = func;
@@ -124,9 +125,9 @@ public class EntityTypeContainer<T extends MobEntity> {
         protected int variantCount = 0;
         protected IVariant[] variants;
         protected final String modid;
-        protected final AttributeModifierMap.MutableAttribute attributes;
+        protected final Supplier<AttributeModifierMap.MutableAttribute> attributes;
 
-        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, AttributeModifierMap.MutableAttribute attributeMap, String modid) {
+        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
             this.entityClass = EntityClass;
             this.factory = func;
             this.entityName = entityNameIn;
@@ -255,7 +256,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             return container;
         }
 
-        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, AttributeModifierMap.MutableAttribute attributeMap, String modid) {
+        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
             return new Builder<T>(EntityClass, func, entityNameIn, attributeMap, modid);
         }
 
@@ -404,8 +405,15 @@ public class EntityTypeContainer<T extends MobEntity> {
         return modid;
     }
 
-    public AttributeModifierMap.MutableAttribute getAttributeBuilder() {
+    public Supplier<AttributeModifierMap.MutableAttribute> getAttributeBuilder() {
         return attributeMap;
+    }
+
+    public boolean registerAttributes() {
+        if(attributeMap != null) {
+            return GlobalEntityTypeAttributes.put(entityType, attributeMap.get().func_233813_a_()) != null;
+        }
+        return false;
     }
 
     public boolean hasVariants() {

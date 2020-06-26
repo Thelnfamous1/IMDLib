@@ -16,7 +16,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -51,9 +50,6 @@ public class EntityRegistrarHandler {
         EntityTypeContainer<T> c = builder.build();
         c.entityType = this.createEntityType(c);
         ENTITIES.put(c.entityName, c);
-        if(c.getAttributeBuilder() != null) {
-            GlobalEntityTypeAttributes.put(c.entityType, c.getAttributeBuilder().func_233813_a_());
-        }
         return c;
     }
 
