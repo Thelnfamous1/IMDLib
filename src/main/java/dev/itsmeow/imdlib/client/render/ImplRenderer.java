@@ -1,6 +1,8 @@
 package dev.itsmeow.imdlib.client.render;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -209,6 +211,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private HandleRotation<T> handleRotation;
         private ApplyRotations<T> applyRotations;
         private SuperCallApplyRotations superCallApplyRotations = SuperCallApplyRotations.NONE;
+        private Map<String, ResourceLocation> texMapper = new HashMap<String, ResourceLocation>();
 
         protected Builder(String modid, float shadow) {
             this.modid = modid;
@@ -231,7 +234,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> tMapped(Function<T, String> texMapper) {
-            this.tex = new TextureContainer<T, A>(entity -> tex(modid, texMapper.apply(entity)));
+            this.tex = new TextureContainer<T, A>(entity -> texStored(texMapper.apply(entity)));
             return this;
         }
 
@@ -395,14 +398,14 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             }
             return mgr -> new ImplRenderer<T, A>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations).layers(layers);
         }
+
+        private ResourceLocation texStored(String location) {
+            return texMapper.computeIfAbsent(location, l -> tex(modid, l));
+        }
     }
 
     public static <T extends MobEntity, A extends EntityModel<T>> Builder<T, A> factory(String modid, float shadow) {
         return new Builder<T, A>(modid, shadow);
-    }
-
-    private static ResourceLocation tex(String modid, String location) {
-        return new ResourceLocation(modid, "textures/entity/" + location + ".png");
     }
 
     @FunctionalInterface
@@ -423,6 +426,10 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     @FunctionalInterface
     public static interface RenderDef<T extends MobEntity, A extends EntityModel<T>> {
         public abstract ImplRenderer.Builder<T, A> apply(ImplRenderer.Builder<T, A> renderer);
+    }
+
+    private static ResourceLocation tex(String modid, String location) {
+        return new ResourceLocation(modid, "textures/entity/" + location + ".png");
     }
 
 }
