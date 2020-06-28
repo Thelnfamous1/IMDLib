@@ -18,7 +18,7 @@ public class ModSpawnEggItem extends SpawnEggItem {
         super(container.entityType, container.eggColorSolid, container.eggColorSpot, new Properties().group(ItemGroup.MISC));
         this.type = container.entityType;
         this.modid = container.getModId();
-        this.setRegistryName(container.entityName.toLowerCase().toString() + "_spawn_egg");
+        this.setRegistryName(container.getModId(), container.entityName.toLowerCase().toString() + "_spawn_egg");
     }
 
     @Override
