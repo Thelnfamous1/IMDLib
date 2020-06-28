@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
@@ -42,6 +43,7 @@ public class EntityTypeContainer<T extends MobEntity> {
     public final String entityName;
     public final EntityClassification spawnType;
     public final Function<World, T> factory;
+    public final boolean hasEgg;
     public final int eggColorSolid;
     public final int eggColorSpot;
     public int spawnWeight;
@@ -72,11 +74,12 @@ public class EntityTypeContainer<T extends MobEntity> {
     
     protected final String modid;
 
-    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate) {
+    protected EntityTypeContainer(String modid, Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification type, boolean hasEgg, int solidColorIn, int spotColorIn, int prob, int min, int max, float width, float height, boolean despawn, int variantMax, IVariant[] variants, @Nullable CustomConfigurationHolder customConfig, @Nullable CustomConfigurationHolder customClientConfig, Supplier<Set<Biome>> biomes, EntitySpawnPlacementRegistry.PlacementType placementType, Heightmap.Type heightMapType, EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate) {
         this.modid = modid;
         this.entityClass = EntityClass;
         this.factory = func;
         this.entityName = entityNameIn;
+        this.hasEgg = hasEgg;
         this.eggColorSolid = solidColorIn;
         this.eggColorSpot = spotColorIn;
         this.spawnWeight = prob;
@@ -96,6 +99,9 @@ public class EntityTypeContainer<T extends MobEntity> {
         if(this.hasVariants()) {
             variantList = new EntityVariantList(variantMax);
             variantList.add(variants);
+        }
+        if(this.hasEgg) {
+            this.egg = new ModSpawnEggItem(this);
         }
     }
 
@@ -121,6 +127,7 @@ public class EntityTypeContainer<T extends MobEntity> {
         protected int variantCount = 0;
         protected IVariant[] variants;
         protected final String modid;
+        protected boolean hasEgg;
 
         protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
             this.entityClass = EntityClass;
@@ -136,6 +143,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             this.width = 1;
             this.height = 1;
             this.despawn = false;
+            this.hasEgg = false;
             this.customConfig = null;
             this.defaultBiomeSupplier = () -> new HashSet<Biome>();
             this.placementType = null;
@@ -152,6 +160,7 @@ public class EntityTypeContainer<T extends MobEntity> {
         }
 
         public Builder<T> egg(int solid, int spot) {
+            this.hasEgg = true;
             this.eggColorSolid = solid;
             this.eggColorSpot = spot;
             return this;
@@ -245,7 +254,7 @@ public class EntityTypeContainer<T extends MobEntity> {
 
         public EntityTypeContainer<T> build() {
             preBuild();
-            EntityTypeContainer<T> container = new EntityTypeContainer<T>(modid, entityClass, factory, entityName, spawnType, eggColorSolid, eggColorSpot, spawnWeight, spawnMinGroup, spawnMaxGroup, width, height, despawn, variantCount, variants, customConfig, customClientConfig, defaultBiomeSupplier, placementType, heightMapType, placementPredicate);
+            EntityTypeContainer<T> container = new EntityTypeContainer<T>(modid, entityClass, factory, entityName, spawnType, hasEgg, eggColorSolid, eggColorSpot, spawnWeight, spawnMinGroup, spawnMaxGroup, width, height, despawn, variantCount, variants, customConfig, customClientConfig, defaultBiomeSupplier, placementType, heightMapType, placementPredicate);
             postBuild(container);
             return container;
         }
