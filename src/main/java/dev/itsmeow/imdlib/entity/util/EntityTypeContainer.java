@@ -22,7 +22,6 @@ import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.item.SpawnEggItem;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -37,7 +36,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public class EntityTypeContainer<T extends MobEntity> {
 
     public EntityType<T> entityType;
-    public SpawnEggItem egg;
+    public ModSpawnEggItem egg;
 
     public final Class<T> entityClass;
     public final String entityName;
@@ -99,9 +98,6 @@ public class EntityTypeContainer<T extends MobEntity> {
         if(this.hasVariants()) {
             variantList = new EntityVariantList(variantMax);
             variantList.add(variants);
-        }
-        if(this.hasEgg) {
-            this.egg = new ModSpawnEggItem(this);
         }
     }
 

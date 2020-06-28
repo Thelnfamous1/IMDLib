@@ -12,6 +12,7 @@ import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -49,6 +50,9 @@ public class EntityRegistrarHandler {
     public <T extends MobEntity> EntityTypeContainer<T> add(EntityTypeContainer.Builder<T> builder) {
         EntityTypeContainer<T> c = builder.build();
         c.entityType = this.createEntityType(c);
+        if(c.hasEgg) {
+            c.egg = new ModSpawnEggItem(c);
+        }
         ENTITIES.put(c.entityName, c);
         return c;
     }
