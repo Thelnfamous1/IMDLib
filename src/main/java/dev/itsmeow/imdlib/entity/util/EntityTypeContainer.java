@@ -101,6 +101,12 @@ public class EntityTypeContainer<T extends MobEntity> {
         }
     }
 
+    public void onCreateEntityType() {
+        if(this.hasEgg) {
+            this.egg = new ModSpawnEggItem(this);
+        }
+    }
+
     public static class Builder<T extends MobEntity> extends AbstractEntityBuilder<T, EntityTypeContainer<T>, Builder<T>> {
 
         private Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
