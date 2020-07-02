@@ -16,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
@@ -212,6 +213,10 @@ public class EntityTypeContainer<T extends MobEntity> {
             return this;
         }
 
+        public Builder<T> biomes(Function<BiomeListBuilder, BiomeListBuilder> biomes) {
+            return biomes(biomes.apply(BiomeListBuilder.create())::collect);
+        }
+
         public Builder<T> variants(IVariant... variants) {
             this.variantCount = variants.length;
             this.variants = variants;
@@ -239,6 +244,16 @@ public class EntityTypeContainer<T extends MobEntity> {
             } else {
                 throw new RuntimeException("what are you doing kid");
             }
+            return this;
+        }
+
+        public Builder<T> variants(Function<String, IVariant> constructor, String... variants) {
+            this.variantCount = variants.length;
+            IVariant[] variantList = new IVariant[variantCount];
+            for(int i = 0; i < variantCount; i++) {
+                variantList[i] = constructor.apply(variants[i]);
+            }
+            this.variants = variantList;
             return this;
         }
 
