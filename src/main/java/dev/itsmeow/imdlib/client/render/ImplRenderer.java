@@ -319,6 +319,14 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             return this;
         }
 
+        public Builder<T, A> simpleScale(Function<T, Float> function) {
+            preRender((e, p) -> {
+                float scale = function.apply(e);
+                GlStateManager.scalef(scale, scale, scale);
+            });
+            return this;
+        }
+
         public Builder<T, A> condScale(Predicate<T> cond, float xScale, float yScale, float zScale) {
             preRender((e, p) -> {
                 if(cond.test(e)) {
