@@ -1,6 +1,8 @@
 package dev.itsmeow.imdlib.client.render;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -85,6 +87,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private ResourceLocation trueTex;
         private ResourceLocation falseTex;
         private Predicate<T> condition;
+        private ResourceLocation conditionTex;
 
         public TextureContainer(ResourceLocation singleTexture) {
             this.strategy = Strategy.SINGLE;
@@ -94,6 +97,13 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         public TextureContainer(Function<T, ResourceLocation> texMapper) {
             this.strategy = Strategy.MAPPER;
             this.texMapper = texMapper;
+        }
+
+        public TextureContainer(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+            this.strategy = Strategy.MAPPER_CONDITION;
+            this.texMapper = texMapper;
+            this.condition = condition;
+            this.conditionTex = conditionTex;
         }
 
         public TextureContainer(Predicate<T> condition, ResourceLocation trueTex, ResourceLocation falseTex) {
@@ -111,6 +121,10 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
                 return texMapper.apply(entity);
             case CONDITION:
                 return condition.test(entity) ? trueTex : falseTex;
+            case MAPPER_CONDITION:
+                return condition.test(entity) ? conditionTex : texMapper.apply(entity);
+            default:
+                break;
             }
             return null;
         }
@@ -124,6 +138,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private A trueModel;
         private EntityModel<T> falseModel;
         private Predicate<T> condition;
+        private EntityModel<T> conditionModel;
 
         public ModelContainer(A baseModel) {
             this.strategy = Strategy.SINGLE;
@@ -134,6 +149,14 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             this.strategy = Strategy.MAPPER;
             this.modelMapper = modelMapper;
             this.baseModel = baseModel;
+        }
+
+        public ModelContainer(Predicate<T> condition, Function<T, EntityModel<T>> modelMapper, A baseModel, EntityModel<T> conditionModel) {
+            this.strategy = Strategy.MAPPER;
+            this.modelMapper = modelMapper;
+            this.baseModel = baseModel;
+            this.conditionModel = conditionModel;
+            this.condition = condition;
         }
 
         public ModelContainer(Predicate<T> condition, A trueModel, EntityModel<T> falseModel) {
@@ -152,6 +175,10 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
                 return modelMapper.apply(entity);
             case CONDITION:
                 return condition.test(entity) ? trueModel : falseModel;
+            case MAPPER_CONDITION:
+                return condition.test(entity) ? conditionModel : modelMapper.apply(entity);
+            default:
+                break;
             }
             return null;
         }
@@ -164,6 +191,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     public enum Strategy {
         SINGLE,
         MAPPER,
+        MAPPER_CONDITION,
         CONDITION;
     }
 
@@ -184,6 +212,8 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private HandleRotation<T> handleRotation;
         private ApplyRotations<T> applyRotations;
         private SuperCallApplyRotations superCallApplyRotations = SuperCallApplyRotations.NONE;
+        private Map<String, ResourceLocation> texMapper = new HashMap<String, ResourceLocation>();
+        private Map<Class<? extends EntityModel<T>>, EntityModel<T>> modelMapper = new HashMap<>();
 
         protected Builder(String modid, float shadow) {
             this.modid = modid;
@@ -206,7 +236,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> tMapped(Function<T, String> texMapper) {
-            this.tex = new TextureContainer<T, A>(entity -> tex(modid, texMapper.apply(entity)));
+            this.tex = new TextureContainer<T, A>(entity -> texStored(texMapper.apply(entity)));
             return this;
         }
 
@@ -234,13 +264,50 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             });
         }
 
+        public Builder<T, A> tMappedConditionRaw(Predicate<T> condition, Function<T, ResourceLocation> texMapper, String conditionTex) {
+            return tMappedConditionRaw(condition, texMapper, tex(modid, conditionTex));
+        }
+
+        public Builder<T, A> tMappedConditionRaw(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+            this.tex = new TextureContainer<T, A>(condition, texMapper, conditionTex);
+            return this;
+        }
+
+        public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, String conditionTex) {
+            return tVariantCondition(condition, texMapper, tex(modid, conditionTex));
+        }
+
+        public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+            this.tex = new TextureContainer<T, A>(condition, e -> {
+                if(e instanceof IVariantTypes<?>) {
+                    return ((IVariantTypes<?>) e).getVariantTextureOrNull();
+                }
+                return null;
+            }, conditionTex);
+            return this;
+        }
+
+        public Builder<T, A> tBabyVariant(String babyTex) {
+            return tVariantCondition(e -> {
+                if(e instanceof AgeableEntity) {
+                    return e.isChild();
+                }
+                return false;
+            }, e -> {
+                if(e instanceof IVariantTypes<?>) {
+                    return ((IVariantTypes<?>) e).getVariantTextureOrNull();
+                }
+                return null;
+            }, tex(modid, babyTex));
+        }
+
         public Builder<T, A> mSingle(A model) {
             this.model = new ModelContainer<T, A>(model);
             return this;
         }
 
-        public Builder<T, A> mMapped(Function<T, EntityModel<T>> modelMapper, A baseModel) {
-            this.model = new ModelContainer<T, A>(modelMapper, baseModel);
+        public Builder<T, A> mMapped(Function<T, Class<? extends EntityModel<T>>> modelMapper, A baseModel) {
+            this.model = new ModelContainer<T, A>(e -> modelStored(modelMapper.apply(e), baseModel), baseModel);
             return this;
         }
 
@@ -253,7 +320,15 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             this.preRender = preRender;
             return this;
         }
-            
+
+        public Builder<T, A> simpleScale(Function<T, Float> function) {
+            preRender((e, s, p) -> {
+                float scale = function.apply(e);
+                s.scale(scale, scale, scale);
+            });
+            return this;
+        }
+
         public Builder<T, A> condScale(Predicate<T> cond, float xScale, float yScale, float zScale) {
             preRender((e, s, p) -> {
                 if(cond.test(e)) {
@@ -333,14 +408,25 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             }
             return mgr -> new ImplRenderer<T, A>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations).layers(layers);
         }
+
+        private ResourceLocation texStored(String location) {
+            return texMapper.computeIfAbsent(location, l -> tex(modid, l));
+        }
+
+        private EntityModel<T> modelStored(Class<? extends EntityModel<T>> clazz, A defaultModel) {
+            return modelMapper.computeIfAbsent(clazz, l -> {
+                try {
+                    return (EntityModel<T>) clazz.newInstance();
+                } catch(InstantiationException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    return defaultModel;
+                }
+            });
+        }
     }
 
     public static <T extends MobEntity, A extends EntityModel<T>> Builder<T, A> factory(String modid, float shadow) {
         return new Builder<T, A>(modid, shadow);
-    }
-
-    private static ResourceLocation tex(String modid, String location) {
-        return new ResourceLocation(modid, "textures/entity/" + location + ".png");
     }
 
     @FunctionalInterface
@@ -361,6 +447,10 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     @FunctionalInterface
     public static interface RenderDef<T extends MobEntity, A extends EntityModel<T>> {
         public abstract ImplRenderer.Builder<T, A> apply(ImplRenderer.Builder<T, A> renderer);
+    }
+
+    private static ResourceLocation tex(String modid, String location) {
+        return new ResourceLocation(modid, "textures/entity/" + location + ".png");
     }
 
 }

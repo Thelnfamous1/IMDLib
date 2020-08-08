@@ -12,6 +12,7 @@ import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -46,9 +47,10 @@ public class EntityRegistrarHandler {
         return (EntityType<T>) ENTITIES.get(name).entityType;
     }
 
-    public <T extends MobEntity> EntityTypeContainer<T> add(EntityTypeContainer.Builder<T> builder) {
-        EntityTypeContainer<T> c = builder.build();
+    public <T extends MobEntity, C extends EntityTypeContainer<T>> C add(IEntityBuilder<T, C, ?> builder) {
+        C c = builder.build();
         c.entityType = this.createEntityType(c);
+        c.onCreateEntityType();
         ENTITIES.put(c.entityName, c);
         return c;
     }
