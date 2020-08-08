@@ -213,6 +213,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private ApplyRotations<T> applyRotations;
         private SuperCallApplyRotations superCallApplyRotations = SuperCallApplyRotations.NONE;
         private Map<String, ResourceLocation> texMapper = new HashMap<String, ResourceLocation>();
+        private Map<Class<? extends EntityModel<T>>, EntityModel<T>> modelMapper = new HashMap<>();
 
         protected Builder(String modid, float shadow) {
             this.modid = modid;
@@ -305,8 +306,8 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             return this;
         }
 
-        public Builder<T, A> mMapped(Function<T, EntityModel<T>> modelMapper, A baseModel) {
-            this.model = new ModelContainer<T, A>(modelMapper, baseModel);
+        public Builder<T, A> mMapped(Function<T, Class<? extends EntityModel<T>>> modelMapper, A baseModel) {
+            this.model = new ModelContainer<T, A>(e -> modelStored(modelMapper.apply(e), baseModel), baseModel);
             return this;
         }
 
@@ -319,7 +320,15 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             this.preRender = preRender;
             return this;
         }
-            
+
+        public Builder<T, A> simpleScale(Function<T, Float> function) {
+            preRender((e, s, p) -> {
+                float scale = function.apply(e);
+                s.scale(scale, scale, scale);
+            });
+            return this;
+        }
+
         public Builder<T, A> condScale(Predicate<T> cond, float xScale, float yScale, float zScale) {
             preRender((e, s, p) -> {
                 if(cond.test(e)) {
@@ -402,6 +411,17 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
         private ResourceLocation texStored(String location) {
             return texMapper.computeIfAbsent(location, l -> tex(modid, l));
+        }
+
+        private EntityModel<T> modelStored(Class<? extends EntityModel<T>> clazz, A defaultModel) {
+            return modelMapper.computeIfAbsent(clazz, l -> {
+                try {
+                    return (EntityModel<T>) clazz.newInstance();
+                } catch(InstantiationException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    return defaultModel;
+                }
+            });
         }
     }
 
