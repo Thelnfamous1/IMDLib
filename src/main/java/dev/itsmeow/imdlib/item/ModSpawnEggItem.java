@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.item;
 
+import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.entity.EntityType;
@@ -12,7 +13,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.generators.ExistingFileHelper;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
 public class ModSpawnEggItem extends SpawnEggItem {
 
@@ -52,27 +52,25 @@ public class ModSpawnEggItem extends SpawnEggItem {
         return type == this.type;
     }
 
-    public DataProvider getDataProvider(GatherDataEvent event) {
-        return new DataProvider(this, event.getGenerator(), event.getExistingFileHelper());
-    }
-
     public static class DataProvider extends ItemModelProvider {
 
-        private String name;
+        private EntityRegistrarHandler handler;
 
-        public DataProvider(ModSpawnEggItem i, DataGenerator generator, ExistingFileHelper existingFileHelper) {
-            super(generator, i.modid, existingFileHelper);
-            this.name = i.name;
+        public DataProvider(EntityRegistrarHandler r, DataGenerator generator, ExistingFileHelper existingFileHelper) {
+            super(generator, r.modid, existingFileHelper);
+            this.handler = r;
         }
 
         @Override
         public String getName() {
-            return name + "_spawn_egg";
+            return this.modid + "_spawn_eggs";
         }
 
         @Override
         protected void registerModels() {
-            this.withExistingParent(name + "_spawn_egg", new ResourceLocation("minecraft", "item/template_spawn_egg"));
+            for(String name : handler.ENTITIES.keySet()) {
+                this.withExistingParent(name + "_spawn_egg", new ResourceLocation("minecraft", "item/template_spawn_egg"));
+            }
         }
 
     }

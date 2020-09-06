@@ -45,6 +45,15 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
     }
 
     default IVariant getOffspringType(IVariantTypes<?> parent1, IVariantTypes<?> parent2) {
+        if(parent1 == null || parent2 == null) {
+            if(parent1 == null && parent2 != null) {
+                return parent2.getVariant().orElseGet(this::getRandomType);
+            } else if(parent2 == null && parent1 != null) {
+                return parent1.getVariant().orElseGet(this::getRandomType);
+            } else {
+                return this.getRandomType();
+            }
+        }
         return this.getImplementation().getRNG().nextBoolean() ? parent1.getVariant().orElseGet(() -> parent2.getVariant().orElseGet(this::getRandomType)) : parent2.getVariant().orElseGet(() -> parent1.getVariant().orElseGet(this::getRandomType));
     }
 
