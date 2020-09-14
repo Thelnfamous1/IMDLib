@@ -13,6 +13,8 @@ import org.apache.logging.log4j.LogManager;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
+import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import net.minecraft.data.DataGenerator;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
@@ -21,6 +23,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biome.SpawnListEntry;
+import net.minecraftforge.client.model.generators.ExistingFileHelper;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -35,6 +38,10 @@ public class EntityRegistrarHandler {
 
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
+    }
+
+    public void gatherData(DataGenerator gen, ExistingFileHelper helper) {
+        gen.addProvider(new ModSpawnEggItem.DataProvider(this, gen, helper));
     }
 
     @SuppressWarnings("unchecked")
