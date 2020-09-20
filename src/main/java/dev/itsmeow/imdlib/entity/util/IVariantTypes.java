@@ -72,9 +72,9 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
 
     public static class AgeableTypeData extends AgeableData {
         public IVariant typeData;
-        private int inc;
-        private boolean bool = true;
-        private float num = 0.05F;
+        private int numInGroup;
+        private boolean canSpawnBaby = true;
+        private float probabilityOfBaby = 0.05F;
 
         public AgeableTypeData(IVariant type) {
             this.typeData = type;
@@ -82,40 +82,41 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
 
         public AgeableTypeData(AgeableData data, IVariant type) {
             this.typeData = type;
-            this.inc = data.func_226257_a_();
-            this.bool = data.func_226261_c_();
-            this.num = data.func_226262_d_();
+            this.numInGroup = data.getIndexInGroup();
+            this.canSpawnBaby = data.canBabySpawn();
+            this.probabilityOfBaby = data.getBabySpawnProbability();
         }
 
         @Override
-        public int func_226257_a_() {
-            return this.inc;
+        public boolean canBabySpawn() {
+            return this.canSpawnBaby;
         }
 
         @Override
-        public void func_226260_b_() {
-            ++this.inc;
+        public float getBabySpawnProbability() {
+            return this.probabilityOfBaby;
         }
 
         @Override
-        public boolean func_226261_c_() {
-            return this.bool;
+        public int getIndexInGroup() {
+            return this.numInGroup;
         }
 
         @Override
-        public void func_226259_a_(boolean newBool) {
-            this.bool = newBool;
+        public void incrementIndexInGroup() {
+            ++this.numInGroup;
         }
 
         @Override
-        public float func_226262_d_() {
-            return this.num;
+        public void setBabySpawnProbability(float probability) {
+            this.probabilityOfBaby = probability;
         }
 
         @Override
-        public void func_226258_a_(float newVal) {
-            this.num = newVal;
+        public void setCanBabySpawn(boolean canSpawn) {
+            this.canSpawnBaby = canSpawn;
         }
+
     }
 
     @Nullable
