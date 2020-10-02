@@ -4,19 +4,21 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.util.IVariant;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
+import dev.itsmeow.imdlib.entity.util.IVariant;
+import dev.itsmeow.imdlib.util.BiomeDictionary;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
-import net.minecraftforge.common.BiomeDictionary;
 
 public interface IEntityBuilder<T extends MobEntity, C extends EntityTypeContainer<T>, B extends IEntityBuilder<T, C, B>> {
 
     public B spawn(EntityClassification type, int weight, int min, int max);
+
+    public B spawnCosts(double cost, double maxCost);
 
     public B egg(int solid, int spot);
 

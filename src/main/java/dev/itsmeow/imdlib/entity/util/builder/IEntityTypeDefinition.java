@@ -40,6 +40,10 @@ public interface IEntityTypeDefinition<T extends MobEntity> {
 
     public int getSpawnMaxGroup();
 
+    public double getSpawnCostPer();
+
+    public double getSpawnMaxCost();
+
     public float getWidth();
 
     public float getHeight();

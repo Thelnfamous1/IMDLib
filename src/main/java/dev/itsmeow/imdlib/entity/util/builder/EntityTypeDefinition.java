@@ -138,4 +138,14 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
         return builder.attributeMap;
     }
 
+    @Override
+    public double getSpawnCostPer() {
+        return builder.spawnCostPer;
+    }
+
+    @Override
+    public double getSpawnMaxCost() {
+        return builder.spawnMaxCost;
+    }
+
 }

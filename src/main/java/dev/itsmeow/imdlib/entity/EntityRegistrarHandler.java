@@ -1,14 +1,13 @@
 package dev.itsmeow.imdlib.entity;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.logging.log4j.LogManager;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
@@ -18,10 +17,11 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.WeightedRandom;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.SpawnListEntry;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -29,8 +29,11 @@ public class EntityRegistrarHandler {
 
     public final String modid;
     public final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> ENTITIES = new LinkedHashMap<>();
-    private static final Method ADDSPAWN = ObfuscationReflectionHelper.findMethod(Biome.class, "func_201866_a", EntityClassification.class, SpawnListEntry.class);
     private static final Field SERIALIZABLE = ObfuscationReflectionHelper.findField(EntityType.class, "field_200733_aL");
+    private static final Field WEIGHT = ObfuscationReflectionHelper.findField(WeightedRandom.Item.class, "field_76292_a"); //itemWeight
+    static {
+        FieldUtils.removeFinalModifier(WEIGHT);
+    }
 
 
     public EntityRegistrarHandler(String modid) {
@@ -121,29 +124,18 @@ public class EntityRegistrarHandler {
             }
         }
 
-        @SuppressWarnings("unchecked")
         public void onWorldLoad() {
             // Fill containers with proper values from their config sections
             this.onLoad();
+        }
 
+        public void biomeLoad(BiomeLoadingEvent event) {
             // Add spawns based on new container data
             if(!ENTITIES.values().isEmpty()) {
                 for(EntityTypeContainer<?> entry : ENTITIES.values()) {
-                    EntityType<?> type = entry.entityType;
-                    if(entry.doSpawning) {
+                    if(entry.doSpawning && entry.spawnWeight > 0) {
                         entry.registerPlacement();
-                        for(Biome biome : entry.getBiomes()) {
-                            try {
-                                biome.addSpawn(entry.spawnType, new SpawnListEntry((EntityType<? extends MobEntity>) type, entry.spawnWeight, entry.spawnMinGroup, entry.spawnMaxGroup));
-                            } catch(IllegalAccessError e) {
-                                try {
-                                    ADDSPAWN.invoke(biome, entry.spawnType, new SpawnListEntry((EntityType<? extends MobEntity>) type, entry.spawnWeight, entry.spawnMinGroup, entry.spawnMaxGroup));
-                                } catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
-                                    e2.printStackTrace();
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
+                        event.getSpawns().withSpawner(entry.spawnType, entry.getSpawnEntry()).withSpawnCost(entry.entityType, entry.spawnCostPer, entry.spawnMaxCost);
                     }
                 }
             }

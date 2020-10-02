@@ -32,8 +32,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.util.NonNullLazy;
 
 public class EntityTypeContainer<T extends MobEntity> {
 
@@ -52,6 +54,8 @@ public class EntityTypeContainer<T extends MobEntity> {
     public int spawnMaxGroup;
     public boolean biomeVariants = true;
     public boolean doSpawning = true;
+    public double spawnCostPer;
+    public double spawnMaxCost;
     public final float width;
     public final float height;
     public boolean despawn;
@@ -76,6 +80,8 @@ public class EntityTypeContainer<T extends MobEntity> {
     protected final String modid;
     protected final Supplier<AttributeModifierMap.MutableAttribute> attributeMap;
 
+    protected NonNullLazy<MobSpawnInfo.Spawners> spawnEntry;
+
     protected EntityTypeContainer(IEntityTypeDefinition<T> def) {
         this.modid = def.getModId();
         this.entityClass = def.getEntityClass();
@@ -87,6 +93,8 @@ public class EntityTypeContainer<T extends MobEntity> {
         this.spawnWeight = def.getSpawnWeight();
         this.spawnMinGroup = def.getSpawnMinGroup();
         this.spawnMaxGroup = def.getSpawnMaxGroup();
+        this.spawnCostPer = def.getSpawnCostPer();
+        this.spawnMaxCost = def.getSpawnMaxCost();
         this.spawnType = def.getSpawnClassification();
         this.width = def.getWidth();
         this.height = def.getHeight();
@@ -103,6 +111,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             variantList.add(def.getVariants());
         }
         this.attributeMap = def.getAttributeMap();
+        this.spawnEntry = NonNullLazy.of(() -> new MobSpawnInfo.Spawners(this.entityType, this.spawnWeight, this.spawnMinGroup, this.spawnMaxGroup));
     }
 
     public void onCreateEntityType() {
@@ -154,6 +163,8 @@ public class EntityTypeContainer<T extends MobEntity> {
         public ForgeConfigSpec.IntValue spawnMinGroup;
         public ForgeConfigSpec.IntValue spawnMaxGroup;
         public ForgeConfigSpec.IntValue spawnWeight;
+        public ForgeConfigSpec.DoubleValue spawnCostPer;
+        public ForgeConfigSpec.DoubleValue spawnMaxCost;
         public ForgeConfigSpec.ConfigValue<List<? extends String>> biomesList;
         public List<String> biomeStrings;
         public ForgeConfigSpec.BooleanValue doDespawn;
@@ -181,6 +192,8 @@ public class EntityTypeContainer<T extends MobEntity> {
             spawnWeight = builder.comment("The spawn chance compared to other entities (typically between 6-20)").worldRestart().defineInRange("weight", container.spawnWeight, 1, 9999);
             spawnMinGroup = builder.comment("Must be greater than 0").worldRestart().defineInRange("minGroup", container.spawnMinGroup, 1, 9999);
             spawnMaxGroup = builder.comment("Must be greater or equal to min value!").worldRestart().defineInRange("maxGroup", container.spawnMaxGroup, 1, 9999);
+            spawnCostPer = builder.comment("Cost to spawning algorithm per entity spawned").worldRestart().defineInRange("costPer", container.spawnCostPer, 0.01, 9999);
+            spawnMaxCost = builder.comment("Maxmimum cost the spawning algorithm can accrue for this entity").worldRestart().defineInRange("maxCost", container.spawnMaxCost, 0.01, 9999);
             biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart().defineList("spawnBiomes", biomeStrings, (Predicate<Object>) input -> input instanceof String);
         }
     }
@@ -205,6 +218,8 @@ public class EntityTypeContainer<T extends MobEntity> {
         spawnWeight = section.spawnWeight.get();
         doSpawning = section.doSpawning.get();
         despawn = section.doDespawn.get();
+        spawnCostPer = section.spawnCostPer.get();
+        spawnMaxCost = section.spawnMaxCost.get();
         if(section.biomeVariants != null) {
             this.biomeVariants = section.biomeVariants.get();
         }
@@ -263,7 +278,7 @@ public class EntityTypeContainer<T extends MobEntity> {
 
     public boolean registerAttributes() {
         if(attributeMap != null) {
-            return GlobalEntityTypeAttributes.put(entityType, attributeMap.get().func_233813_a_()) != null;
+            return GlobalEntityTypeAttributes.put(entityType, attributeMap.get().create()) != null;
         }
         return false;
     }
@@ -302,4 +317,9 @@ public class EntityTypeContainer<T extends MobEntity> {
         }
         return this.variantDataKey;
     }
+
+    public MobSpawnInfo.Spawners getSpawnEntry() {
+        return spawnEntry.get();
+    }
+
 }

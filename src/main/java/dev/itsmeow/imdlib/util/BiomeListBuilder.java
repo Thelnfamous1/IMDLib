@@ -3,9 +3,10 @@ package dev.itsmeow.imdlib.util;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.minecraft.util.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.ForgeRegistries.Keys;
 
 public class BiomeListBuilder {
 
@@ -66,7 +67,7 @@ public class BiomeListBuilder {
         }
         if(required.size() > 0 || blacklist.size() > 0) {
             for(Biome biome : ForgeRegistries.BIOMES.getValues()) {
-                Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(biome);
+                Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Keys.BIOMES, biome.getRegistryName()));
                 if(types != null) {
                     boolean pass = true;
                     for(BiomeDictionary.Type type : required) {

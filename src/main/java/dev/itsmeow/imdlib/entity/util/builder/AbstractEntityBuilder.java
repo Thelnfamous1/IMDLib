@@ -8,9 +8,10 @@ import java.util.function.Supplier;
 import com.google.common.collect.Lists;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.IVariant;
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
+import dev.itsmeow.imdlib.util.BiomeDictionary;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
@@ -19,7 +20,6 @@ import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
-import net.minecraftforge.common.BiomeDictionary;
 
 public abstract class AbstractEntityBuilder<T extends MobEntity, C extends EntityTypeContainer<T>, B extends AbstractEntityBuilder<T, C, B>> implements IEntityBuilder<T, C, B> {
     protected final Class<T> entityClass;
@@ -31,6 +31,8 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     protected int spawnWeight;
     protected int spawnMinGroup;
     protected int spawnMaxGroup;
+    protected double spawnCostPer;
+    protected double spawnMaxCost;
     protected float width;
     protected float height;
     protected boolean despawn;
@@ -56,6 +58,8 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         this.spawnWeight = 1;
         this.spawnMinGroup = 1;
         this.spawnMaxGroup = 1;
+        this.spawnCostPer = 1;
+        this.spawnMaxCost = 10;
         this.spawnType = EntityClassification.CREATURE;
         this.width = 1;
         this.height = 1;
@@ -76,6 +80,12 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         this.spawnWeight = weight;
         this.spawnMinGroup = min;
         this.spawnMaxGroup = max;
+        return getImplementation();
+    }
+
+    public B spawnCosts(double cost, double maxCost) {
+        this.spawnCostPer = cost;
+        this.spawnMaxCost = maxCost;
         return getImplementation();
     }
 

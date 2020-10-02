@@ -63,50 +63,43 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
 
     public static class AgeableTypeData extends AgeableData {
         public IVariant typeData;
-        private int inc;
-        private boolean bool = true;
-        private float num = 0.05F;
+        private int indexInGroup = 0;
+        private boolean canBabySpawn = true;
+        private float babySpawnProbability = 0.05F;
 
         public AgeableTypeData(IVariant type) {
+            super(false);
             this.typeData = type;
         }
 
         public AgeableTypeData(AgeableData data, IVariant type) {
+            super(false);
             this.typeData = type;
-            this.inc = data.func_226257_a_();
-            this.bool = data.func_226261_c_();
-            this.num = data.func_226262_d_();
+            this.indexInGroup = data.getIndexInGroup();
+            this.canBabySpawn = data.canBabySpawn();
+            this.babySpawnProbability = data.getBabySpawnProbability();
         }
 
         @Override
-        public int func_226257_a_() {
-            return this.inc;
+        public int getIndexInGroup() {
+            return this.indexInGroup;
         }
 
         @Override
-        public void func_226260_b_() {
-            ++this.inc;
+        public void incrementIndexInGroup() {
+            ++this.indexInGroup;
         }
 
         @Override
-        public boolean func_226261_c_() {
-            return this.bool;
+        public boolean canBabySpawn() {
+            return this.canBabySpawn;
         }
 
         @Override
-        public void func_226259_a_(boolean newBool) {
-            this.bool = newBool;
+        public float getBabySpawnProbability() {
+            return this.babySpawnProbability;
         }
 
-        @Override
-        public float func_226262_d_() {
-            return this.num;
-        }
-
-        @Override
-        public void func_226258_a_(float newVal) {
-            this.num = newVal;
-        }
     }
 
     @Nullable
