@@ -67,7 +67,7 @@ public class BiomeListBuilder {
         }
         if(required.size() > 0 || blacklist.size() > 0) {
             for(Biome biome : ForgeRegistries.BIOMES.getValues()) {
-                Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Keys.BIOMES, biome.getRegistryName()));
+                Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Keys.BIOMES, ForgeRegistries.BIOMES.getKey(biome)));
                 if(types != null) {
                     boolean pass = true;
                     for(BiomeDictionary.Type type : required) {
