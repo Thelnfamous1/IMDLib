@@ -72,7 +72,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
     @Override
     protected RenderType func_230496_a_(T entity, boolean visible, boolean visibleToPlayer, boolean glowing) {
-        return renderLayer.renderLayer(entity, visible, visibleToPlayer, glowing);
+        return renderLayer.renderLayer(entity, visible, visibleToPlayer, glowing, this.getEntityTexture(entity));
     }
 
     @SuppressWarnings("unchecked")
@@ -460,7 +460,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
     @FunctionalInterface
     public static interface RenderLayer<T extends MobEntity> {
-        public RenderType renderLayer(T entity, boolean visible, boolean visibleToPlayer, boolean glowing);
+        public RenderType renderLayer(T entity, boolean visible, boolean visibleToPlayer, boolean glowing, ResourceLocation texture);
     }
 
     @FunctionalInterface
