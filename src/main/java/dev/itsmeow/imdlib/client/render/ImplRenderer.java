@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
 import dev.itsmeow.imdlib.entity.util.IVariantTypes;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
@@ -29,8 +30,9 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     private final HandleRotation<T> handleRotation;
     private final ApplyRotations<T> applyRotations;
     private final SuperCallApplyRotations applyRotationsSuper;
+    private final RenderLayer<T> renderLayer;
 
-    public ImplRenderer(EntityRendererManager mgr, float shadow, @Nonnull TextureContainer<T, A> textureContainer, @Nonnull ModelContainer<T, A> modelContainer, @Nullable PreRenderCallback<T> preRenderCallback, @Nullable HandleRotation<T> handleRotation, @Nullable ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper) {
+    public ImplRenderer(EntityRendererManager mgr, float shadow, @Nonnull TextureContainer<T, A> textureContainer, @Nonnull ModelContainer<T, A> modelContainer, @Nullable PreRenderCallback<T> preRenderCallback, @Nullable HandleRotation<T> handleRotation, @Nullable ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer) {
         super(mgr, modelContainer.getBaseModel(), shadow);
         this.textureContainer = textureContainer;
         this.modelContainer = modelContainer;
@@ -38,6 +40,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         this.handleRotation = handleRotation;
         this.applyRotations = applyRotations;
         this.applyRotationsSuper = applyRotationsSuper;
+        this.renderLayer = renderLayer;
     }
 
     @Override
@@ -65,6 +68,11 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     @Override
     protected float handleRotationFloat(T e, float p) {
         return handleRotation == null ? super.handleRotationFloat(e, p) : handleRotation.handleRotation(e, p);
+    }
+
+    @Override
+    protected RenderType func_230042_a_(T entity, boolean visible, boolean visibleToPlayer) {
+        return renderLayer.renderLayer(entity, visible, visibleToPlayer);
     }
 
     @SuppressWarnings("unchecked")
@@ -214,6 +222,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private SuperCallApplyRotations superCallApplyRotations = SuperCallApplyRotations.NONE;
         private Map<String, ResourceLocation> texMapper = new HashMap<String, ResourceLocation>();
         private Map<Class<? extends EntityModel<T>>, EntityModel<T>> modelMapper = new HashMap<>();
+        private RenderLayer<T> renderLayer;
 
         protected Builder(String modid, float shadow) {
             this.modid = modid;
@@ -402,11 +411,16 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             return this;
         }
 
+        public Builder<T, A> renderLayer(RenderLayer<T> renderLayerFunc) {
+            this.renderLayer = renderLayerFunc;
+            return this;
+        }
+
         public IRenderFactory<T> done() {
             if(tex == null || model == null) {
                 throw new IllegalArgumentException("Must define both a texture and a model before calling build()!");
             }
-            return mgr -> new ImplRenderer<T, A>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations).layers(layers);
+            return mgr -> new ImplRenderer<T, A>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
         }
 
         private ResourceLocation texStored(String location) {
@@ -442,6 +456,11 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     @FunctionalInterface
     public static interface ApplyRotations<T extends MobEntity> {
         public void applyRotations(T entity, MatrixStack stack, float ageInTicks, float rotationYaw, float partialTicks);
+    }
+
+    @FunctionalInterface
+    public static interface RenderLayer<T extends MobEntity> {
+        public RenderType renderLayer(T entity, boolean visible, boolean visibleToPlayer);
     }
 
     @FunctionalInterface
