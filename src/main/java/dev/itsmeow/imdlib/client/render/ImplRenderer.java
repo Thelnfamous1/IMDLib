@@ -353,7 +353,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             return this;
         }
 
-        public Builder<T, A> childDualScale(Predicate<T> cond, float trueScale, float falseScale) {
+        public Builder<T, A> condDualScale(Predicate<T> cond, float trueScale, float falseScale) {
             return condDualScale(cond, trueScale, trueScale, trueScale, falseScale, falseScale, falseScale);
         }
 
