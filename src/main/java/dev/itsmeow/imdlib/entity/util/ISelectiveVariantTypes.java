@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.entity.util;
 
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -7,6 +8,7 @@ import javax.annotation.Nullable;
 import dev.itsmeow.imdlib.util.BiomeDictionary;
 import net.minecraft.entity.AgeableEntity.AgeableData;
 import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
@@ -22,7 +24,9 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
     default ILivingEntityData initData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
         if(this.getContainer().biomeVariants && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL)) {
             Biome biome = world.getBiome(this.getImplementation().getPosition());
-            String[] validTypes = this.getTypesFor(biome, BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Keys.BIOMES, ForgeRegistries.BIOMES.getKey(biome))));
+            Optional<RegistryKey<Biome>> biomeKey = world.func_241828_r().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome);
+            biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
+            String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeDictionary.getTypes(biomeKey.get()), reason);
             String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
             IVariant variant = this.getContainer().getVariantForName(varStr);
             if(variant == null || !varStr.equals(variant.getName())) {
@@ -52,7 +56,9 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
         if(!this.getImplementation().isChild()) {
             if(this.getContainer().biomeVariants && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL)) {
                 Biome biome = world.getBiome(this.getImplementation().getPosition());
-                String[] validTypes = this.getTypesFor(biome, BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Keys.BIOMES, ForgeRegistries.BIOMES.getKey(biome))));
+                Optional<RegistryKey<Biome>> biomeKey = world.func_241828_r().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome);
+                biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
+                String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeDictionary.getTypes(biomeKey.get()), reason);
                 String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
                 IVariant variant = this.getContainer().getVariantForName(varStr);
                 if(livingdata instanceof AgeableTypeData) {
@@ -78,6 +84,6 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
         return livingdata;
     }
 
-    String[] getTypesFor(Biome biome, Set<BiomeDictionary.Type> types);
+    String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<BiomeDictionary.Type> types, SpawnReason reason);
 
 }
