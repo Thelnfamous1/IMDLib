@@ -72,7 +72,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
     @Override
     protected RenderType func_230042_a_(T entity, boolean visible, boolean visibleToPlayer) {
-        return renderLayer.renderLayer(entity, visible, visibleToPlayer, this.getEntityTexture(entity));
+        return renderLayer == null ? super.func_230042_a_(entity, visible, visibleToPlayer) : renderLayer.renderLayer(entity, visible, visibleToPlayer, this.getEntityTexture(entity));
     }
 
     @SuppressWarnings("unchecked")
