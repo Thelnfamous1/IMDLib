@@ -7,15 +7,13 @@ import javax.annotation.Nullable;
 
 import dev.itsmeow.imdlib.util.BiomeDictionary;
 import net.minecraft.entity.AgeableEntity.AgeableData;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistries.Keys;
 
 public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTypes<T> {
 
