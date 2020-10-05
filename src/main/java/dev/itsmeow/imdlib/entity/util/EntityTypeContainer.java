@@ -1,15 +1,18 @@
 package dev.itsmeow.imdlib.entity.util;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+
+import org.apache.logging.log4j.LogManager;
 
 import com.google.common.collect.ImmutableList;
 
@@ -28,6 +31,7 @@ import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
@@ -36,6 +40,7 @@ import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.util.NonNullLazy;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class EntityTypeContainer<T extends MobEntity> {
 
@@ -65,7 +70,7 @@ public class EntityTypeContainer<T extends MobEntity> {
     public final EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate;
     protected boolean placementRegistered = false;
 
-    protected Biome[] spawnBiomes;
+    public Set<Biome> spawnBiomes;
 
     protected EntityConfiguration config;
 
@@ -104,6 +109,11 @@ public class EntityTypeContainer<T extends MobEntity> {
         this.customConfig = def.getCustomConfig();
         this.customClientConfig = def.getCustomClientConfig();
         this.defaultBiomeSupplier = def.getSpawnBiomes();
+        if(defaultBiomeSupplier != null) {
+            spawnBiomes = defaultBiomeSupplier.get();
+        } else {
+            spawnBiomes = new HashSet<Biome>();
+        }
         this.placementType = def.getPlacementType();
         this.heightMapType = def.getPlacementHeightMapType();
         this.placementPredicate = def.getPlacementPredicate();
@@ -151,14 +161,6 @@ public class EntityTypeContainer<T extends MobEntity> {
         return this.config;
     }
 
-    public void setBiomes(Biome... biomes) {
-        this.spawnBiomes = biomes;
-    }
-
-    public Biome[] getBiomes() {
-        return spawnBiomes;
-    }
-
     public class EntityConfiguration {
         public ForgeConfigSpec.BooleanValue doSpawning;
         public ForgeConfigSpec.BooleanValue biomeVariants;
@@ -169,13 +171,11 @@ public class EntityTypeContainer<T extends MobEntity> {
         public ForgeConfigSpec.DoubleValue spawnCostPer;
         public ForgeConfigSpec.DoubleValue spawnMaxCost;
         public ForgeConfigSpec.ConfigValue<List<? extends String>> biomesList;
-        public List<String> biomeStrings;
         public ForgeConfigSpec.BooleanValue doDespawn;
 
         protected EntityConfiguration(ForgeConfigSpec.Builder builder) {
             EntityTypeContainer<T> container = EntityTypeContainer.this;
             builder.push(container.entityName);
-            this.biomeStrings = Arrays.asList(container.getBiomeIDs());
             this.loadSpawning(builder);
             this.loadSpawnValues(builder, container);
             doDespawn = builder.comment("True if this entity can despawn freely when no players are nearby.").worldRestart().define("doDespawn", container.despawn);
@@ -198,21 +198,12 @@ public class EntityTypeContainer<T extends MobEntity> {
             useSpawnCosts = builder.comment("Whether to use spawn costs in spawning or not").worldRestart().define("useSpawnCosts", container.useSpawnCosts);
             spawnCostPer = builder.comment("Cost to spawning algorithm per entity spawned").worldRestart().defineInRange("costPer", container.spawnCostPer, 0.01, 9999);
             spawnMaxCost = builder.comment("Maxmimum cost the spawning algorithm can accrue for this entity").worldRestart().defineInRange("maxCost", container.spawnMaxCost, 0.01, 9999);
-            biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart().defineList("spawnBiomes", biomeStrings, (Predicate<Object>) input -> input instanceof String);
+            biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart().defineList("spawnBiomes", container.getBiomeIDs(), (Predicate<Object>) input -> input instanceof String);
         }
     }
 
-    public String[] getBiomeIDs() {
-        try {
-            spawnBiomes = defaultBiomeSupplier.get().toArray(new Biome[0]);
-        } catch(NullPointerException e) {
-            spawnBiomes = new Biome[0];
-        }
-        String[] biomeStrings = new String[spawnBiomes.length];
-        for(int i = 0; i < spawnBiomes.length; i++) {
-            biomeStrings[i] = spawnBiomes[i].getRegistryName().toString();
-        }
-        return biomeStrings;
+    public List<String> getBiomeIDs() {
+        return spawnBiomes.parallelStream().map(b -> b.getRegistryName().toString()).collect(Collectors.toList());
     }
 
     public void configurationLoad() {
@@ -222,6 +213,19 @@ public class EntityTypeContainer<T extends MobEntity> {
         spawnWeight = section.spawnWeight.get();
         doSpawning = section.doSpawning.get();
         despawn = section.doDespawn.get();
+        this.spawnBiomes = new HashSet<Biome>();
+        for(String biomeName : section.biomesList.get()) {
+            try {
+                Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeName));
+                if(biome == null) {
+                    LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + this.entityName + ". No biome exists with that name. Skipping.");
+                } else {
+                    this.spawnBiomes.add(biome);
+                }
+            } catch(Exception e) {
+                LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + this.entityName + ". Is it formatted correctly? Skipping.");
+            }
+        }
         if(section.useSpawnCosts.get()) {
             spawnCostPer = section.spawnCostPer.get();
             spawnMaxCost = section.spawnMaxCost.get();

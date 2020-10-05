@@ -2,9 +2,7 @@ package dev.itsmeow.imdlib.entity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.function.Function;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,15 +15,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public class EntityRegistrarHandler {
 
@@ -107,30 +102,17 @@ public class EntityRegistrarHandler {
 
         public void onLoad() {
             // Replace entity data
-            for(EntityTypeContainer<?> container : ENTITIES.values()) {
-                EntityTypeContainer<?>.EntityConfiguration section = container.getConfiguration();
-                container.configurationLoad();
-
-                // Parse biomes
-                List<Biome> biomesList = new ArrayList<Biome>();
-                for(String biomeID : section.biomesList.get()) {
-                    Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeID));
-                    if(biome == null) { // Could not get biome with ID
-                        LogManager.getLogger().error("[" + modid + "] Invalid biome configuration entered for entity \"" + container.entityName + "\" (biome was mistyped or a biome mod was removed?): " + biomeID);
-                    } else { // Valid biome
-                        biomesList.add(biome);
-                    }
-                }
-
-                container.setBiomes(biomesList.toArray(new Biome[0]));
-            }
+            ENTITIES.values().forEach(EntityTypeContainer::configurationLoad);
         }
 
+        /**
+         * Make sure the event subscriber for this is set to HIGH priority!
+         */
         public void biomeLoad(BiomeLoadingEvent event) {
             // Add spawns based on new container data
             if(!ENTITIES.values().isEmpty()) {
                 for(EntityTypeContainer<?> entry : ENTITIES.values()) {
-                    if(entry.doSpawning && entry.spawnWeight > 0) {
+                    if(entry.doSpawning && entry.spawnWeight > 0 && entry.getBiomeIDs().contains(event.getName().toString())) {
                         entry.registerPlacement();
                         MobSpawnInfo.Builder b = event.getSpawns().withSpawner(entry.spawnType, entry.getSpawnEntry());
                         if(entry.spawnCostPer != 0 && entry.spawnMaxCost != 0) {
