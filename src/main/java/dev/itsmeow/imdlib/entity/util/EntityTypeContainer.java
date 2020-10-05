@@ -54,6 +54,7 @@ public class EntityTypeContainer<T extends MobEntity> {
     public int spawnMaxGroup;
     public boolean biomeVariants = true;
     public boolean doSpawning = true;
+    public boolean useSpawnCosts;
     public double spawnCostPer;
     public double spawnMaxCost;
     public final float width;
@@ -93,6 +94,7 @@ public class EntityTypeContainer<T extends MobEntity> {
         this.spawnWeight = def.getSpawnWeight();
         this.spawnMinGroup = def.getSpawnMinGroup();
         this.spawnMaxGroup = def.getSpawnMaxGroup();
+        this.useSpawnCosts = def.useSpawnCosts();
         this.spawnCostPer = def.getSpawnCostPer();
         this.spawnMaxCost = def.getSpawnMaxCost();
         this.spawnType = def.getSpawnClassification();
@@ -163,6 +165,7 @@ public class EntityTypeContainer<T extends MobEntity> {
         public ForgeConfigSpec.IntValue spawnMinGroup;
         public ForgeConfigSpec.IntValue spawnMaxGroup;
         public ForgeConfigSpec.IntValue spawnWeight;
+        public ForgeConfigSpec.BooleanValue useSpawnCosts;
         public ForgeConfigSpec.DoubleValue spawnCostPer;
         public ForgeConfigSpec.DoubleValue spawnMaxCost;
         public ForgeConfigSpec.ConfigValue<List<? extends String>> biomesList;
@@ -192,6 +195,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             spawnWeight = builder.comment("The spawn chance compared to other entities (typically between 6-20)").worldRestart().defineInRange("weight", container.spawnWeight, 1, 9999);
             spawnMinGroup = builder.comment("Must be greater than 0").worldRestart().defineInRange("minGroup", container.spawnMinGroup, 1, 9999);
             spawnMaxGroup = builder.comment("Must be greater or equal to min value!").worldRestart().defineInRange("maxGroup", container.spawnMaxGroup, 1, 9999);
+            useSpawnCosts = builder.comment("Whether to use spawn costs in spawning or not").worldRestart().define("useSpawnCosts", container.useSpawnCosts);
             spawnCostPer = builder.comment("Cost to spawning algorithm per entity spawned").worldRestart().defineInRange("costPer", container.spawnCostPer, 0.01, 9999);
             spawnMaxCost = builder.comment("Maxmimum cost the spawning algorithm can accrue for this entity").worldRestart().defineInRange("maxCost", container.spawnMaxCost, 0.01, 9999);
             biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart().defineList("spawnBiomes", biomeStrings, (Predicate<Object>) input -> input instanceof String);
@@ -218,8 +222,10 @@ public class EntityTypeContainer<T extends MobEntity> {
         spawnWeight = section.spawnWeight.get();
         doSpawning = section.doSpawning.get();
         despawn = section.doDespawn.get();
-        spawnCostPer = section.spawnCostPer.get();
-        spawnMaxCost = section.spawnMaxCost.get();
+        if(section.useSpawnCosts.get()) {
+            spawnCostPer = section.spawnCostPer.get();
+            spawnMaxCost = section.spawnMaxCost.get();
+        }
         if(section.biomeVariants != null) {
             this.biomeVariants = section.biomeVariants.get();
         }

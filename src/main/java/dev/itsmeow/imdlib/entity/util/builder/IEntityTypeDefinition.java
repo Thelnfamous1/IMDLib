@@ -40,6 +40,8 @@ public interface IEntityTypeDefinition<T extends MobEntity> {
 
     public int getSpawnMaxGroup();
 
+    public boolean useSpawnCosts();
+
     public double getSpawnCostPer();
 
     public double getSpawnMaxCost();
@@ -69,4 +71,5 @@ public interface IEntityTypeDefinition<T extends MobEntity> {
     public EntitySpawnPlacementRegistry.IPlacementPredicate<T> getPlacementPredicate();
 
     public Supplier<AttributeModifierMap.MutableAttribute> getAttributeMap();
+
 }

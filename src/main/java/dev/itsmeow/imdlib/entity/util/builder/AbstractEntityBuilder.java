@@ -29,6 +29,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     protected int eggColorSolid;
     protected int eggColorSpot;
     protected int spawnWeight;
+    protected boolean useSpawnCosts;
     protected int spawnMinGroup;
     protected int spawnMaxGroup;
     protected double spawnCostPer;
@@ -58,6 +59,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         this.spawnWeight = 1;
         this.spawnMinGroup = 1;
         this.spawnMaxGroup = 1;
+        this.useSpawnCosts = false;
         this.spawnCostPer = 1;
         this.spawnMaxCost = 10;
         this.spawnType = EntityClassification.CREATURE;
@@ -84,6 +86,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     }
 
     public B spawnCosts(double cost, double maxCost) {
+        this.useSpawnCosts = true;
         this.spawnCostPer = cost;
         this.spawnMaxCost = maxCost;
         return getImplementation();

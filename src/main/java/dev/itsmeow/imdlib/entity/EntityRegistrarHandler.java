@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.logging.log4j.LogManager;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
@@ -19,9 +18,9 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.WeightedRandom;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
@@ -33,10 +32,6 @@ public class EntityRegistrarHandler {
     public final String modid;
     public final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> ENTITIES = new LinkedHashMap<>();
     private static final Field SERIALIZABLE = ObfuscationReflectionHelper.findField(EntityType.class, "field_200733_aL");
-    private static final Field WEIGHT = ObfuscationReflectionHelper.findField(WeightedRandom.Item.class, "field_76292_a"); //itemWeight
-    static {
-        FieldUtils.removeFinalModifier(WEIGHT);
-    }
 
 
     public EntityRegistrarHandler(String modid) {
@@ -131,18 +126,16 @@ public class EntityRegistrarHandler {
             }
         }
 
-        public void onWorldLoad() {
-            // Fill containers with proper values from their config sections
-            this.onLoad();
-        }
-
         public void biomeLoad(BiomeLoadingEvent event) {
             // Add spawns based on new container data
             if(!ENTITIES.values().isEmpty()) {
                 for(EntityTypeContainer<?> entry : ENTITIES.values()) {
                     if(entry.doSpawning && entry.spawnWeight > 0) {
                         entry.registerPlacement();
-                        event.getSpawns().withSpawner(entry.spawnType, entry.getSpawnEntry()).withSpawnCost(entry.entityType, entry.spawnCostPer, entry.spawnMaxCost);
+                        MobSpawnInfo.Builder b = event.getSpawns().withSpawner(entry.spawnType, entry.getSpawnEntry());
+                        if(entry.spawnCostPer != 0 && entry.spawnMaxCost != 0) {
+                            b.withSpawnCost(entry.entityType, entry.spawnCostPer, entry.spawnMaxCost);
+                        }
                     }
                 }
             }

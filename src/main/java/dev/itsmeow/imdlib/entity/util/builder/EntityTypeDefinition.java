@@ -148,4 +148,9 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
         return builder.spawnMaxCost;
     }
 
+    @Override
+    public boolean useSpawnCosts() {
+        return builder.useSpawnCosts;
+    }
+
 }
