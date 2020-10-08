@@ -24,6 +24,7 @@ import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -45,7 +46,6 @@ public class ItemModEntityContainer<T extends MobEntity & IContainable> extends 
     public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, String name, ITooltipFunction tooltip, ItemGroup group) {
         super(new Item.Properties().maxStackSize(1).group(group));
         this.setRegistryName(typeContainer.getModId(), name);
-        this.addPropertyOverrides(this);
         this.typeContainer = typeContainer;
         this.tooltip = tooltip;
     }
@@ -62,7 +62,9 @@ public class ItemModEntityContainer<T extends MobEntity & IContainable> extends 
             } else {
                 BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) raytraceresult;
                 BlockPos blockpos = blockraytraceresult.getPos();
-                this.placeEntity(worldIn, playerIn.getHeldItem(handIn), blockpos.offset(blockraytraceresult.getFace()));
+                if(worldIn instanceof ServerWorld) {
+                    this.placeEntity((ServerWorld)worldIn, playerIn.getHeldItem(handIn), blockpos.offset(blockraytraceresult.getFace()));
+                }
                 if(!playerIn.isCreative()) {
                     playerIn.setItemStackToSlot(handIn == Hand.MAIN_HAND ? EquipmentSlotType.MAINHAND : EquipmentSlotType.OFFHAND, new ItemStack(this.typeContainer.getEmptyContainerItem()));
                 }

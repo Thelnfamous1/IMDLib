@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -43,7 +44,6 @@ public class ItemModFishBucket<T extends MobEntity & IContainable> extends Bucke
 
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ITooltipFunction tooltip, ItemGroup group) {
         super(fluid, new Item.Properties().maxStackSize(1).group(group));
-        this.addPropertyOverrides(this);
         this.typeContainer = typeContainer;
         this.setRegistryName(typeContainer.entityName + "_bucket");
         this.tooltip = tooltip;
@@ -51,8 +51,8 @@ public class ItemModFishBucket<T extends MobEntity & IContainable> extends Bucke
 
     @Override
     public void onLiquidPlaced(World worldIn, ItemStack stack, BlockPos pos) {
-        if(!worldIn.isRemote) {
-            this.placeEntity(worldIn, stack, pos);
+        if(!worldIn.isRemote && worldIn instanceof ServerWorld) {
+            this.placeEntity((ServerWorld) worldIn, stack, pos);
         }
     }
 
