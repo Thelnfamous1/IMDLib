@@ -2,12 +2,18 @@ package dev.itsmeow.imdlib.item;
 
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import net.minecraft.block.DispenserBlock;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.dispenser.IBlockSource;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -19,6 +25,15 @@ public class ModSpawnEggItem extends SpawnEggItem {
     private final EntityType<?> type;
     private final String modid;
     private final String name;
+    protected static final DefaultDispenseItemBehavior EGG_DISPENSE_ACTION = new DefaultDispenseItemBehavior() {
+        public ItemStack dispenseStack(IBlockSource source, ItemStack stack) {
+            Direction direction = source.getBlockState().get(DispenserBlock.FACING);
+            EntityType<?> entitytype = ((SpawnEggItem) stack.getItem()).getType(stack.getTag());
+            entitytype.spawn(source.getWorld(), stack, (PlayerEntity) null, source.getBlockPos().offset(direction), SpawnReason.DISPENSER, direction != Direction.UP, false);
+            stack.shrink(1);
+            return stack;
+        }
+    };
 
     public ModSpawnEggItem(EntityTypeContainer<?> container) {
         super(container.entityType, container.eggColorSolid, container.eggColorSpot, new Properties().group(ItemGroup.MISC));
@@ -26,6 +41,7 @@ public class ModSpawnEggItem extends SpawnEggItem {
         this.modid = container.getModId();
         this.name = container.entityName.toLowerCase();
         this.setRegistryName(container.getModId(), name + "_spawn_egg");
+        DispenserBlock.registerDispenseBehavior(this, EGG_DISPENSE_ACTION);
     }
 
     @Override
