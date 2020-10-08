@@ -124,6 +124,8 @@ public class HeadType {
             HEADS_BLOCK_MAP.put(block, this);
             this.singletonVariant = singletonVariant;
             break;
+        default:
+            break;
         }
         HEADS.add(this);
         HEADS_MAP.put(name, this);

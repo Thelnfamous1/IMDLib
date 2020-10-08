@@ -25,8 +25,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 public abstract class BlockAnimalSkull extends ContainerBlock implements IWaterLoggable {
 
@@ -65,12 +63,6 @@ public abstract class BlockAnimalSkull extends ContainerBlock implements IWaterL
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public boolean hasCustomBreakingProgress(BlockState state) {
-        return true;
-    }
-
-    @Override
     public BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.ENTITYBLOCK_ANIMATED;
     }
@@ -78,7 +70,6 @@ public abstract class BlockAnimalSkull extends ContainerBlock implements IWaterL
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         BlockState state = this.getDefaultState();
-        IBlockReader world = context.getWorld();
         BlockPos pos = context.getPos();
         Direction[] directions = context.getNearestLookingDirections();
 
@@ -90,7 +81,7 @@ public abstract class BlockAnimalSkull extends ContainerBlock implements IWaterL
                 state = state.with(TOP_FACING, Direction.fromAngle(context.getPlayer().getRotationYawHead()));
             }
             state = state.with(FACING_EXCEPT_DOWN, direction);
-            if(!world.getBlockState(pos.offset(dir)).isReplaceable(context)) {
+            if(!context.getWorld().getBlockState(pos.offset(dir)).isReplaceable(context)) {
                 return state;
             }
         }
