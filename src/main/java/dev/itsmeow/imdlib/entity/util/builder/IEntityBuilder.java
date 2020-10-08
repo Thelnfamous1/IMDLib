@@ -8,6 +8,7 @@ import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHol
 import dev.itsmeow.imdlib.entity.util.IVariant;
 import dev.itsmeow.imdlib.util.BiomeDictionary;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
+import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.MobEntity;
@@ -51,6 +52,14 @@ public interface IEntityBuilder<T extends MobEntity, C extends EntityTypeContain
     public B variants(int max);
 
     public B variants(Function<String, IVariant> constructor, String... variants);
+    
+    public HeadType.Builder<T, C, B> head(String headName);
+    
+    public HeadType.Builder<T, C, B> head();
+    
+    public void setHeadBuild(Function<C, HeadType> builder);
+
+    public String getMod();
 
     default void preBuild() {
     }

@@ -13,6 +13,7 @@ import dev.itsmeow.imdlib.entity.util.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.IVariant;
 import dev.itsmeow.imdlib.util.BiomeDictionary;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
+import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.MobEntity;
@@ -48,6 +49,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     protected final String modid;
     protected boolean hasEgg;
     protected final Supplier<AttributeModifierMap.MutableAttribute> attributeMap;
+    protected Function<C, HeadType> headTypeBuilder;
 
     protected AbstractEntityBuilder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
         this.entityClass = EntityClass;
@@ -77,6 +79,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
 
     public abstract B getImplementation();
 
+    @Override
     public B spawn(EntityClassification type, int weight, int min, int max) {
         this.spawnType = type;
         this.spawnWeight = weight;
@@ -85,6 +88,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
+    @Override
     public B spawnCosts(double cost, double maxCost) {
         this.useSpawnCosts = true;
         this.spawnCostPer = cost;
@@ -92,6 +96,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
+    @Override
     public B egg(int solid, int spot) {
         this.hasEgg = true;
         this.eggColorSolid = solid;
@@ -99,66 +104,78 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
+    @Override
     public B size(float width, float height) {
         this.width = width;
         this.height = height;
         return getImplementation();
     }
 
+    @Override
     public B despawn() {
         this.despawn = true;
         return getImplementation();
     }
 
+    @Override
     public B config(CustomConfigurationHolder config) {
         this.customConfig = config;
         return getImplementation();
     }
 
+    @Override
     public B clientConfig(CustomConfigurationHolder config) {
         this.customClientConfig = config;
         return getImplementation();
     }
 
+    @Override
     public B placement(EntitySpawnPlacementRegistry.PlacementType type, Heightmap.Type heightMap, EntitySpawnPlacementRegistry.IPlacementPredicate<T> predicate) {
         this.placementType = type;
         this.heightMapType = heightMap;
         this.placementPredicate = predicate;
         return getImplementation();
     }
-
+    @Override
     public B defaultPlacement(EntitySpawnPlacementRegistry.IPlacementPredicate<T> predicate) {
         return placement(EntitySpawnPlacementRegistry.PlacementType.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, predicate);
     }
 
+    @Override
     public B waterPlacement() {
         return placement(EntitySpawnPlacementRegistry.PlacementType.IN_WATER, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, EntityTypeContainer::waterSpawn);
     }
 
+    @Override
     public B waterPlacement(EntitySpawnPlacementRegistry.IPlacementPredicate<T> predicate) {
         return placement(EntitySpawnPlacementRegistry.PlacementType.IN_WATER, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, predicate);
     }
 
+    @Override
     public B biomes(BiomeDictionary.Type... biomeTypes) {
         this.defaultBiomeSupplier = toBiomes(biomeTypes);
         return getImplementation();
     }
 
+    @Override
     public B biomes(Supplier<Biome[]> biomes) {
         this.defaultBiomeSupplier = toBiomes(biomes);
         return getImplementation();
     }
 
+    @Override
     public B biomes(Function<BiomeListBuilder, BiomeListBuilder> biomes) {
         return biomes(biomes.apply(BiomeListBuilder.create())::collect);
     }
 
+    @Override
     public B variants(IVariant... variants) {
         this.variantCount = variants.length;
         this.variants = variants;
         return getImplementation();
     }
 
+    @Override
     public B variants(String... nameTextures) {
         this.variantCount = nameTextures.length;
         this.variants = new EntityVariant[nameTextures.length];
@@ -169,6 +186,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
+    @Override
     public B variants(int max) {
         if(max > 0) {
             this.variantCount = max;
@@ -183,6 +201,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
+    @Override
     public B variants(Function<String, IVariant> constructor, String... variants) {
         this.variantCount = variants.length;
         IVariant[] variantList = new IVariant[variantCount];
@@ -209,5 +228,32 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
             biomes.addAll(Lists.newArrayList(biomes2.get()));
             return biomes;
         };
+    }
+
+    @Override
+    public HeadType.Builder<T, C, B> head(String headName) {
+        return new HeadType.Builder<T, C, B>(getImplementation(), headName);
+    }
+
+    @Override
+    public HeadType.Builder<T, C, B> head() {
+        return head(this.entityName + "head");
+    }
+
+    @Override
+    public void postBuild(C container) {
+        if(this.headTypeBuilder != null) {
+            container.headType = headTypeBuilder.apply(container);
+        }
+    }
+
+    @Override
+    public void setHeadBuild(Function<C, HeadType> builder) {
+        this.headTypeBuilder = builder;
+    }
+
+    @Override
+    public String getMod() {
+        return modid;
     }
 }

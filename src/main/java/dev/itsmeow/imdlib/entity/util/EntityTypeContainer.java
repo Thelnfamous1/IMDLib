@@ -20,6 +20,7 @@ import dev.itsmeow.imdlib.entity.util.builder.AbstractEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.builder.EntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
@@ -82,6 +83,7 @@ public class EntityTypeContainer<T extends MobEntity> {
     protected EntityVariantList variantList;
     protected int variantMax;
     protected DataParameter<String> variantDataKey;
+    public HeadType headType;
 
     protected final String modid;
     protected final Supplier<AttributeModifierMap.MutableAttribute> attributeMap;
@@ -291,6 +293,10 @@ public class EntityTypeContainer<T extends MobEntity> {
             return GlobalEntityTypeAttributes.put(entityType, attributeMap.get().create()) != null;
         }
         return false;
+    }
+
+    public HeadType getHeadType() {
+        return this.headType;
     }
 
     public boolean hasVariants() {
