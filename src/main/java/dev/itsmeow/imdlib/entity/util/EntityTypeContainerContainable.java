@@ -2,12 +2,14 @@ package dev.itsmeow.imdlib.entity.util;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import dev.itsmeow.imdlib.entity.util.builder.AbstractEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.builder.EntityTypeDefinition;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.IContainerItem.ITooltipFunction;
 import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.item.Item;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -55,8 +57,8 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
         protected BiFunction<C, ITooltipFunction, I> containerSupplier;
         protected Function<C, Item> emptyContainerSupplier;
 
-        protected AbstractEntityBuilderContainable(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            super(EntityClass, func, entityNameIn, modid);
+        protected AbstractEntityBuilderContainable(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
+            super(EntityClass, func, entityNameIn, attributeMap, modid);
         }
 
         public B containers(BiFunction<C, ITooltipFunction, I> containerSupplier, Function<C, Item> emptyContainerSupplier) {
@@ -92,8 +94,8 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
 
     public static class Builder<T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> extends AbstractEntityBuilderContainable<T, I, EntityTypeContainerContainable<T, I>, Builder<T, I>> {
 
-        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            super(EntityClass, func, entityNameIn, modid);
+        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
+            super(EntityClass, func, entityNameIn, attributeMap, modid);
         }
 
         @Override
@@ -106,8 +108,8 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
             return this;
         }
 
-        public static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> Builder<T, I> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            return new Builder<T, I>(EntityClass, func, entityNameIn, modid);
+        public static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> Builder<T, I> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
+            return new Builder<T, I>(EntityClass, func, entityNameIn, attributeMap, modid);
         }
     }
 
