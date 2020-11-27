@@ -45,9 +45,9 @@ public class ItemModEntityContainer<T extends MobEntity & IContainable> extends 
     public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, String name, ITooltipFunction tooltip, ItemGroup group) {
         super(new Item.Properties().maxStackSize(1).group(group));
         this.setRegistryName(typeContainer.getModId(), name);
-        this.addPropertyOverrides(this);
         this.typeContainer = typeContainer;
         this.tooltip = tooltip;
+        this.addPropertyOverrides(this);
     }
 
     @Override

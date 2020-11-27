@@ -43,10 +43,10 @@ public class ItemModFishBucket<T extends MobEntity & IContainable> extends Bucke
 
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ITooltipFunction tooltip, ItemGroup group) {
         super(fluid, new Item.Properties().maxStackSize(1).group(group));
-        this.addPropertyOverrides(this);
         this.typeContainer = typeContainer;
         this.setRegistryName(typeContainer.entityName + "_bucket");
         this.tooltip = tooltip;
+        this.addPropertyOverrides(this);
     }
 
     @Override
