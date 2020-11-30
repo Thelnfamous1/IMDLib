@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib.tileentity;
 
 import dev.itsmeow.imdlib.block.BlockAnimalSkull;
+import dev.itsmeow.imdlib.client.render.RenderGenericHead;
 import dev.itsmeow.imdlib.entity.util.IVariant;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.block.Block;
@@ -13,6 +14,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class TileEntityHead extends TileEntity {
 
@@ -21,6 +23,11 @@ public class TileEntityHead extends TileEntity {
     public static void registerType(RegistryEvent.Register<TileEntityType<?>> event, String modid) {
         HEAD_TYPE.setRegistryName(modid, "head");
         event.getRegistry().register(HEAD_TYPE);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void registerTypeRender() {
+        ClientRegistry.bindTileEntityRenderer(HEAD_TYPE, RenderGenericHead::new);
     }
 
     private HeadType cachedType = null;
