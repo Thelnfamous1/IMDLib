@@ -11,6 +11,7 @@ import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.MobEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.BiomeDictionary;
@@ -42,6 +43,8 @@ public interface IEntityBuilder<T extends MobEntity, C extends EntityTypeContain
     public B biomes(BiomeDictionary.Type... biomeTypes);
 
     public B biomes(Supplier<Biome[]> biomes);
+
+    public B biomeKeys(Supplier<RegistryKey<Biome>[]> biomes);
 
     public B biomes(Function<BiomeListBuilder, BiomeListBuilder> biomes);
 

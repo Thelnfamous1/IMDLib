@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.entity.util.builder;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
+import com.google.common.collect.Sets;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
@@ -18,6 +20,7 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
@@ -162,6 +165,12 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     @Override
     public B biomes(Supplier<Biome[]> biomes) {
         this.defaultBiomeSupplier = toBiomes(biomes);
+        return getImplementation();
+    }
+
+    @Override
+    public B biomeKeys(Supplier<RegistryKey<Biome>[]> biomes) {
+        this.defaultBiomeSupplier = () -> Sets.newHashSet(biomes.get()).stream().map(b -> ForgeRegistries.BIOMES.getValue(b.getLocation())).collect(Collectors.toSet());
         return getImplementation();
     }
 
