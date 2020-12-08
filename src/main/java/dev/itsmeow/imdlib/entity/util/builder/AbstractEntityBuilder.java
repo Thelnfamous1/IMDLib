@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
@@ -11,7 +12,6 @@ import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
 import dev.itsmeow.imdlib.entity.util.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.IVariant;
-import dev.itsmeow.imdlib.util.BiomeDictionary;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.entity.EntityClassification;
@@ -21,6 +21,8 @@ import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public abstract class AbstractEntityBuilder<T extends MobEntity, C extends EntityTypeContainer<T>, B extends AbstractEntityBuilder<T, C, B>> implements IEntityBuilder<T, C, B> {
     protected final Class<T> entityClass;
@@ -214,9 +216,9 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
 
     protected static Supplier<Set<Biome>> toBiomes(BiomeDictionary.Type[] biomeTypes) {
         return () -> {
-            Set<Biome> biomes = new HashSet<Biome>();
+            Set<Biome> biomes = new HashSet<>();
             for(BiomeDictionary.Type type : biomeTypes) {
-                biomes.addAll(BiomeDictionary.getBiomes(type));
+                biomes.addAll(BiomeDictionary.getBiomes(type).stream().map(k -> ForgeRegistries.BIOMES.getValue(k.getLocation())).collect(Collectors.toList()));
             }
             return biomes;
         };
@@ -224,7 +226,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
 
     protected static Supplier<Set<Biome>> toBiomes(Supplier<Biome[]> biomes2) {
         return () -> {
-            Set<Biome> biomes = new HashSet<Biome>();
+            Set<Biome> biomes = new HashSet<>();
             biomes.addAll(Lists.newArrayList(biomes2.get()));
             return biomes;
         };

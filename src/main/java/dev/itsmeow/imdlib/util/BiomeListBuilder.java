@@ -2,19 +2,21 @@ package dev.itsmeow.imdlib.util;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.util.RegistryKey;
 import net.minecraft.world.biome.Biome;
+import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistries.Keys;
 
 public class BiomeListBuilder {
 
-    private final Set<Biome> extras = new HashSet<Biome>();
-    private final Set<BiomeDictionary.Type> list = new HashSet<BiomeDictionary.Type>();
-    private final Set<BiomeDictionary.Type> blacklist = new HashSet<BiomeDictionary.Type>();
-    private final Set<Biome> blacklistBiome = new HashSet<Biome>();
-    private final Set<BiomeDictionary.Type> required = new HashSet<BiomeDictionary.Type>();
+    private final Set<Biome> extras = new HashSet<>();
+    private final Set<BiomeDictionary.Type> list = new HashSet<>();
+    private final Set<BiomeDictionary.Type> blacklist = new HashSet<>();
+    private final Set<Biome> blacklistBiome = new HashSet<>();
+    private final Set<BiomeDictionary.Type> required = new HashSet<>();
 
     private BiomeListBuilder() {
 
@@ -60,10 +62,10 @@ public class BiomeListBuilder {
     }
 
     public Biome[] collect() {
-        Set<Biome> set = new HashSet<Biome>();
+        Set<Biome> set = new HashSet<>();
         set.addAll(extras);
         for(BiomeDictionary.Type extraT : list) {
-            set.addAll(BiomeDictionary.getBiomes(extraT));
+            set.addAll(BiomeDictionary.getBiomes(extraT).stream().map(k -> ForgeRegistries.BIOMES.getValue(k.getLocation())).collect(Collectors.toList()));
         }
         if(required.size() > 0 || blacklist.size() > 0) {
             for(Biome biome : ForgeRegistries.BIOMES.getValues()) {

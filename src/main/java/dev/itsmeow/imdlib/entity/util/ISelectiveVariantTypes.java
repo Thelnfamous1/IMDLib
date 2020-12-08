@@ -5,7 +5,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import dev.itsmeow.imdlib.util.BiomeDictionary;
 import net.minecraft.entity.AgeableEntity.AgeableData;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.MobEntity;
@@ -14,6 +13,7 @@ import net.minecraft.util.RegistryKey;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.biome.Biome;
+import net.minecraftforge.common.BiomeDictionary;
 
 public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTypes<T> {
 
