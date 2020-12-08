@@ -33,6 +33,13 @@ public class BiomeListBuilder {
         return this;
     }
 
+    public BiomeListBuilder extra(RegistryKey<Biome>... extraBiomes) {
+        for(RegistryKey<Biome> biome : extraBiomes) {
+            extras.add(ForgeRegistries.BIOMES.getValue(biome.getLocation()));
+        }
+        return this;
+    }
+
     public BiomeListBuilder extra(BiomeDictionary.Type... types) {
         for(BiomeDictionary.Type type : types) {
             list.add(type);
@@ -57,6 +64,13 @@ public class BiomeListBuilder {
     public BiomeListBuilder withoutBiomes(Biome... biomes) {
         for(Biome biome : biomes) {
             blacklistBiome.add(biome);
+        }
+        return this;
+    }
+
+    public BiomeListBuilder withoutBiomes(RegistryKey<Biome>... biomes) {
+        for(RegistryKey<Biome> biome : biomes) {
+            blacklistBiome.add(ForgeRegistries.BIOMES.getValue(biome.getLocation()));
         }
         return this;
     }
