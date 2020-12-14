@@ -200,7 +200,7 @@ public class EntityTypeContainer<T extends MobEntity> {
     }
 
     public List<String> getBiomeIDs() {
-        return this.getSpawnBiomes().parallelStream().filter(b -> b != null && b.getRegistryName() != null).map(b -> b.getRegistryName().toString()).collect(Collectors.toList());
+        return this.getSpawnBiomes().parallelStream().filter(b -> b != null).map(b -> b.getLocation().toString()).collect(Collectors.toList());
     }
 
     public Set<RegistryKey<Biome>> getSpawnBiomes() {
