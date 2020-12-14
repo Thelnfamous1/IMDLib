@@ -66,7 +66,7 @@ public class EntityTypeContainer<T extends MobEntity> {
     protected boolean placementRegistered = false;
 
     protected Supplier<Set<RegistryKey<Biome>>> spawnBiomesSupplier;
-    protected Set<RegistryKey<Biome>> spawnBiomesCache = new HashSet<>();
+    protected Set<RegistryKey<Biome>> spawnBiomesCache = null;
 
     protected EntityConfiguration config;
 
