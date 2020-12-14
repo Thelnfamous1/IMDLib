@@ -1,41 +1,22 @@
 package dev.itsmeow.imdlib.entity.util;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.registry.Registry;
-import org.apache.logging.log4j.LogManager;
-
 import com.google.common.collect.ImmutableList;
-
 import dev.itsmeow.imdlib.entity.util.builder.AbstractEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.builder.EntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntitySpawnPlacementRegistry;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
@@ -44,6 +25,17 @@ import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.LogManager;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class EntityTypeContainer<T extends MobEntity> {
 
