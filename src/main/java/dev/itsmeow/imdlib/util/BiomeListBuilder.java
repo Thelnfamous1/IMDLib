@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -12,10 +13,10 @@ import net.minecraftforge.registries.ForgeRegistries.Keys;
 
 public class BiomeListBuilder {
 
-    private final Set<Biome> extras = new HashSet<>();
+    private final Set<RegistryKey<Biome>> extras = new HashSet<>();
     private final Set<BiomeDictionary.Type> list = new HashSet<>();
     private final Set<BiomeDictionary.Type> blacklist = new HashSet<>();
-    private final Set<Biome> blacklistBiome = new HashSet<>();
+    private final Set<RegistryKey<Biome>> blacklistBiome = new HashSet<>();
     private final Set<BiomeDictionary.Type> required = new HashSet<>();
 
     private BiomeListBuilder() {
@@ -26,16 +27,9 @@ public class BiomeListBuilder {
         return new BiomeListBuilder();
     }
 
-    public BiomeListBuilder extra(Biome... extraBiomes) {
-        for(Biome biome : extraBiomes) {
-            extras.add(biome);
-        }
-        return this;
-    }
-
     public BiomeListBuilder extra(RegistryKey<Biome>... extraBiomes) {
         for(RegistryKey<Biome> biome : extraBiomes) {
-            extras.add(ForgeRegistries.BIOMES.getValue(biome.getLocation()));
+            extras.add(biome);
         }
         return this;
     }
@@ -61,29 +55,23 @@ public class BiomeListBuilder {
         return this;
     }
 
-    public BiomeListBuilder withoutBiomes(Biome... biomes) {
-        for(Biome biome : biomes) {
+    public BiomeListBuilder withoutBiomes(RegistryKey<Biome>... biomes) {
+        for(RegistryKey<Biome> biome : biomes) {
             blacklistBiome.add(biome);
         }
         return this;
     }
 
-    public BiomeListBuilder withoutBiomes(RegistryKey<Biome>... biomes) {
-        for(RegistryKey<Biome> biome : biomes) {
-            blacklistBiome.add(ForgeRegistries.BIOMES.getValue(biome.getLocation()));
-        }
-        return this;
-    }
-
-    public Biome[] collect() {
-        Set<Biome> set = new HashSet<>();
+    public RegistryKey<Biome>[] collect() {
+        Set<RegistryKey<Biome>> set = new HashSet<>();
         set.addAll(extras);
         for(BiomeDictionary.Type extraT : list) {
-            set.addAll(BiomeDictionary.getBiomes(extraT).stream().map(k -> ForgeRegistries.BIOMES.getValue(k.getLocation())).collect(Collectors.toList()));
+            set.addAll(BiomeDictionary.getBiomes(extraT));
         }
         if(required.size() > 0 || blacklist.size() > 0) {
-            for(Biome biome : ForgeRegistries.BIOMES.getValues()) {
-                Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(RegistryKey.getOrCreateKey(Keys.BIOMES, ForgeRegistries.BIOMES.getKey(biome)));
+            for(ResourceLocation biomeRL : ForgeRegistries.BIOMES.getKeys()) {
+                RegistryKey<Biome> biomeKey = RegistryKey.getOrCreateKey(Keys.BIOMES, biomeRL);
+                Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(biomeKey);
                 if(types != null) {
                     boolean pass = true;
                     for(BiomeDictionary.Type type : required) {
@@ -96,16 +84,16 @@ public class BiomeListBuilder {
                             pass = false;
                         }
                     }
-                    if(blacklistBiome.contains(biome)) {
+                    if(blacklistBiome.contains(biomeKey)) {
                         pass = false;
                     }
                     if(pass) {
-                        set.add(biome);
+                        set.add(biomeKey);
                     }
                 }
             }
         }
-        return set.toArray(new Biome[0]);
+        return set.toArray(new RegistryKey[0]);
     }
 
 }

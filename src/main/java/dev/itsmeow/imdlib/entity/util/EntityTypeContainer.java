@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 
 import com.google.common.collect.ImmutableList;
@@ -71,14 +73,15 @@ public class EntityTypeContainer<T extends MobEntity> {
     public final EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate;
     protected boolean placementRegistered = false;
 
-    public Set<Biome> spawnBiomes;
+    protected Supplier<Set<RegistryKey<Biome>>> spawnBiomesSupplier;
+    protected Set<RegistryKey<Biome>> spawnBiomesCache = new HashSet<>();
 
     protected EntityConfiguration config;
 
     protected final CustomConfigurationHolder customConfig;
     protected final CustomConfigurationHolder customClientConfig;
 
-    protected Supplier<Set<Biome>> defaultBiomeSupplier;
+    protected Supplier<Set<RegistryKey<Biome>>> defaultBiomeSupplier;
 
     protected EntityVariantList variantList;
     protected int variantMax;
@@ -110,11 +113,11 @@ public class EntityTypeContainer<T extends MobEntity> {
         this.despawn = def.despawns();
         this.customConfig = def.getCustomConfig();
         this.customClientConfig = def.getCustomClientConfig();
-        this.defaultBiomeSupplier = def.getSpawnBiomes();
+        this.defaultBiomeSupplier = def.getDefaultSpawnBiomes();
         if(defaultBiomeSupplier != null) {
-            spawnBiomes = defaultBiomeSupplier.get();
+            spawnBiomesSupplier = defaultBiomeSupplier;
         } else {
-            spawnBiomes = new HashSet<Biome>();
+            spawnBiomesSupplier = HashSet::new;
         }
         this.placementType = def.getPlacementType();
         this.heightMapType = def.getPlacementHeightMapType();
@@ -200,12 +203,24 @@ public class EntityTypeContainer<T extends MobEntity> {
             useSpawnCosts = builder.comment("Whether to use spawn costs in spawning or not").worldRestart().define("useSpawnCosts", container.useSpawnCosts);
             spawnCostPer = builder.comment("Cost to spawning algorithm per entity spawned").worldRestart().defineInRange("costPer", container.spawnCostPer, 0.01, 9999);
             spawnMaxCost = builder.comment("Maxmimum cost the spawning algorithm can accrue for this entity").worldRestart().defineInRange("maxCost", container.spawnMaxCost, 0.01, 9999);
-            biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart().defineList("spawnBiomes", container.getBiomeIDs(), (Predicate<Object>) input -> input instanceof String);
+            biomesList = builder.comment("Enter biome Resource Locations. Supports modded biomes.").worldRestart().defineList("spawnBiomes", container.getBiomeIDs(), input -> input instanceof String);
         }
     }
 
     public List<String> getBiomeIDs() {
-        return spawnBiomes.parallelStream().map(b -> b.getRegistryName().toString()).collect(Collectors.toList());
+        return this.getSpawnBiomes().parallelStream().filter(b -> b != null && b.getRegistryName() != null).map(b -> b.getRegistryName().toString()).collect(Collectors.toList());
+    }
+
+    public Set<RegistryKey<Biome>> getSpawnBiomes() {
+        if(this.spawnBiomesCache == null) {
+            this.spawnBiomesCache = spawnBiomesSupplier.get();
+        }
+        return this.spawnBiomesCache;
+    }
+
+    public void setSpawnBiomesSupplier(Supplier<Set<RegistryKey<Biome>>> biomesSupplier) {
+        this.spawnBiomesCache = null;
+        this.spawnBiomesSupplier = biomesSupplier;
     }
 
     public void configurationLoad() {
@@ -215,19 +230,22 @@ public class EntityTypeContainer<T extends MobEntity> {
         spawnWeight = section.spawnWeight.get();
         doSpawning = section.doSpawning.get();
         despawn = section.doDespawn.get();
-        this.spawnBiomes = new HashSet<Biome>();
-        for(String biomeName : section.biomesList.get()) {
-            try {
-                Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeName));
-                if(biome == null) {
-                    LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + this.entityName + ". No biome exists with that name. Skipping.");
-                } else {
-                    this.spawnBiomes.add(biome);
+        this.setSpawnBiomesSupplier(() -> {
+            HashSet<RegistryKey<Biome>> biomeKeys = new HashSet<>();
+            for (String biomeName : section.biomesList.get()) {
+                try {
+                    Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeName));
+                    if (biome == null || biome.getRegistryName() == null) {
+                        LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + this.entityName + ". No biome exists with that name. Skipping.");
+                    } else {
+                        biomeKeys.add(RegistryKey.getOrCreateKey(Registry.BIOME_KEY, biome.getRegistryName()));
+                    }
+                } catch (Exception e) {
+                    LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + this.entityName + ". Is it formatted correctly? Skipping.");
                 }
-            } catch(Exception e) {
-                LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + this.entityName + ". Is it formatted correctly? Skipping.");
             }
-        }
+            return biomeKeys;
+        });
         if(section.useSpawnCosts.get()) {
             spawnCostPer = section.spawnCostPer.get();
             spawnMaxCost = section.spawnMaxCost.get();

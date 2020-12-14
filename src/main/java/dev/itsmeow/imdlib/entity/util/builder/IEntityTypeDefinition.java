@@ -12,6 +12,7 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
@@ -62,7 +63,7 @@ public interface IEntityTypeDefinition<T extends MobEntity> {
     @Nullable
     public CustomConfigurationHolder getCustomClientConfig();
 
-    public Supplier<Set<Biome>> getSpawnBiomes();
+    public Supplier<Set<RegistryKey<Biome>>> getDefaultSpawnBiomes();
 
     public EntitySpawnPlacementRegistry.PlacementType getPlacementType();
 

@@ -1,14 +1,6 @@
 package dev.itsmeow.imdlib.entity.util.builder;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.Lists;
-
 import com.google.common.collect.Sets;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
@@ -25,7 +17,12 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractEntityBuilder<T extends MobEntity, C extends EntityTypeContainer<T>, B extends AbstractEntityBuilder<T, C, B>> implements IEntityBuilder<T, C, B> {
     protected final Class<T> entityClass;
@@ -45,7 +42,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     protected boolean despawn;
     protected CustomConfigurationHolder customConfig;
     protected CustomConfigurationHolder customClientConfig;
-    protected Supplier<Set<Biome>> defaultBiomeSupplier;
+    protected Supplier<Set<RegistryKey<Biome>>> defaultBiomeSupplier;
     protected EntitySpawnPlacementRegistry.PlacementType placementType;
     protected Heightmap.Type heightMapType;
     protected EntitySpawnPlacementRegistry.IPlacementPredicate<T> placementPredicate;
@@ -75,7 +72,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         this.despawn = false;
         this.hasEgg = false;
         this.customConfig = null;
-        this.defaultBiomeSupplier = () -> new HashSet<Biome>();
+        this.defaultBiomeSupplier = HashSet::new;
         this.placementType = null;
         this.heightMapType = null;
         this.placementPredicate = null;
@@ -163,14 +160,8 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     }
 
     @Override
-    public B biomes(Supplier<Biome[]> biomes) {
-        this.defaultBiomeSupplier = toBiomes(biomes);
-        return getImplementation();
-    }
-
-    @Override
-    public B biomeKeys(Supplier<RegistryKey<Biome>[]> biomes) {
-        this.defaultBiomeSupplier = () -> Sets.newHashSet(biomes.get()).stream().map(b -> ForgeRegistries.BIOMES.getValue(b.getLocation())).collect(Collectors.toSet());
+    public B biomes(Supplier<RegistryKey<Biome>[]> biomes) {
+        this.defaultBiomeSupplier = () -> Sets.newHashSet(biomes.get());
         return getImplementation();
     }
 
@@ -223,22 +214,8 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
-    protected static Supplier<Set<Biome>> toBiomes(BiomeDictionary.Type[] biomeTypes) {
-        return () -> {
-            Set<Biome> biomes = new HashSet<>();
-            for(BiomeDictionary.Type type : biomeTypes) {
-                biomes.addAll(BiomeDictionary.getBiomes(type).stream().map(k -> ForgeRegistries.BIOMES.getValue(k.getLocation())).collect(Collectors.toList()));
-            }
-            return biomes;
-        };
-    }
-
-    protected static Supplier<Set<Biome>> toBiomes(Supplier<Biome[]> biomes2) {
-        return () -> {
-            Set<Biome> biomes = new HashSet<>();
-            biomes.addAll(Lists.newArrayList(biomes2.get()));
-            return biomes;
-        };
+    protected static Supplier<Set<RegistryKey<Biome>>> toBiomes(BiomeDictionary.Type[] biomeTypes) {
+        return () -> Lists.newArrayList(biomeTypes).stream().flatMap(type -> BiomeDictionary.getBiomes(type).stream()).collect(Collectors.toSet());
     }
 
     @Override

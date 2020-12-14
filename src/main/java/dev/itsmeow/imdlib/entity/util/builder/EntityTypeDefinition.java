@@ -11,6 +11,7 @@ import net.minecraft.entity.EntitySpawnPlacementRegistry.IPlacementPredicate;
 import net.minecraft.entity.EntitySpawnPlacementRegistry.PlacementType;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.MobEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap.Type;
@@ -114,7 +115,7 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
     }
 
     @Override
-    public Supplier<Set<Biome>> getSpawnBiomes() {
+    public Supplier<Set<RegistryKey<Biome>>> getDefaultSpawnBiomes() {
         return builder.defaultBiomeSupplier;
     }
 
