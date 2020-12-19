@@ -51,33 +51,31 @@ public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTyp
     @Nullable
     @Override
     default ILivingEntityData initAgeableData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
-        if(!this.getImplementation().isChild()) {
-            if(this.getContainer().biomeVariants && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL)) {
-                Biome biome = world.getBiome(this.getImplementation().getPosition());
-                Optional<RegistryKey<Biome>> biomeKey = world.func_241828_r().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome);
-                biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
-                String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeDictionary.getTypes(biomeKey.get()), reason);
-                String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
-                IVariant variant = this.getContainer().getVariantForName(varStr);
-                if(livingdata instanceof AgeableTypeData) {
-                    variant = ((AgeableTypeData) livingdata).typeData;
-                } else if(livingdata instanceof AgeableData) {
-                    livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
-                } else {
-                    livingdata = new AgeableTypeData(variant);
-                }
-                this.setType(variant);
+        if(this.getContainer().biomeVariants && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL)) {
+            Biome biome = world.getBiome(this.getImplementation().getPosition());
+            Optional<RegistryKey<Biome>> biomeKey = world.func_241828_r().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome);
+            biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
+            String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeDictionary.getTypes(biomeKey.get()), reason);
+            String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
+            IVariant variant = this.getContainer().getVariantForName(varStr);
+            if(livingdata instanceof AgeableTypeData) {
+                variant = ((AgeableTypeData) livingdata).typeData;
+            } else if(livingdata instanceof AgeableData) {
+                livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
             } else {
-                IVariant variant = this.getRandomType();
-                if(livingdata instanceof AgeableTypeData) {
-                    variant = ((AgeableTypeData) livingdata).typeData;
-                } else if(livingdata instanceof AgeableData) {
-                    livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
-                } else {
-                    livingdata = new AgeableTypeData(variant);
-                }
-                this.setType(variant);
+                livingdata = new AgeableTypeData(variant);
             }
+            this.setType(variant);
+        } else {
+            IVariant variant = this.getRandomType();
+            if(livingdata instanceof AgeableTypeData) {
+                variant = ((AgeableTypeData) livingdata).typeData;
+            } else if(livingdata instanceof AgeableData) {
+                livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
+            } else {
+                livingdata = new AgeableTypeData(variant);
+            }
+            this.setType(variant);
         }
         return livingdata;
     }
