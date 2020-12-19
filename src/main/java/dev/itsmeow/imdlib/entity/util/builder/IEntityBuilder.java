@@ -42,6 +42,8 @@ public interface IEntityBuilder<T extends MobEntity, C extends EntityTypeContain
 
     public B biomes(BiomeDictionary.Type... biomeTypes);
 
+    public B biomesOverworld(BiomeDictionary.Type... biomeTypes);
+
     public B biomes(Supplier<RegistryKey<Biome>[]> biomes);
 
     public B biomes(Function<BiomeListBuilder, BiomeListBuilder> biomes);

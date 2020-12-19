@@ -18,6 +18,7 @@ public class BiomeListBuilder {
     private final Set<BiomeDictionary.Type> blacklist = new HashSet<>();
     private final Set<RegistryKey<Biome>> blacklistBiome = new HashSet<>();
     private final Set<BiomeDictionary.Type> required = new HashSet<>();
+    private boolean onlyOverworld = false;
 
     private BiomeListBuilder() {
 
@@ -62,6 +63,11 @@ public class BiomeListBuilder {
         return this;
     }
 
+    public BiomeListBuilder onlyOverworld() {
+        this.onlyOverworld = true;
+        return this;
+    }
+
     public RegistryKey<Biome>[] collect() {
         Set<RegistryKey<Biome>> set = new HashSet<>();
         set.addAll(extras);
@@ -85,6 +91,9 @@ public class BiomeListBuilder {
                         }
                     }
                     if(blacklistBiome.contains(biomeKey)) {
+                        pass = false;
+                    }
+                    if(onlyOverworld && !types.contains(BiomeDictionary.Type.OVERWORLD)) {
                         pass = false;
                     }
                     if(pass) {

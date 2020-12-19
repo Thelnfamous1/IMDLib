@@ -155,7 +155,13 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
 
     @Override
     public B biomes(BiomeDictionary.Type... biomeTypes) {
-        this.defaultBiomeSupplier = toBiomes(biomeTypes);
+        this.defaultBiomeSupplier = toBiomes(biomeTypes, false);
+        return getImplementation();
+    }
+
+    @Override
+    public B biomesOverworld(BiomeDictionary.Type... biomeTypes) {
+        this.defaultBiomeSupplier = toBiomes(biomeTypes, true);
         return getImplementation();
     }
 
@@ -214,8 +220,8 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
-    protected static Supplier<Set<RegistryKey<Biome>>> toBiomes(BiomeDictionary.Type[] biomeTypes) {
-        return () -> Lists.newArrayList(biomeTypes).stream().flatMap(type -> BiomeDictionary.getBiomes(type).stream()).collect(Collectors.toSet());
+    protected static Supplier<Set<RegistryKey<Biome>>> toBiomes(BiomeDictionary.Type[] biomeTypes, boolean overworldOnly) {
+        return () -> Lists.newArrayList(biomeTypes).stream().flatMap(type -> BiomeDictionary.getBiomes(type).stream()).filter(b -> overworldOnly ? BiomeDictionary.hasType(b, BiomeDictionary.Type.OVERWORLD) : true).collect(Collectors.toSet());
     }
 
     @Override
