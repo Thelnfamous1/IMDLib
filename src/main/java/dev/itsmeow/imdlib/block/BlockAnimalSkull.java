@@ -82,7 +82,7 @@ public abstract class BlockAnimalSkull extends ContainerBlock implements IWaterL
             }
             state = state.with(FACING_EXCEPT_DOWN, direction);
             if(!context.getWorld().getBlockState(pos.offset(dir)).isReplaceable(context)) {
-                return state;
+                return state.with(BlockStateProperties.WATERLOGGED, context.getWorld().getFluidState(context.getPos()).getFluid() == Fluids.WATER);
             }
         }
         return null;
