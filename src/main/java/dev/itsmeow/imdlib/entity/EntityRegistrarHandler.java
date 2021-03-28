@@ -69,13 +69,20 @@ public class EntityRegistrarHandler {
     public <T extends Entity> EntityType<T> createEntityType(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
         EntityType<T> type = EntityType.Builder.<T>create((etype, world) -> func.apply(world), classification).setTrackingRange(trackingRange).setUpdateInterval(updateInterval).setShouldReceiveVelocityUpdates(velUpdates).size(width, height).setCustomClientFactory((e, world) -> func.apply(world)).disableSerialization().build(modid + ":" + entityNameIn.toLowerCase());
         type.setRegistryName(modid + ":" + entityNameIn.toLowerCase());
-
-        // It's okay, I hate it too
         try {
-            setFinalField(SERIALIZABLE, type, true);
+            // attempt using AT, which might not present in implementer
+            // to explain, I do this to avoid the "no data fixer registered" log spam - it's not really an issue but why not avoid it
+            type.serializable = true;
         } catch(Exception e) {
-            LogManager.getLogger().warn("Unable to set serializable for {}. This could result in possible saving issues with entities!", entityNameIn);
+            // attempt using reflection, which doesn't work on newer JDK. maybe implement some logic that checks the security manager?
+            try {
+                setFinalField(SERIALIZABLE, type, true);
+            } catch(Exception e2) {
+                LogManager.getLogger().error("Unable to set serializable for {}. This could result in possible saving issues with entities!", entityNameIn);
+                e2.printStackTrace();
+            }
         }
+
         return type;
     }
 
