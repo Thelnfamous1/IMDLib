@@ -24,6 +24,7 @@ import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -62,36 +63,56 @@ public class EntityRegistrarHandler {
 
     @SuppressWarnings("deprecation")
     public void subscribe(IEventBus modBus) {
-        modBus.addListener((GatherDataEvent event) -> {
-            event.getGenerator().addProvider(new ModSpawnEggItem.DataProvider(this, event.getGenerator(), event.getExistingFileHelper()));
+        modBus.register(new EventHandler(this));
+        ClassLoadHacks.runIf(useAttributeEvents, () -> () -> {
+            modBus.register(new EntityAttributeRegistrar(this));
         });
-        modBus.addListener((RegistryEvent.Register<EntityType<?>> event) -> {
-            for(EntityTypeContainer<?> container : ENTITIES.values()) {
+    }
+
+    public static class EventHandler {
+        private final EntityRegistrarHandler handler;
+
+        public EventHandler(EntityRegistrarHandler handler) {
+            this.handler = handler;
+        }
+
+        @SubscribeEvent
+        public void gatherData(GatherDataEvent event) {
+            event.getGenerator().addProvider(new ModSpawnEggItem.DataProvider(handler, event.getGenerator(), event.getExistingFileHelper()));
+        }
+
+        @SubscribeEvent
+        public void registerEntityTypes(RegistryEvent.Register<EntityType<?>> event) {
+            for(EntityTypeContainer<?> container : handler.ENTITIES.values()) {
                 event.getRegistry().register(container.entityType);
                 if(!useAttributeEvents) {
                     container.registerAttributes();
                 }
             }
-        });
-        modBus.addListener((RegistryEvent.Register<Block> event) -> {
+        }
+
+        @SubscribeEvent
+        public void registerBlocks(RegistryEvent.Register<Block> event) {
             for (HeadType type : HeadType.values()) {
                 event.getRegistry().registerAll(type.getBlockSet().toArray(new Block[0]));
             }
-        });
-        modBus.addListener((RegistryEvent.Register<Item> event) -> {
+        }
+
+        @SubscribeEvent
+        public void registerItems(RegistryEvent.Register<Item> event) {
             // Heads
             for (HeadType type : HeadType.values()) {
                 event.getRegistry().registerAll(type.getItemSet().toArray(new Item[0]));
             }
 
             // Containers & eggs
-            for(EntityTypeContainer<?> container : ENTITIES.values()) {
+            for(EntityTypeContainer<?> container : handler.ENTITIES.values()) {
                 if (container instanceof EntityTypeContainerContainable<?, ?>) {
                     EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
-                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && c.getContainerItem().getRegistryName().getNamespace().equals(modid)) {
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && c.getContainerItem().getRegistryName().getNamespace().equals(handler.modid)) {
                         event.getRegistry().register(c.getContainerItem());
                     }
-                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && c.getEmptyContainerItem().getRegistryName().getNamespace().equals(modid)) {
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && c.getEmptyContainerItem().getRegistryName().getNamespace().equals(handler.modid)) {
                         event.getRegistry().register(c.getEmptyContainerItem());
                     }
                 }
@@ -99,13 +120,12 @@ public class EntityRegistrarHandler {
                     event.getRegistry().register(container.egg);
                 }
             }
-        });
-        modBus.addListener((RegistryEvent.Register<TileEntityType<?>> event) -> {
-            TileEntityHead.registerType(event, modid);
-        });
-        ClassLoadHacks.runIf(useAttributeEvents, () -> () -> {
-            modBus.register(new EntityAttributeRegistrar(this));
-        });
+        }
+
+        @SubscribeEvent
+        public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event) {
+            TileEntityHead.registerType(event, handler.modid);
+        }
     }
 
     public static class EntityAttributeRegistrar {
