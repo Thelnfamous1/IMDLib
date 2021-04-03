@@ -2,6 +2,7 @@ package dev.itsmeow.imdlib.util;
 
 import java.util.function.Supplier;
 
+import net.minecraftforge.eventbus.api.IEventBus;
 import org.apache.logging.log4j.LogManager;
 
 import net.minecraftforge.fml.ModList;
@@ -37,7 +38,11 @@ public final class ClassLoadHacks {
      * @param target - Supplier to get and execute the runnable of if loaded
      */
     public static void runWhenLoaded(String modid, Supplier<Runnable> target) {
-        if(ModList.get().isLoaded(modid) || modid.equals("minecraft")) {
+        runIf(ModList.get().isLoaded(modid) || modid.equals("minecraft"), target);
+    }
+
+    public static void runIf(boolean condition, Supplier<Runnable> target) {
+        if(condition) {
             target.get().run();
         }
     }
@@ -86,6 +91,16 @@ public final class ClassLoadHacks {
             LogManager.getLogger().error("Error retrieving compatibility class. This is a bug.");
         }
         return proxy;
+    }
+
+    public static void subscribeInstanceIf(boolean condition, IEventBus bus, String classNameActive) {
+        try {
+            if(condition) {
+                bus.register(Class.forName(classNameActive).newInstance());
+            }
+        } catch(ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            LogManager.getLogger().error("Error retrieving compatibility class. This is a bug.");
+        }
     }
 
 }

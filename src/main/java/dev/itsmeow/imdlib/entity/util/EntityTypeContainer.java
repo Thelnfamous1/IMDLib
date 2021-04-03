@@ -5,6 +5,7 @@ import dev.itsmeow.imdlib.entity.util.builder.AbstractEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.builder.EntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
@@ -24,8 +25,10 @@ import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.util.NonNullLazy;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -298,6 +301,8 @@ public class EntityTypeContainer<T extends MobEntity> {
         return attributeMap;
     }
 
+    @SuppressWarnings("deprecation")
+    @Deprecated /// This is handled automatically if you use EntityRegistrarHandler#subscribe
     public boolean registerAttributes() {
         if(attributeMap != null) {
             return GlobalEntityTypeAttributes.put(entityType, attributeMap.get().create()) != null;

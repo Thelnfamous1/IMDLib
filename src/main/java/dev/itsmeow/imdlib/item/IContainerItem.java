@@ -33,7 +33,7 @@ public interface IContainerItem<T extends MobEntity & IContainable> {
         if(compoundnbt != null && compoundnbt.contains("BucketVariantTag", Constants.NBT.TAG_STRING)) {
             String id = compoundnbt.getString("BucketVariantTag");
             TextFormatting[] atextformatting = new TextFormatting[] { TextFormatting.ITALIC, TextFormatting.GRAY };
-            tooltip.add((new TranslationTextComponent("entity." + container.getModId() + "." + container.entityName.toLowerCase() + ".type." + container.getVariantForName(id).getName())).setStyle(Style.EMPTY.createStyleFromFormattings(atextformatting)));
+            tooltip.add((new TranslationTextComponent("entity." + container.getModId() + "." + container.entityName.toLowerCase() + ".type." + container.getVariantForName(id).getName())).setStyle(Style.EMPTY.mergeWithFormatting(atextformatting)));
         }
     };
 

@@ -1,13 +1,19 @@
 package dev.itsmeow.imdlib.entity;
 
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
-import net.minecraft.data.DataGenerator;
+import dev.itsmeow.imdlib.tileentity.TileEntityHead;
+import dev.itsmeow.imdlib.util.ClassLoadHacks;
+import dev.itsmeow.imdlib.util.HeadType;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
+import net.minecraft.item.Item;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.MutableRegistry;
@@ -16,10 +22,15 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.MobSpawnInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.thread.SidedThreadGroups;
+import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 
 import java.lang.ref.WeakReference;
@@ -34,14 +45,82 @@ public class EntityRegistrarHandler {
     public final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> ENTITIES = new LinkedHashMap<>();
     private static final Field SERIALIZABLE = ObfuscationReflectionHelper.findField(EntityType.class, "field_200733_aL");
     private static Map<RegistryKey<Biome>, WeakReference<MobSpawnInfo>> spawnInfo = new HashMap<>();
+    public static boolean useAttributeEvents;
+    static {
+        try {
+            Class.forName("net.minecraftforge.event.entity.EntityAttributeCreationEvent");
+            useAttributeEvents = true;
+        } catch (ClassNotFoundException | LinkageError e) {
+            useAttributeEvents = false;
+        }
+    }
 
 
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
     }
 
-    public void gatherData(DataGenerator gen, ExistingFileHelper helper) {
-        gen.addProvider(new ModSpawnEggItem.DataProvider(this, gen, helper));
+    @SuppressWarnings("deprecation")
+    public void subscribe(IEventBus modBus) {
+        modBus.addListener((GatherDataEvent event) -> {
+            event.getGenerator().addProvider(new ModSpawnEggItem.DataProvider(this, event.getGenerator(), event.getExistingFileHelper()));
+        });
+        modBus.addListener((RegistryEvent.Register<EntityType<?>> event) -> {
+            for(EntityTypeContainer<?> container : ENTITIES.values()) {
+                event.getRegistry().register(container.entityType);
+                if(!useAttributeEvents) {
+                    container.registerAttributes();
+                }
+            }
+        });
+        modBus.addListener((RegistryEvent.Register<Block> event) -> {
+            for (HeadType type : HeadType.values()) {
+                event.getRegistry().registerAll(type.getBlockSet().toArray(new Block[0]));
+            }
+        });
+        modBus.addListener((RegistryEvent.Register<Item> event) -> {
+            // Heads
+            for (HeadType type : HeadType.values()) {
+                event.getRegistry().registerAll(type.getItemSet().toArray(new Item[0]));
+            }
+
+            // Containers & eggs
+            for(EntityTypeContainer<?> container : ENTITIES.values()) {
+                if (container instanceof EntityTypeContainerContainable<?, ?>) {
+                    EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && c.getContainerItem().getRegistryName().getNamespace().equals(modid)) {
+                        event.getRegistry().register(c.getContainerItem());
+                    }
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && c.getEmptyContainerItem().getRegistryName().getNamespace().equals(modid)) {
+                        event.getRegistry().register(c.getEmptyContainerItem());
+                    }
+                }
+                if(container.hasEgg) {
+                    event.getRegistry().register(container.egg);
+                }
+            }
+        });
+        modBus.addListener((RegistryEvent.Register<TileEntityType<?>> event) -> {
+            TileEntityHead.registerType(event, modid);
+        });
+        ClassLoadHacks.runIf(useAttributeEvents, () -> () -> {
+            modBus.register(new EntityAttributeRegistrar(this));
+        });
+    }
+
+    public static class EntityAttributeRegistrar {
+        private final EntityRegistrarHandler handler;
+
+        public EntityAttributeRegistrar(EntityRegistrarHandler handler) {
+            this.handler = handler;
+        }
+
+        @SubscribeEvent
+        public void attributeCreate(EntityAttributeCreationEvent event) {
+            for(EntityTypeContainer<?> container : handler.ENTITIES.values()) {
+                event.put(container.entityType, container.getAttributeBuilder().get().create());
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -119,7 +198,7 @@ public class EntityRegistrarHandler {
             ENTITIES.values().forEach(EntityTypeContainer::configurationLoad);
 
             if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-                MutableRegistry<Biome> biomeRegistry = ServerLifecycleHooks.getCurrentServer().func_244267_aX().getRegistry(Registry.BIOME_KEY);
+                MutableRegistry<Biome> biomeRegistry = ServerLifecycleHooks.getCurrentServer().getDynamicRegistries().getRegistry(Registry.BIOME_KEY);
                 for(ResourceLocation key : biomeRegistry.keySet()) {
                     Biome biome = biomeRegistry.getOptional(key).get();
                     MobSpawnInfo spawnInfo = biome.getMobSpawnInfo();
@@ -147,7 +226,7 @@ public class EntityRegistrarHandler {
                             }
                             if (entry.spawnCostPer != 0 && entry.spawnMaxCost != 0) {
                                 // stupid private constructors
-                                MobSpawnInfo.SpawnCosts costs = new MobSpawnInfo.Builder().withSpawnCost(entry.entityType, entry.spawnCostPer, entry.spawnMaxCost).copy().spawnCosts.get(entry.entityType);
+                                MobSpawnInfo.SpawnCosts costs = new MobSpawnInfo.Builder().withSpawnCost(entry.entityType, entry.spawnCostPer, entry.spawnMaxCost).build().spawnCosts.get(entry.entityType);
                                 spawnInfo.spawnCosts.put(entry.entityType, costs);
                             }
                         }
