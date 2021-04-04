@@ -1,5 +1,31 @@
 package dev.itsmeow.imdlib.entity;
 
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
+import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
+import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import dev.itsmeow.imdlib.tileentity.TileEntityHead;
+import dev.itsmeow.imdlib.util.HeadType;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityClassification;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.item.Item;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.Biome.SpawnListEntry;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.LogManager;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -9,25 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.logging.log4j.LogManager;
-
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
-import dev.itsmeow.imdlib.item.ModSpawnEggItem;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.SpawnListEntry;
-import net.minecraftforge.client.model.generators.ExistingFileHelper;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import net.minecraftforge.registries.ForgeRegistries;
-
 public class EntityRegistrarHandler {
 
     public final String modid;
@@ -35,13 +42,68 @@ public class EntityRegistrarHandler {
     private static final Method ADDSPAWN = ObfuscationReflectionHelper.findMethod(Biome.class, "func_201866_a", EntityClassification.class, SpawnListEntry.class);
     private static final Field SERIALIZABLE = ObfuscationReflectionHelper.findField(EntityType.class, "field_200733_aL");
 
-
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
     }
 
-    public void gatherData(DataGenerator gen, ExistingFileHelper helper) {
-        gen.addProvider(new ModSpawnEggItem.DataProvider(this, gen, helper));
+    public void subscribe(IEventBus modBus) {
+        modBus.register(new EventHandler(this));
+    }
+
+    public static class EventHandler {
+        private final EntityRegistrarHandler handler;
+
+        public EventHandler(EntityRegistrarHandler handler) {
+            this.handler = handler;
+        }
+
+        @SubscribeEvent
+        public void gatherData(GatherDataEvent event) {
+            event.getGenerator().addProvider(new ModSpawnEggItem.DataProvider(handler, event.getGenerator(), event.getExistingFileHelper()));
+        }
+
+        @SubscribeEvent
+        public void registerEntityTypes(RegistryEvent.Register<EntityType<?>> event) {
+            for(EntityTypeContainer<?> container : handler.ENTITIES.values()) {
+                event.getRegistry().register(container.entityType);
+            }
+        }
+
+        @SubscribeEvent
+        public void registerBlocks(RegistryEvent.Register<Block> event) {
+            for (HeadType type : HeadType.values()) {
+                event.getRegistry().registerAll(type.getBlockSet().toArray(new Block[0]));
+            }
+        }
+
+        @SubscribeEvent
+        public void registerItems(RegistryEvent.Register<Item> event) {
+            // Heads
+            for (HeadType type : HeadType.values()) {
+                event.getRegistry().registerAll(type.getItemSet().toArray(new Item[0]));
+            }
+
+            // Containers & eggs
+            for(EntityTypeContainer<?> container : handler.ENTITIES.values()) {
+                if (container instanceof EntityTypeContainerContainable<?, ?>) {
+                    EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && c.getContainerItem().getRegistryName().getNamespace().equals(handler.modid)) {
+                        event.getRegistry().register(c.getContainerItem());
+                    }
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && c.getEmptyContainerItem().getRegistryName().getNamespace().equals(handler.modid)) {
+                        event.getRegistry().register(c.getEmptyContainerItem());
+                    }
+                }
+                if(container.hasEgg) {
+                    event.getRegistry().register(container.egg);
+                }
+            }
+        }
+
+        @SubscribeEvent
+        public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event) {
+            TileEntityHead.registerType(event, handler.modid);
+        }
     }
 
     @SuppressWarnings("unchecked")
