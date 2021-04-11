@@ -144,12 +144,12 @@ public class EntityTypeContainer<T extends MobEntity> {
         return despawn;
     }
 
-    /* Package-private operations */
+    /* Protected/package-private operations */
     void setHeadType(HeadType headType) {
         this.headType = headType;
     }
 
-    void onCreateEntityType() {
+    protected void onCreateEntityType() {
         if (this.hasEgg()) {
             this.egg = new ModSpawnEggItem(this);
         }
@@ -169,23 +169,23 @@ public class EntityTypeContainer<T extends MobEntity> {
         return definition.getAttributeMap() != null && GlobalEntityTypeAttributes.put(entityType, definition.getAttributeMap().get().create()) != null;
     }
 
-    void createConfiguration(ForgeConfigSpec.Builder builder) {
+    protected void createConfiguration(ForgeConfigSpec.Builder builder) {
         this.config = new EntityConfiguration(builder);
     }
 
-    void clientConfigurationLoad() {
+    protected void clientConfigurationLoad() {
         if (definition.getCustomClientConfigLoad() != null) {
             definition.getCustomClientConfigLoad().load(customConfigHolderClient);
         }
     }
 
-    void customConfigurationInit(ForgeConfigSpec.Builder builder) {
+    protected void customConfigurationInit(ForgeConfigSpec.Builder builder) {
         if (definition.getCustomConfigInit() != null) {
             definition.getCustomConfigInit().init(customConfigHolder, builder);
         }
     }
 
-    void clientCustomConfigurationInit(ForgeConfigSpec.Builder builder) {
+    protected void clientCustomConfigurationInit(ForgeConfigSpec.Builder builder) {
         if (definition.getCustomClientConfigInit() != null) {
             builder.push(this.getEntityName());
             definition.getCustomClientConfigInit().init(customConfigHolderClient, builder);
@@ -332,7 +332,7 @@ public class EntityTypeContainer<T extends MobEntity> {
             builder.pop();
         }
 
-        void load() {
+        protected void load() {
             if (hasSpawns()) {
                 despawn = definition.getSpawnClassification() == EntityClassification.CREATURE ? doDespawn.get() : definition.despawns();
                 Function<ForgeConfigSpec.ConfigValue<List<? extends String>>, Set<RegistryKey<Biome>>> biomesLoader = (configList) -> {
