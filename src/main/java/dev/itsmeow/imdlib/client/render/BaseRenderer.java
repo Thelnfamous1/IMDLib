@@ -21,9 +21,7 @@ public abstract class BaseRenderer<T extends MobEntity, A extends EntityModel<T>
     }
 
     public BaseRenderer<T, A> layers(ArrayList<Function<BaseRenderer<T, A>, LayerRenderer<T, A>>> layers) {
-        layers.forEach(layer -> {
-            this.addLayer(layer.apply(this));
-        });
+        layers.forEach(layer -> this.addLayer(layer.apply(this)));
         return this;
     }
 

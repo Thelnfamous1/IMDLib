@@ -1,6 +1,6 @@
 package dev.itsmeow.imdlib.item;
 
-import dev.itsmeow.imdlib.entity.util.IVariant;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemGroup;

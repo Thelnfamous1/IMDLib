@@ -1,14 +1,13 @@
 package dev.itsmeow.imdlib.item;
 
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.dispenser.IBlockSource;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SpawnEggItem;
@@ -29,17 +28,17 @@ public class ModSpawnEggItem extends SpawnEggItem {
         public ItemStack dispenseStack(IBlockSource source, ItemStack stack) {
             Direction direction = source.getBlockState().get(DispenserBlock.FACING);
             EntityType<?> entitytype = ((SpawnEggItem) stack.getItem()).getType(stack.getTag());
-            entitytype.spawn(source.getWorld(), stack, (PlayerEntity) null, source.getBlockPos().offset(direction), SpawnReason.DISPENSER, direction != Direction.UP, false);
+            entitytype.spawn(source.getWorld(), stack, null, source.getBlockPos().offset(direction), SpawnReason.DISPENSER, direction != Direction.UP, false);
             stack.shrink(1);
             return stack;
         }
     };
 
     public ModSpawnEggItem(EntityTypeContainer<?> container) {
-        super(container.entityType, container.eggColorSolid, container.eggColorSpot, new Properties().group(ItemGroup.MISC));
-        this.type = container.entityType;
+        super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties().group(ItemGroup.MISC));
+        this.type = container.getEntityType();
         this.modid = container.getModId();
-        this.name = container.entityName.toLowerCase();
+        this.name = container.getEntityName().toLowerCase();
         this.setRegistryName(container.getModId(), name + "_spawn_egg");
         DispenserBlock.registerDispenseBehavior(this, EGG_DISPENSE_ACTION);
     }
@@ -70,7 +69,7 @@ public class ModSpawnEggItem extends SpawnEggItem {
 
     public static class DataProvider extends ItemModelProvider {
 
-        private EntityRegistrarHandler handler;
+        private final EntityRegistrarHandler handler;
 
         public DataProvider(EntityRegistrarHandler r, DataGenerator generator, ExistingFileHelper existingFileHelper) {
             super(generator, r.modid, existingFileHelper);

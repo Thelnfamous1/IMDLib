@@ -1,22 +1,23 @@
-package dev.itsmeow.imdlib.entity.util.builder;
+package dev.itsmeow.imdlib.entity;
 
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
-import dev.itsmeow.imdlib.entity.util.IVariant;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
+import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry.IPlacementPredicate;
 import net.minecraft.entity.EntitySpawnPlacementRegistry.PlacementType;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap.Type;
 
+import java.util.Set;
+import java.util.function.Supplier;
+
 public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDefinition<T> {
 
-    private AbstractEntityBuilder<T, ?, ?> builder;
+    private final AbstractEntityBuilder<T, ?, ?> builder;
 
     public EntityTypeDefinition(AbstractEntityBuilder<T, ?, ?> builder) {
         this.builder = builder;
@@ -33,7 +34,7 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
     }
 
     @Override
-    public Function<World, T> getEntityFactory() {
+    public EntityType.IFactory<T> getEntityFactory() {
         return builder.factory;
     }
 
@@ -60,6 +61,11 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
     @Override
     public int getEggSpotColor() {
         return builder.eggColorSpot;
+    }
+
+    @Override
+    public boolean hasSpawns() {
+        return builder.hasSpawns;
     }
 
     @Override
@@ -103,17 +109,27 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
     }
 
     @Override
-    public CustomConfigurationHolder getCustomConfig() {
-        return builder.customConfig;
+    public CustomConfigurationLoad getCustomConfigLoad() {
+        return builder.customConfigLoad;
     }
 
     @Override
-    public CustomConfigurationHolder getCustomClientConfig() {
-        return builder.customClientConfig;
+    public CustomConfigurationInit getCustomConfigInit() {
+        return builder.customConfigInit;
     }
 
     @Override
-    public Supplier<Set<Biome>> getSpawnBiomes() {
+    public CustomConfigurationLoad getCustomClientConfigLoad() {
+        return builder.customClientConfigLoad;
+    }
+
+    @Override
+    public CustomConfigurationInit getCustomClientConfigInit() {
+        return builder.customClientConfigInit;
+    }
+
+    @Override
+    public Supplier<Set<Biome>> getDefaultSpawnBiomes() {
         return builder.defaultBiomeSupplier;
     }
 
@@ -131,5 +147,4 @@ public class EntityTypeDefinition<T extends MobEntity> implements IEntityTypeDef
     public IPlacementPredicate<T> getPlacementPredicate() {
         return builder.placementPredicate;
     }
-
 }

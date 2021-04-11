@@ -1,66 +1,73 @@
 package dev.itsmeow.imdlib.entity.util.builder;
 
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import javax.annotation.Nullable;
-
-import dev.itsmeow.imdlib.entity.util.IVariant;
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.Heightmap;
 
+import javax.annotation.Nullable;
+import java.util.Set;
+import java.util.function.Supplier;
+
 public interface IEntityTypeDefinition<T extends MobEntity> {
 
-    public String getModId();
+    String getModId();
 
-    public Class<T> getEntityClass();
+    Class<T> getEntityClass();
 
-    public Function<World, T> getEntityFactory();
+    EntityType.IFactory<T> getEntityFactory();
 
-    public String getEntityName();
+    String getEntityName();
 
-    public EntityClassification getSpawnClassification();
+    EntityClassification getSpawnClassification();
 
-    public boolean hasEgg();
+    boolean hasEgg();
 
-    public int getEggSolidColor();
+    int getEggSolidColor();
 
-    public int getEggSpotColor();
+    int getEggSpotColor();
 
-    public int getSpawnWeight();
+    boolean hasSpawns();
 
-    public int getSpawnMinGroup();
+    int getSpawnWeight();
 
-    public int getSpawnMaxGroup();
+    int getSpawnMinGroup();
 
-    public float getWidth();
+    int getSpawnMaxGroup();
 
-    public float getHeight();
+    float getWidth();
 
-    public boolean despawns();
+    float getHeight();
 
-    public int getVariantAmount();
+    boolean despawns();
 
-    public IVariant[] getVariants();
+    int getVariantAmount();
+
+    IVariant[] getVariants();
 
     @Nullable
-    public CustomConfigurationHolder getCustomConfig();
+    CustomConfigurationLoad getCustomConfigLoad();
 
     @Nullable
-    public CustomConfigurationHolder getCustomClientConfig();
+    CustomConfigurationInit getCustomConfigInit();
 
-    public Supplier<Set<Biome>> getSpawnBiomes();
+    @Nullable
+    CustomConfigurationLoad getCustomClientConfigLoad();
 
-    public EntitySpawnPlacementRegistry.PlacementType getPlacementType();
+    @Nullable
+    CustomConfigurationInit getCustomClientConfigInit();
 
-    public Heightmap.Type getPlacementHeightMapType();
+    Supplier<Set<Biome>> getDefaultSpawnBiomes();
 
-    public EntitySpawnPlacementRegistry.IPlacementPredicate<T> getPlacementPredicate();
+    EntitySpawnPlacementRegistry.PlacementType getPlacementType();
+
+    Heightmap.Type getPlacementHeightMapType();
+
+    EntitySpawnPlacementRegistry.IPlacementPredicate<T> getPlacementPredicate();
 
 }

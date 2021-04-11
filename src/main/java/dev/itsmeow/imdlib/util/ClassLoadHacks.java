@@ -10,12 +10,10 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 public final class ClassLoadHacks {
 
     /**
-     * Runs supplier matching current {@link Dist}
+     * Runs supplier matching current {@link net.minecraftforge.api.distmarker.Dist}
      * 
-     * @param clientTarget - Supplier to get and execute runnable of if on
-     *                     {@link Dist.CLIENT}
-     * @param serverTarget - Supplier to get and execute runnable of if on
-     *                     {@link Dist.DEDICATED_SERVER}
+     * @param clientTarget - Supplier to get and execute runnable of if on CLIENT
+     * @param serverTarget - Supplier to get and execute runnable of if on DEDICATED_SERVER
      */
     public static void runOnDist(Supplier<Runnable> clientTarget, Supplier<Runnable> serverTarget) {
         switch(FMLEnvironment.dist) {

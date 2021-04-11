@@ -1,19 +1,20 @@
 package dev.itsmeow.imdlib.util;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class BiomeListBuilder {
 
-    private final Set<Biome> extras = new HashSet<Biome>();
-    private final Set<BiomeDictionary.Type> list = new HashSet<BiomeDictionary.Type>();
-    private final Set<BiomeDictionary.Type> blacklist = new HashSet<BiomeDictionary.Type>();
-    private final Set<Biome> blacklistBiome = new HashSet<Biome>();
-    private final Set<BiomeDictionary.Type> required = new HashSet<BiomeDictionary.Type>();
+    private final Set<Biome> extras = new HashSet<>();
+    private final Set<BiomeDictionary.Type> list = new HashSet<>();
+    private final Set<BiomeDictionary.Type> blacklist = new HashSet<>();
+    private final Set<Biome> blacklistBiome = new HashSet<>();
+    private final Set<BiomeDictionary.Type> required = new HashSet<>();
 
     private BiomeListBuilder() {
 
@@ -24,59 +25,50 @@ public class BiomeListBuilder {
     }
 
     public BiomeListBuilder extra(Biome... extraBiomes) {
-        for(Biome biome : extraBiomes) {
-            extras.add(biome);
-        }
+        extras.addAll(Arrays.asList(extraBiomes));
         return this;
     }
 
     public BiomeListBuilder extra(BiomeDictionary.Type... types) {
-        for(BiomeDictionary.Type type : types) {
-            list.add(type);
-        }
+        list.addAll(Arrays.asList(types));
         return this;
     }
 
     public BiomeListBuilder withoutTypes(BiomeDictionary.Type... types) {
-        for(BiomeDictionary.Type type : types) {
-            blacklist.add(type);
-        }
+        blacklist.addAll(Arrays.asList(types));
         return this;
     }
 
     public BiomeListBuilder withTypes(BiomeDictionary.Type... types) {
-        for(BiomeDictionary.Type type : types) {
-            required.add(type);
-        }
+        required.addAll(Arrays.asList(types));
         return this;
     }
 
     public BiomeListBuilder withoutBiomes(Biome... biomes) {
-        for(Biome biome : biomes) {
-            blacklistBiome.add(biome);
-        }
+        blacklistBiome.addAll(Arrays.asList(biomes));
         return this;
     }
 
     public Biome[] collect() {
-        Set<Biome> set = new HashSet<Biome>();
-        set.addAll(extras);
+        Set<Biome> set = new HashSet<>(extras);
         for(BiomeDictionary.Type extraT : list) {
             set.addAll(BiomeDictionary.getBiomes(extraT));
         }
         if(required.size() > 0 || blacklist.size() > 0) {
             for(Biome biome : ForgeRegistries.BIOMES.getValues()) {
                 Set<BiomeDictionary.Type> types = BiomeDictionary.getTypes(biome);
-                if(types != null) {
+                if(types.size() > 0) {
                     boolean pass = true;
                     for(BiomeDictionary.Type type : required) {
-                        if(!types.contains(type)) {
+                        if (!types.contains(type)) {
                             pass = false;
+                            break;
                         }
                     }
                     for(BiomeDictionary.Type type : blacklist) {
                         if(types.contains(type)) {
                             pass = false;
+                            break;
                         }
                     }
                     if(blacklistBiome.contains(biome)) {

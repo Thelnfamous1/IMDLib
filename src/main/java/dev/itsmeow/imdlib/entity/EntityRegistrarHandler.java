@@ -1,8 +1,10 @@
 package dev.itsmeow.imdlib.entity;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
+import dev.itsmeow.imdlib.item.IContainerItem;
+import dev.itsmeow.imdlib.item.ItemModFishBucket;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.tileentity.TileEntityHead;
 import dev.itsmeow.imdlib.util.HeadType;
@@ -13,8 +15,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biome.SpawnListEntry;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -22,6 +22,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.common.thread.SidedThreadGroups;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
@@ -30,9 +31,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class EntityRegistrarHandler {
@@ -40,6 +41,7 @@ public class EntityRegistrarHandler {
     public final String modid;
     public final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> ENTITIES = new LinkedHashMap<>();
     private static final Method ADDSPAWN = ObfuscationReflectionHelper.findMethod(Biome.class, "func_201866_a", EntityClassification.class, SpawnListEntry.class);
+    private static final Field SPAWNS = ObfuscationReflectionHelper.findField(Biome.class, "field_201880_ax");
     private static final Field SERIALIZABLE = ObfuscationReflectionHelper.findField(EntityType.class, "field_200733_aL");
 
     public EntityRegistrarHandler(String modid) {
@@ -87,14 +89,14 @@ public class EntityRegistrarHandler {
             for(EntityTypeContainer<?> container : handler.ENTITIES.values()) {
                 if (container instanceof EntityTypeContainerContainable<?, ?>) {
                     EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
-                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && c.getContainerItem().getRegistryName().getNamespace().equals(handler.modid)) {
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && handler.modid.equals(c.getContainerItem().getRegistryName().getNamespace())) {
                         event.getRegistry().register(c.getContainerItem());
                     }
-                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && c.getEmptyContainerItem().getRegistryName().getNamespace().equals(handler.modid)) {
+                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && handler.modid.equals(c.getEmptyContainerItem().getRegistryName().getNamespace())) {
                         event.getRegistry().register(c.getEmptyContainerItem());
                     }
                 }
-                if(container.hasEgg) {
+                if(container.hasEgg()) {
                     event.getRegistry().register(container.egg);
                 }
             }
@@ -113,23 +115,35 @@ public class EntityRegistrarHandler {
 
     @SuppressWarnings("unchecked")
     public <T extends MobEntity> EntityType<T> getEntityType(String name) {
-        return (EntityType<T>) ENTITIES.get(name).entityType;
+        return (EntityType<T>) ENTITIES.get(name).getEntityType();
+    }
+
+    public <T extends MobEntity> EntityTypeContainer<T> add(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Function<EntityTypeContainer.Builder<T>, EntityTypeContainer.Builder<T>> transformer) {
+        return add(transformer.apply(EntityTypeContainer.Builder.create(entityClass, factory, name, modid)));
+    }
+
+    public <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> addContainable(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
+        return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, modid)));
+    }
+
+    public <T extends MobEntity & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> addContainableB(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
+        return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, modid)));
     }
 
     public <T extends MobEntity, C extends EntityTypeContainer<T>> C add(IEntityBuilder<T, C, ?> builder) {
         C c = builder.build();
         c.entityType = this.createEntityType(c);
         c.onCreateEntityType();
-        ENTITIES.put(c.entityName, c);
+        ENTITIES.put(c.getEntityName(), c);
         return c;
     }
 
     public <T extends MobEntity> EntityType<T> createEntityType(EntityTypeContainer<T> container) {
-        return createEntityType(container.entityClass, container.factory, container.entityName, container.spawnType, 64, 1, true, container.width, container.height);
+        return createEntityType(container.getDefinition().getEntityFactory(), container.getEntityName(), container.getDefinition().getSpawnClassification(), 64, 1, true, container.getWidth(), container.getHeight());
     }
 
-    public <T extends Entity> EntityType<T> createEntityType(Class<T> EntityClass, Function<World, T> func, String entityNameIn, EntityClassification classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
-        EntityType<T> type = EntityType.Builder.<T>create((etype, world) -> func.apply(world), classification).setTrackingRange(trackingRange).setUpdateInterval(updateInterval).setShouldReceiveVelocityUpdates(velUpdates).size(width, height).setCustomClientFactory((e, world) -> func.apply(world)).disableSerialization().build(modid + ":" + entityNameIn.toLowerCase());
+    public <T extends Entity> EntityType<T> createEntityType(EntityType.IFactory<T> factory, String entityNameIn, EntityClassification classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
+        EntityType<T> type = EntityType.Builder.create(factory, classification).setTrackingRange(trackingRange).setUpdateInterval(updateInterval).setShouldReceiveVelocityUpdates(velUpdates).size(width, height).disableSerialization().build(modid + ":" + entityNameIn.toLowerCase());
         type.setRegistryName(modid + ":" + entityNameIn.toLowerCase());
         try {
             // attempt using AT, which might not present in implementer
@@ -171,49 +185,48 @@ public class EntityRegistrarHandler {
         ServerEntityConfiguration(ForgeConfigSpec.Builder builder) {
             builder.push("entities");
             {
-                ENTITIES.values().forEach(c -> c.initConfiguration(builder));
+                ENTITIES.values().forEach(c -> c.createConfiguration(builder));
             }
             builder.pop();
         }
 
         public void onLoad() {
-            // Replace entity data
-            for(EntityTypeContainer<?> container : ENTITIES.values()) {
-                EntityTypeContainer<?>.EntityConfiguration section = container.getConfiguration();
-                container.configurationLoad();
-
-                // Parse biomes
-                List<Biome> biomesList = new ArrayList<Biome>();
-                for(String biomeID : section.biomesList.get()) {
-                    Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeID));
-                    if(biome == null) { // Could not get biome with ID
-                        LogManager.getLogger().error("[" + modid + "] Invalid biome configuration entered for entity \"" + container.entityName + "\" (biome was mistyped or a biome mod was removed?): " + biomeID);
-                    } else { // Valid biome
-                        biomesList.add(biome);
+            // Remove old biome spawns
+            for(EntityTypeContainer<?> entry : ENTITIES.values()) {
+                for(Biome biome : entry.getSpawnBiomes()) {
+                    List<SpawnListEntry> spawnListEntries = biome.getSpawns(entry.getDefinition().getSpawnClassification());
+                    spawnListEntries.removeIf(e -> e.entityType == entry.getEntityType());
+                    try {
+                        biome.spawns.put(entry.getDefinition().getSpawnClassification(), spawnListEntries);
+                    } catch(IllegalAccessError e) {
+                        // attempt using reflection
+                        try {
+                            SPAWNS.setAccessible(true);
+                            ((Map<EntityClassification, List<SpawnListEntry>>) SPAWNS.get(biome)).put(entry.getDefinition().getSpawnClassification(), spawnListEntries);
+                        } catch(IllegalAccessException | IllegalArgumentException e2) {
+                            e2.printStackTrace();
+                            e.printStackTrace();
+                        }
                     }
                 }
-
-                container.setBiomes(biomesList.toArray(new Biome[0]));
             }
-        }
 
-        @SuppressWarnings("unchecked")
-        public void onWorldLoad() {
-            // Fill containers with proper values from their config sections
-            this.onLoad();
+            // Update entity data
+            ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
-            // Add spawns based on new container data
-            if(!ENTITIES.values().isEmpty()) {
+            if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
                 for(EntityTypeContainer<?> entry : ENTITIES.values()) {
-                    EntityType<?> type = entry.entityType;
-                    if(entry.doSpawning) {
+                    EntityType<?> type = entry.getEntityType();
+                    EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
+                    EntityClassification sType = entry.getDefinition().getSpawnClassification();
+                    if(config.doSpawning.get() && config.spawnWeight.get() > 0) {
                         entry.registerPlacement();
-                        for(Biome biome : entry.getBiomes()) {
+                        for(Biome biome : entry.getSpawnBiomes()) {
                             try {
-                                biome.addSpawn(entry.spawnType, new SpawnListEntry((EntityType<? extends MobEntity>) type, entry.spawnWeight, entry.spawnMinGroup, entry.spawnMaxGroup));
+                                biome.addSpawn(entry.getDefinition().getSpawnClassification(), new SpawnListEntry(type, config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
                             } catch(IllegalAccessError e) {
                                 try {
-                                    ADDSPAWN.invoke(biome, entry.spawnType, new SpawnListEntry((EntityType<? extends MobEntity>) type, entry.spawnWeight, entry.spawnMinGroup, entry.spawnMaxGroup));
+                                    ADDSPAWN.invoke(biome, entry.getDefinition().getSpawnClassification(), new SpawnListEntry(type, config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
                                 } catch(IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
                                     e2.printStackTrace();
                                     e.printStackTrace();
@@ -230,7 +243,7 @@ public class EntityRegistrarHandler {
     public class ClientEntityConfiguration {
 
         ClientEntityConfiguration(ForgeConfigSpec.Builder builder) {
-            builder.comment("This is the CLIENTSIDE configuration for " + modid + ".",
+            builder.comment("This is the CLIENT SIDE configuration for " + modid + ".",
             "To configure SERVER values (spawning, behavior, etc), go to:",
             "saves/(world)/serverconfig/" + modid + "-server.toml",
             "or, on a dedicated server:",
@@ -243,7 +256,7 @@ public class EntityRegistrarHandler {
         }
 
         public void onLoad() {
-            ENTITIES.values().forEach(EntityTypeContainer::clientConfigurationLoad);
+            ENTITIES.values().forEach(EntityTypeContainer::clientCustomConfigurationLoad);
         }
 
     }

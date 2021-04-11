@@ -1,18 +1,20 @@
 package dev.itsmeow.imdlib.entity.util;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import dev.itsmeow.imdlib.entity.util.builder.AbstractEntityBuilder;
-import dev.itsmeow.imdlib.entity.util.builder.EntityTypeDefinition;
+import dev.itsmeow.imdlib.entity.AbstractEntityBuilder;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeDefinition;
+import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.IContainerItem.ITooltipFunction;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.item.Item;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.world.World;
+
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class EntityTypeContainerContainable<T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> extends EntityTypeContainer<T> {
 
@@ -55,8 +57,8 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
         protected BiFunction<C, ITooltipFunction, I> containerSupplier;
         protected Function<C, Item> emptyContainerSupplier;
 
-        protected AbstractEntityBuilderContainable(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            super(EntityClass, func, entityNameIn, modid);
+        protected AbstractEntityBuilderContainable(Class<T> EntityClass, EntityType.IFactory<T> factory, String entityNameIn, String modid) {
+            super(EntityClass, factory, entityNameIn, modid);
         }
 
         public B containers(BiFunction<C, ITooltipFunction, I> containerSupplier, Function<C, Item> emptyContainerSupplier) {
@@ -83,7 +85,7 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
                 }
             } else if(this.tooltip != null) {
                 this.tooltipFinal = this.tooltip;
-            } else if(this.tooltip == null) {
+            } else {
                 this.tooltipFinal = (container, stack, world, tooltip) -> {
                 };
             }
@@ -92,13 +94,13 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
 
     public static class Builder<T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> extends AbstractEntityBuilderContainable<T, I, EntityTypeContainerContainable<T, I>, Builder<T, I>> {
 
-        protected Builder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            super(EntityClass, func, entityNameIn, modid);
+        protected Builder(Class<T> EntityClass, EntityType.IFactory<T> factory, String entityNameIn, String modid) {
+            super(EntityClass, factory, entityNameIn, modid);
         }
 
         @Override
         public EntityTypeContainerContainable<T, I> rawBuild() {
-            return new EntityTypeContainerContainable<T, I>(new ContainableEntityTypeDefinition<T, I, EntityTypeContainerContainable<T, I>>(this));
+            return new EntityTypeContainerContainable<>(new ContainableEntityTypeDefinition<>(this));
         }
 
         @Override
@@ -106,14 +108,14 @@ public class EntityTypeContainerContainable<T extends MobEntity & IContainable, 
             return this;
         }
 
-        public static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> Builder<T, I> create(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
-            return new Builder<T, I>(EntityClass, func, entityNameIn, modid);
+        public static <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> Builder<T, I> create(Class<T> EntityClass, EntityType.IFactory<T> factory, String entityNameIn, String modid) {
+            return new Builder<>(EntityClass, factory, entityNameIn, modid);
         }
     }
 
     public DataParameter<Boolean> getFromContainerDataKey() {
         if(this.fromContainerDataKey == null) {
-            this.fromContainerDataKey = EntityDataManager.<Boolean>createKey(this.entityClass, DataSerializers.BOOLEAN);
+            this.fromContainerDataKey = EntityDataManager.createKey(this.getEntityClass(), DataSerializers.BOOLEAN);
         }
         return this.fromContainerDataKey;
     }

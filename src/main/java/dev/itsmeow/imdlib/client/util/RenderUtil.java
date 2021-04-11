@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 public class RenderUtil {
 
-    private static final Map<ModelRenderer, ModelBox> cubeList = new WeakHashMap<ModelRenderer, ModelBox>();
+    private static final Map<ModelRenderer, ModelBox> cubeList = new WeakHashMap<>();
     private static final Field cubeListField = ObfuscationReflectionHelper.findField(ModelRenderer.class, "field_78804_l");
 
     public static Vec3d partLocation(ModelRenderer... parts) {

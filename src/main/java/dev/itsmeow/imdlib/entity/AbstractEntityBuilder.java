@@ -1,30 +1,33 @@
-package dev.itsmeow.imdlib.entity.util.builder;
+package dev.itsmeow.imdlib.entity;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
+import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
+import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
+import dev.itsmeow.imdlib.util.BiomeListBuilder;
+import dev.itsmeow.imdlib.util.HeadType;
+import net.minecraft.entity.EntityClassification;
+import net.minecraft.entity.EntitySpawnPlacementRegistry;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.Heightmap;
+import net.minecraftforge.common.BiomeDictionary;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.google.common.collect.Lists;
-
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer.CustomConfigurationHolder;
-import dev.itsmeow.imdlib.entity.util.EntityVariant;
-import dev.itsmeow.imdlib.entity.util.IVariant;
-import dev.itsmeow.imdlib.util.BiomeListBuilder;
-import dev.itsmeow.imdlib.util.HeadType;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntitySpawnPlacementRegistry;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraftforge.common.BiomeDictionary;
+import java.util.stream.Collectors;
 
 public abstract class AbstractEntityBuilder<T extends MobEntity, C extends EntityTypeContainer<T>, B extends AbstractEntityBuilder<T, C, B>> implements IEntityBuilder<T, C, B> {
     protected final Class<T> entityClass;
     protected final String entityName;
-    protected final Function<World, T> factory;
+    protected final EntityType.IFactory<T> factory;
+    public boolean hasSpawns;
     protected EntityClassification spawnType;
     protected int eggColorSolid;
     protected int eggColorSpot;
@@ -34,8 +37,10 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     protected float width;
     protected float height;
     protected boolean despawn;
-    protected CustomConfigurationHolder customConfig;
-    protected CustomConfigurationHolder customClientConfig;
+    protected CustomConfigurationLoad customConfigLoad;
+    protected CustomConfigurationInit customConfigInit;
+    protected CustomConfigurationLoad customClientConfigLoad;
+    protected CustomConfigurationInit customClientConfigInit;
     protected Supplier<Set<Biome>> defaultBiomeSupplier;
     protected EntitySpawnPlacementRegistry.PlacementType placementType;
     protected Heightmap.Type heightMapType;
@@ -46,9 +51,9 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     protected boolean hasEgg;
     protected Function<C, HeadType> headTypeBuilder;
 
-    protected AbstractEntityBuilder(Class<T> EntityClass, Function<World, T> func, String entityNameIn, String modid) {
+    protected AbstractEntityBuilder(Class<T> EntityClass, EntityType.IFactory<T> factory, String entityNameIn, String modid) {
         this.entityClass = EntityClass;
-        this.factory = func;
+        this.factory = factory;
         this.entityName = entityNameIn;
         this.modid = modid;
         this.eggColorSolid = 0x000000;
@@ -57,12 +62,12 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         this.spawnMinGroup = 1;
         this.spawnMaxGroup = 1;
         this.spawnType = EntityClassification.CREATURE;
+        this.hasSpawns = false;
         this.width = 1;
         this.height = 1;
         this.despawn = false;
         this.hasEgg = false;
-        this.customConfig = null;
-        this.defaultBiomeSupplier = () -> new HashSet<Biome>();
+        this.defaultBiomeSupplier = HashSet::new;
         this.placementType = null;
         this.heightMapType = null;
         this.placementPredicate = null;
@@ -72,6 +77,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
 
     @Override
     public B spawn(EntityClassification type, int weight, int min, int max) {
+        this.hasSpawns = true;
         this.spawnType = type;
         this.spawnWeight = weight;
         this.spawnMinGroup = min;
@@ -101,24 +107,40 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     }
 
     @Override
-    public B config(CustomConfigurationHolder config) {
-        this.customConfig = config;
+    public B config(CustomConfigurationInit configurationInit) {
+        return config(configurationInit, holder -> {});
+    }
+
+    @Override
+    public B clientConfig(CustomConfigurationInit configurationInit) {
+        return clientConfig(configurationInit, holder -> {});
+    }
+
+    @Override
+    public B config(CustomConfigurationInit configurationInit, CustomConfigurationLoad configurationLoad) {
+        this.customConfigLoad = configurationLoad;
+        this.customConfigInit = configurationInit;
         return getImplementation();
     }
 
     @Override
-    public B clientConfig(CustomConfigurationHolder config) {
-        this.customClientConfig = config;
+    public B clientConfig(CustomConfigurationInit configurationInit, CustomConfigurationLoad configurationLoad) {
+        this.customClientConfigLoad = configurationLoad;
+        this.customClientConfigInit = configurationInit;
         return getImplementation();
     }
 
     @Override
     public B placement(EntitySpawnPlacementRegistry.PlacementType type, Heightmap.Type heightMap, EntitySpawnPlacementRegistry.IPlacementPredicate<T> predicate) {
+        if(!hasSpawns) {
+            throw new RuntimeException("You must specify spawns before placement");
+        }
         this.placementType = type;
         this.heightMapType = heightMap;
         this.placementPredicate = predicate;
         return getImplementation();
     }
+
     @Override
     public B defaultPlacement(EntitySpawnPlacementRegistry.IPlacementPredicate<T> predicate) {
         return placement(EntitySpawnPlacementRegistry.PlacementType.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, predicate);
@@ -136,13 +158,28 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
 
     @Override
     public B biomes(BiomeDictionary.Type... biomeTypes) {
-        this.defaultBiomeSupplier = toBiomes(biomeTypes);
+        if(!hasSpawns) {
+            throw new RuntimeException("You must specify spawns before biomes");
+        }
+        this.defaultBiomeSupplier = toBiomes(biomeTypes, false);
+        return getImplementation();
+    }
+
+    @Override
+    public B biomesOverworld(BiomeDictionary.Type... biomeTypes) {
+        if(!hasSpawns) {
+            throw new RuntimeException("You must specify spawns before biomes");
+        }
+        this.defaultBiomeSupplier = toBiomes(biomeTypes, true);
         return getImplementation();
     }
 
     @Override
     public B biomes(Supplier<Biome[]> biomes) {
-        this.defaultBiomeSupplier = toBiomes(biomes);
+        if(!hasSpawns) {
+            throw new RuntimeException("You must specify spawns before biomes");
+        }
+        this.defaultBiomeSupplier = () -> Sets.newHashSet(biomes.get());
         return getImplementation();
     }
 
@@ -195,27 +232,13 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
         return getImplementation();
     }
 
-    protected static Supplier<Set<Biome>> toBiomes(BiomeDictionary.Type[] biomeTypes) {
-        return () -> {
-            Set<Biome> biomes = new HashSet<Biome>();
-            for(BiomeDictionary.Type type : biomeTypes) {
-                biomes.addAll(BiomeDictionary.getBiomes(type));
-            }
-            return biomes;
-        };
-    }
-
-    protected static Supplier<Set<Biome>> toBiomes(Supplier<Biome[]> biomes2) {
-        return () -> {
-            Set<Biome> biomes = new HashSet<Biome>();
-            biomes.addAll(Lists.newArrayList(biomes2.get()));
-            return biomes;
-        };
+    protected static Supplier<Set<Biome>> toBiomes(BiomeDictionary.Type[] biomeTypes, boolean overworldOnly) {
+        return () -> Lists.newArrayList(biomeTypes).stream().flatMap(type -> BiomeDictionary.getBiomes(type).stream()).filter(b -> !overworldOnly || BiomeDictionary.hasType(b, BiomeDictionary.Type.OVERWORLD)).collect(Collectors.toSet());
     }
 
     @Override
     public HeadType.Builder<T, C, B> head(String headName) {
-        return new HeadType.Builder<T, C, B>(getImplementation(), headName);
+        return new HeadType.Builder<>(getImplementation(), headName);
     }
 
     @Override
@@ -226,7 +249,7 @@ public abstract class AbstractEntityBuilder<T extends MobEntity, C extends Entit
     @Override
     public void postBuild(C container) {
         if(this.headTypeBuilder != null) {
-            container.headType = headTypeBuilder.apply(container);
+            container.setHeadType(headTypeBuilder.apply(container));
         }
     }
 
