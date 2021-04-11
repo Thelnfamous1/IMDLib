@@ -156,11 +156,11 @@ public class EntityRegistrarHandler {
         return add(transformer.apply(EntityTypeContainer.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
-    public <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> createContainable(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
+    public <T extends MobEntity & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> addContainable(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
         return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
-    public <T extends MobEntity & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> createContainableB(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
+    public <T extends MobEntity & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> addContainableB(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
         return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
