@@ -1,4 +1,4 @@
-package dev.itsmeow.imdlib.entity.util;
+package dev.itsmeow.imdlib.entity.util.variant;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +15,8 @@ public class EntityVariantList {
     public static final IVariant EMPTY_VARIANT = new EntityVariant("minecraft", "empty", false);
 
     public EntityVariantList(int size) {
-        this.variantList = new ArrayList<IVariant>(size);
-        this.nameMap = new HashMap<String, IVariant>(size);
+        this.variantList = new ArrayList<>(size);
+        this.nameMap = new HashMap<>(size);
     }
 
     @Deprecated

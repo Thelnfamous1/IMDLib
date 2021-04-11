@@ -21,7 +21,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderGenericHead extends TileEntityRenderer<TileEntityHead> {
 
-    public static HashMap<HeadType, EntityModel<?>> modelMap = new HashMap<HeadType, EntityModel<? extends Entity>>();
+    public static HashMap<HeadType, EntityModel<?>> modelMap = new HashMap<>();
 
     public RenderGenericHead(TileEntityRendererDispatcher dispatcher) {
         super(dispatcher);
@@ -29,15 +29,15 @@ public class RenderGenericHead extends TileEntityRenderer<TileEntityHead> {
 
     @Override
     public void render(TileEntityHead te, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        BlockState iblockstate = te.getBlockState();
-        if(iblockstate == null || !(iblockstate.getBlock() instanceof BlockGenericSkull)) {
+        BlockState state = te.getBlockState();
+        if(!(state.getBlock() instanceof BlockGenericSkull)) {
             return;
         }
-        Direction enumfacing = te.getDirection();
-        enumfacing = enumfacing == null ? Direction.NORTH : enumfacing;
-        float rotation = -enumfacing.getHorizontalAngle();
-        rotation = (enumfacing == Direction.NORTH || enumfacing == Direction.SOUTH) ? enumfacing.getOpposite().getHorizontalAngle() : rotation;
-        rotation = (enumfacing == Direction.UP) ? te.getTopRotation() : rotation;
+        Direction dir = te.getDirection();
+        dir = dir == null ? Direction.NORTH : dir;
+        float rotation = -dir.getHorizontalAngle();
+        rotation = (dir == Direction.NORTH || dir == Direction.SOUTH) ? dir.getOpposite().getHorizontalAngle() : rotation;
+        rotation = (dir == Direction.UP) ? te.getTopRotation() : rotation;
 
         EntityModel<? extends Entity> model = modelMap.get(te.getHeadType());
         if(model == null) {
@@ -46,7 +46,7 @@ public class RenderGenericHead extends TileEntityRenderer<TileEntityHead> {
             model = newModel;
         }
 
-        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, enumfacing, rotation, te.getTexture(), model, te.getOffset());
+        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), model, te.getOffset());
     }
 
     public void render(MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn, int packedOverlayIn, @Nullable Direction facing, float skullRotation, ResourceLocation texture, EntityModel<? extends Entity> model, float yOffset) {
@@ -85,7 +85,7 @@ public class RenderGenericHead extends TileEntityRenderer<TileEntityHead> {
             matrixStackIn.translate(0.5F, 0.18F + yOffset, 0.5F);
             break;
         default:
-            matrixStackIn.translate(0F, 0.25F + yOffset + 0.3F, 0.5F);
+            matrixStackIn.translate(0F, 0.25F + yOffset, 0F);
             break;
         }
     }

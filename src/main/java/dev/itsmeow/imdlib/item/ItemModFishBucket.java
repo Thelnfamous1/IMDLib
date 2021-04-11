@@ -6,9 +6,9 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
-import dev.itsmeow.imdlib.entity.util.IContainable;
+import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -30,12 +30,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class ItemModFishBucket<T extends MobEntity & IContainable> extends BucketItem implements IContainerItem<T> {
     private final EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer;
-    private ITooltipFunction tooltip;
+    private final ITooltipFunction tooltip;
 
-    public static final <T extends MobEntity & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModFishBucket<T>>, ITooltipFunction, ItemModFishBucket<T>> waterBucket(ItemGroup group) {
-        return (container, tooltip) -> {
-            return new ItemModFishBucket<T>(container, () -> Fluids.WATER, tooltip, group);
-        };
+    public static <T extends MobEntity & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModFishBucket<T>>, ITooltipFunction, ItemModFishBucket<T>> waterBucket(ItemGroup group) {
+        return (container, tooltip) -> new ItemModFishBucket<>(container, () -> Fluids.WATER, tooltip, group);
     }
 
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ItemGroup group) {
@@ -45,7 +43,7 @@ public class ItemModFishBucket<T extends MobEntity & IContainable> extends Bucke
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ITooltipFunction tooltip, ItemGroup group) {
         super(fluid, new Item.Properties().maxStackSize(1).group(group));
         this.typeContainer = typeContainer;
-        this.setRegistryName(typeContainer.entityName + "_bucket");
+        this.setRegistryName(typeContainer.getEntityName() + "_bucket");
         this.tooltip = tooltip;
     }
 

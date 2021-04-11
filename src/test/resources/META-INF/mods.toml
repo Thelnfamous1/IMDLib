@@ -1,0 +1,16 @@
+modLoader="javafml" #mandatory
+loaderVersion="[34,)" #mandatory
+license="MIT" #mandatory
+[[mods]] #mandatory
+    modId="imdlib" #mandatory
+    version="${file.jarVersion}" #mandatory
+    displayName="IMDLib" #mandatory
+    #mandatory
+    description='''
+    Test Mod'''
+[[dependencies.imdlib]]
+    modId="forge"
+    mandatory=true
+    versionRange="[34.1.21,)"
+    ordering="NONE"
+    side="BOTH"

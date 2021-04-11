@@ -13,7 +13,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
-import dev.itsmeow.imdlib.entity.util.IVariantTypes;
+import dev.itsmeow.imdlib.entity.interfaces.IVariantTypes;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.renderer.entity.model.EntityModel;
@@ -89,7 +89,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
 
     public static class TextureContainer<T extends MobEntity, A extends EntityModel<T>> {
 
-        private Strategy strategy;
+        private final Strategy strategy;
         private ResourceLocation singleTexture;
         private Function<T, ResourceLocation> texMapper;
         private ResourceLocation trueTex;
@@ -200,13 +200,13 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         SINGLE,
         MAPPER,
         MAPPER_CONDITION,
-        CONDITION;
+        CONDITION
     }
 
     public enum SuperCallApplyRotations {
         PRE,
         NONE,
-        POST;
+        POST
     }
 
     public static class Builder<T extends MobEntity, A extends EntityModel<T>> {
@@ -216,12 +216,12 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private TextureContainer<T, A> tex;
         private ModelContainer<T, A> model;
         private PreRenderCallback<T> preRender;
-        private ArrayList<Function<BaseRenderer<T, A>, LayerRenderer<T, A>>> layers = new ArrayList<>();
+        private final ArrayList<Function<BaseRenderer<T, A>, LayerRenderer<T, A>>> layers = new ArrayList<>();
         private HandleRotation<T> handleRotation;
         private ApplyRotations<T> applyRotations;
         private SuperCallApplyRotations superCallApplyRotations = SuperCallApplyRotations.NONE;
-        private Map<String, ResourceLocation> texMapper = new HashMap<String, ResourceLocation>();
-        private Map<Class<? extends EntityModel<T>>, EntityModel<T>> modelMapper = new HashMap<>();
+        private final Map<String, ResourceLocation> texMapper = new HashMap<>();
+        private final Map<Class<? extends EntityModel<T>>, EntityModel<T>> modelMapper = new HashMap<>();
         private RenderLayer<T> renderLayer;
 
         protected Builder(String modid, float shadow) {
@@ -235,32 +235,32 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> tSingle(String texture) {
-            this.tex = new TextureContainer<T, A>(tex(modid, texture));
+            this.tex = new TextureContainer<>(tex(modid, texture));
             return this;
         }
 
         public Builder<T, A> tCondition(Predicate<T> condition, String trueTex, String falseTex) {
-            this.tex = new TextureContainer<T, A>(condition, tex(modid, trueTex), tex(modid, falseTex));
+            this.tex = new TextureContainer<>(condition, tex(modid, trueTex), tex(modid, falseTex));
             return this;
         }
 
         public Builder<T, A> tMapped(Function<T, String> texMapper) {
-            this.tex = new TextureContainer<T, A>(entity -> texStored(texMapper.apply(entity)));
+            this.tex = new TextureContainer<>(entity -> texStored(texMapper.apply(entity)));
             return this;
         }
 
         public Builder<T, A> tSingleRaw(ResourceLocation texture) {
-            this.tex = new TextureContainer<T, A>(texture);
+            this.tex = new TextureContainer<>(texture);
             return this;
         }
 
         public Builder<T, A> tConditionRaw(Predicate<T> condition, ResourceLocation trueTex, ResourceLocation falseTex) {
-            this.tex = new TextureContainer<T, A>(condition, trueTex, falseTex);
+            this.tex = new TextureContainer<>(condition, trueTex, falseTex);
             return this;
         }
 
         public Builder<T, A> tMappedRaw(Function<T, ResourceLocation> texMapper) {
-            this.tex = new TextureContainer<T, A>(texMapper);
+            this.tex = new TextureContainer<>(texMapper);
             return this;
         }
 
@@ -278,7 +278,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> tMappedConditionRaw(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
-            this.tex = new TextureContainer<T, A>(condition, texMapper, conditionTex);
+            this.tex = new TextureContainer<>(condition, texMapper, conditionTex);
             return this;
         }
 
@@ -287,8 +287,8 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
-            this.tex = new TextureContainer<T, A>(condition, e -> {
-                if(e instanceof IVariantTypes<?>) {
+            this.tex = new TextureContainer<>(condition, e -> {
+                if (e instanceof IVariantTypes<?>) {
                     return ((IVariantTypes<?>) e).getVariantTextureOrNull();
                 }
                 return null;
@@ -311,17 +311,17 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         }
 
         public Builder<T, A> mSingle(A model) {
-            this.model = new ModelContainer<T, A>(model);
+            this.model = new ModelContainer<>(model);
             return this;
         }
 
         public Builder<T, A> mMapped(Function<T, Class<? extends EntityModel<T>>> modelMapper, A baseModel) {
-            this.model = new ModelContainer<T, A>(e -> modelStored(modelMapper.apply(e), baseModel), baseModel);
+            this.model = new ModelContainer<>(e -> modelStored(modelMapper.apply(e), baseModel), baseModel);
             return this;
         }
 
         public Builder<T, A> mCondition(Predicate<T> condition, A trueModel, EntityModel<T> falseModel) {
-            this.model = new ModelContainer<T, A>(condition, trueModel, falseModel);
+            this.model = new ModelContainer<>(condition, trueModel, falseModel);
             return this;
         }
 
@@ -420,7 +420,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
             if(tex == null || model == null) {
                 throw new IllegalArgumentException("Must define both a texture and a model before calling build()!");
             }
-            return mgr -> new ImplRenderer<T, A>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
+            return mgr -> new ImplRenderer<>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
         }
 
         private ResourceLocation texStored(String location) {
@@ -430,7 +430,7 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
         private EntityModel<T> modelStored(Class<? extends EntityModel<T>> clazz, A defaultModel) {
             return modelMapper.computeIfAbsent(clazz, l -> {
                 try {
-                    return (EntityModel<T>) clazz.newInstance();
+                    return clazz.newInstance();
                 } catch(InstantiationException | IllegalAccessException e) {
                     e.printStackTrace();
                     return defaultModel;
@@ -440,32 +440,32 @@ public class ImplRenderer<T extends MobEntity, A extends EntityModel<T>> extends
     }
 
     public static <T extends MobEntity, A extends EntityModel<T>> Builder<T, A> factory(String modid, float shadow) {
-        return new Builder<T, A>(modid, shadow);
+        return new Builder<>(modid, shadow);
     }
 
     @FunctionalInterface
-    public static interface PreRenderCallback<T extends MobEntity> {
-        public void preRenderCallback(T entity, MatrixStack stack, float partialTicks);
+    public interface PreRenderCallback<T extends MobEntity> {
+        void preRenderCallback(T entity, MatrixStack stack, float partialTicks);
     }
 
     @FunctionalInterface
-    public static interface HandleRotation<T extends MobEntity> {
-        public float handleRotation(T entity, float partialTicks);
+    public interface HandleRotation<T extends MobEntity> {
+        float handleRotation(T entity, float partialTicks);
     }
 
     @FunctionalInterface
-    public static interface ApplyRotations<T extends MobEntity> {
-        public void applyRotations(T entity, MatrixStack stack, float ageInTicks, float rotationYaw, float partialTicks);
+    public interface ApplyRotations<T extends MobEntity> {
+        void applyRotations(T entity, MatrixStack stack, float ageInTicks, float rotationYaw, float partialTicks);
     }
 
     @FunctionalInterface
-    public static interface RenderLayer<T extends MobEntity> {
-        public RenderType renderLayer(T entity, boolean visible, boolean visibleToPlayer, boolean glowing, ResourceLocation texture);
+    public interface RenderLayer<T extends MobEntity> {
+        RenderType renderLayer(T entity, boolean visible, boolean visibleToPlayer, boolean glowing, ResourceLocation texture);
     }
 
     @FunctionalInterface
-    public static interface RenderDef<T extends MobEntity, A extends EntityModel<T>> {
-        public abstract ImplRenderer.Builder<T, A> apply(ImplRenderer.Builder<T, A> renderer);
+    public interface RenderDef<T extends MobEntity, A extends EntityModel<T>> {
+        ImplRenderer.Builder<T, A> apply(ImplRenderer.Builder<T, A> renderer);
     }
 
     private static ResourceLocation tex(String modid, String location) {

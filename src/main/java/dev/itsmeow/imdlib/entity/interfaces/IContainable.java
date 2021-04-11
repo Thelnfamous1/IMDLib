@@ -1,7 +1,8 @@
-package dev.itsmeow.imdlib.entity.util;
+package dev.itsmeow.imdlib.entity.interfaces;
 
 import javax.annotation.Nonnull;
 
+import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;

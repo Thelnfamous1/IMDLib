@@ -23,11 +23,11 @@ public class RenderFactory {
     }
 
     public <T extends MobEntity, M extends EntityModel<T>> ImplRenderer.Builder<T, M> r(float shadowSize) {
-        return ImplRenderer.<T, M>factory(modid, shadowSize);
+        return ImplRenderer.factory(modid, shadowSize);
     }
 
     public <T extends MobEntity, M extends EntityModel<T>> void addRender(EntityType<T> clazz, float shadowSize, Function<ImplRenderer.Builder<T, M>, ImplRenderer.Builder<T, M>> render) {
-        RenderingRegistry.registerEntityRenderingHandler(clazz, render.apply(this.<T, M>r(shadowSize)).done());
+        RenderingRegistry.registerEntityRenderingHandler(clazz, render.apply(this.r(shadowSize)).done());
     }
 
     public static <T extends Entity> void addRender(EntityType<T> clazz, IRenderFactory<T> renderer) {
@@ -35,7 +35,7 @@ public class RenderFactory {
     }
 
     public static <T extends Entity & IRendersAsItem> IRenderFactory<T> sprite() {
-        return mgr -> new SpriteRenderer<T>(mgr, Minecraft.getInstance().getItemRenderer());
+        return mgr -> new SpriteRenderer<>(mgr, Minecraft.getInstance().getItemRenderer());
     }
 
     public static <T extends Entity> IRenderFactory<T> nothing() {

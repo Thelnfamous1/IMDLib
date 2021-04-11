@@ -14,10 +14,10 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
 
 import dev.itsmeow.imdlib.block.BlockGenericSkull;
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.util.EntityVariant;
-import dev.itsmeow.imdlib.entity.util.IVariant;
-import dev.itsmeow.imdlib.entity.util.IVariantTypes;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
+import dev.itsmeow.imdlib.entity.interfaces.IVariantTypes;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.item.ItemBlockHeadType;
 import dev.itsmeow.imdlib.tileentity.TileEntityHead;
@@ -34,9 +34,9 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 
 public class HeadType {
 
-    protected static final Set<HeadType> HEADS = new HashSet<HeadType>();
-    protected static final Map<String, HeadType> HEADS_MAP = new HashMap<String, HeadType>();
-    protected static final Map<Block, HeadType> HEADS_BLOCK_MAP = new HashMap<Block, HeadType>();
+    protected static final Set<HeadType> HEADS = new HashSet<>();
+    protected static final Map<String, HeadType> HEADS_MAP = new HashMap<>();
+    protected static final Map<Block, HeadType> HEADS_BLOCK_MAP = new HashMap<>();
 
     public static Set<HeadType> values() {
         return HEADS;
@@ -52,15 +52,15 @@ public class HeadType {
 
     private final String name;
     private final PlacementType placement;
-    private final Map<IVariant, Pair<BlockGenericSkull, ItemBlockHeadType>> heads = new HashMap<IVariant, Pair<BlockGenericSkull, ItemBlockHeadType>>();
-    private final Set<ItemBlockHeadType> items = new HashSet<ItemBlockHeadType>();
-    private final Set<BlockGenericSkull> blocks = new HashSet<BlockGenericSkull>();
+    private final Map<IVariant, Pair<BlockGenericSkull, ItemBlockHeadType>> heads = new HashMap<>();
+    private final Set<ItemBlockHeadType> items = new HashSet<>();
+    private final Set<BlockGenericSkull> blocks = new HashSet<>();
     @OnlyIn(Dist.CLIENT)
     public Supplier<Supplier<EntityModel<? extends Entity>>> modelSupplier;
     private final EntityTypeContainer<? extends LivingEntity> container;
     private float yOffset = 0F;
     private IVariant singletonVariant;
-    private final Map<Block, IVariant> reverseVariantMap = new HashMap<Block, IVariant>();
+    private final Map<Block, IVariant> reverseVariantMap = new HashMap<>();
     private final String modid;
 
     public HeadType(String modid, ItemGroup group, String name, PlacementType placement, float yOffset, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
@@ -211,13 +211,13 @@ public class HeadType {
     }
 
     public void drop(MobEntity entity, int chance) {
-        drop(entity, chance, getHeadID(entity));
+        drop(entity, chance, getHeadID(entity).orElse(null));
     }
 
-    public void drop(MobEntity entity, int chance, Optional<IVariant> variant) {
-        if(variant.isPresent() && !entity.world.isRemote && !entity.isChild()) {
+    public void drop(MobEntity entity, int chance, IVariant variant) {
+        if(variant != null && !entity.world.isRemote && !entity.isChild()) {
             if(entity.getRNG().nextInt(chance) == 0) {
-                ItemStack stack = new ItemStack(this.getItem(variant.get()));
+                ItemStack stack = new ItemStack(this.getItem(variant));
                 entity.entityDropItem(stack, 0.5F);
             }
         }
@@ -232,16 +232,16 @@ public class HeadType {
         }
     }
 
-    public static enum PlacementType {
+    public enum PlacementType {
         FLOOR_AND_WALL,
-        WALL_ONLY;
+        WALL_ONLY
     }
 
-    public static enum HeadIDMapping {
+    public enum HeadIDMapping {
         NAMES,
         NUMBERS,
         CUSTOM,
-        SINGLETON;
+        SINGLETON
     }
 
     public static class Builder<T extends MobEntity, C extends EntityTypeContainer<T>, B extends IEntityBuilder<T, C, B>> {

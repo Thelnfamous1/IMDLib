@@ -1,4 +1,4 @@
-package dev.itsmeow.imdlib.entity.util;
+package dev.itsmeow.imdlib.entity.util.variant;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;

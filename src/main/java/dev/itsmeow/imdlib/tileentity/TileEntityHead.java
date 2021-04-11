@@ -2,7 +2,7 @@ package dev.itsmeow.imdlib.tileentity;
 
 import dev.itsmeow.imdlib.block.BlockAnimalSkull;
 import dev.itsmeow.imdlib.client.render.RenderGenericHead;
-import dev.itsmeow.imdlib.entity.util.IVariant;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.entity.model.EntityModel;

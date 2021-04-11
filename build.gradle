@@ -22,6 +22,7 @@ group = "${project.maven_group}"
 archivesBaseName = "${project.mod_id}"
 def at_name = project.hasProperty('at_name') ? "${project.at_name}" : ""
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
 minecraft {
     mappings channel: project.mappings_channel, version: "${project.mappings_version}-${project.mappings_mc_version}"
     if (project.hasProperty('at_file')) {
@@ -31,12 +32,12 @@ minecraft {
         client {
             workingDirectory project.file('run')
             property 'forge.logging.console.level', 'info'
-            mods.create("${project.mod_id}").source(sourceSets.main);
+            mods.create("${project.mod_id}").sources(sourceSets.test, sourceSets.main);
         }
         server {
             workingDirectory project.file('run')
             property 'forge.logging.console.level', 'info'
-            mods.create("${project.mod_id}").source(sourceSets.main);
+            mods.create("${project.mod_id}").sources(sourceSets.test, sourceSets.main);
         }
     }
 }

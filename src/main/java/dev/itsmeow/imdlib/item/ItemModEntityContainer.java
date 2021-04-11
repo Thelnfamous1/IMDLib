@@ -5,9 +5,9 @@ import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 
-import dev.itsmeow.imdlib.entity.util.EntityTypeContainer;
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
-import dev.itsmeow.imdlib.entity.util.IContainable;
+import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -31,12 +31,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ItemModEntityContainer<T extends MobEntity & IContainable> extends Item implements IContainerItem<T> {
 
     protected final EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer;
-    protected ITooltipFunction tooltip;
+    protected final ITooltipFunction tooltip;
 
-    public static final <T extends MobEntity & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModEntityContainer<T>>, ITooltipFunction, ItemModEntityContainer<T>> get(String name, ItemGroup group) {
-        return (container, tooltip) -> {
-            return new ItemModEntityContainer<T>(container, String.format(name, container.entityName), tooltip, group);
-        };
+    public static <T extends MobEntity & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModEntityContainer<T>>, ITooltipFunction, ItemModEntityContainer<T>> get(String name, ItemGroup group) {
+        return (container, tooltip) -> new ItemModEntityContainer<>(container, String.format(name, container.getEntityName()), tooltip, group);
     }
 
     public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, String name, ItemGroup group) {
@@ -54,16 +52,15 @@ public class ItemModEntityContainer<T extends MobEntity & IContainable> extends 
     public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
         if(!worldIn.isRemote) {
             ItemStack itemstack = playerIn.getHeldItem(handIn);
-            RayTraceResult raytraceresult = rayTrace(worldIn, playerIn, RayTraceContext.FluidMode.NONE);
+            BlockRayTraceResult raytraceresult = rayTrace(worldIn, playerIn, RayTraceContext.FluidMode.NONE);
             if(raytraceresult.getType() == RayTraceResult.Type.MISS) {
                 return new ActionResult<>(ActionResultType.PASS, itemstack);
             } else if(raytraceresult.getType() != RayTraceResult.Type.BLOCK) {
                 return new ActionResult<>(ActionResultType.PASS, itemstack);
             } else {
-                BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult) raytraceresult;
-                BlockPos blockpos = blockraytraceresult.getPos();
+                BlockPos blockpos = raytraceresult.getPos();
                 if(worldIn instanceof ServerWorld) {
-                    this.placeEntity((ServerWorld)worldIn, playerIn.getHeldItem(handIn), blockpos.offset(blockraytraceresult.getFace()));
+                    this.placeEntity((ServerWorld)worldIn, playerIn.getHeldItem(handIn), blockpos.offset(raytraceresult.getFace()));
                 }
                 if(!playerIn.isCreative()) {
                     playerIn.setItemStackToSlot(handIn == Hand.MAIN_HAND ? EquipmentSlotType.MAINHAND : EquipmentSlotType.OFFHAND, new ItemStack(this.typeContainer.getEmptyContainerItem()));

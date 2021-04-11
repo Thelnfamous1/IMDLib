@@ -3,7 +3,7 @@ package dev.itsmeow.imdlib.item;
 import javax.annotation.Nullable;
 
 import dev.itsmeow.imdlib.block.BlockAnimalSkull;
-import dev.itsmeow.imdlib.entity.util.IVariant;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType.PlacementType;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.Block;

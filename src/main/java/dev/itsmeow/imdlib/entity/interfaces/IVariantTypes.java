@@ -1,9 +1,10 @@
-package dev.itsmeow.imdlib.entity.util;
+package dev.itsmeow.imdlib.entity.interfaces;
 
 import java.util.Optional;
 
 import javax.annotation.Nullable;
 
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.entity.AgeableEntity.AgeableData;
 import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.MobEntity;
@@ -49,7 +50,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
         if(parent1 == null || parent2 == null) {
             if(parent1 == null && parent2 != null) {
                 return parent2.getVariant().orElseGet(this::getRandomType);
-            } else if(parent2 == null && parent1 != null) {
+            } else if(parent1 != null) {
                 return parent1.getVariant().orElseGet(this::getRandomType);
             } else {
                 return this.getRandomType();
@@ -62,7 +63,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
         return getContainer().getVariants().get(this.getImplementation().getRNG().nextInt(getContainer().getVariantMax()));
     }
 
-    public static class TypeData implements ILivingEntityData {
+    class TypeData implements ILivingEntityData {
         public IVariant typeData;
 
         public TypeData(IVariant type) {
@@ -70,7 +71,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
         }
     }
 
-    public static class AgeableTypeData extends AgeableData {
+    class AgeableTypeData extends AgeableData {
         public IVariant typeData;
         private int indexInGroup = 0;
         private boolean canBabySpawn = true;
@@ -113,28 +114,12 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
 
     @Nullable
     default ILivingEntityData initData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
-        IVariant variant = this.getRandomType();
-        if(livingdata instanceof TypeData) {
-            variant = ((TypeData) livingdata).typeData;
-        } else {
-            livingdata = new TypeData(variant);
-        }
-        this.setType(variant);
-        return livingdata;
+        return dataFromVariant(this.getRandomType(), livingdata);
     }
 
     @Nullable
     default ILivingEntityData initAgeableData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
-        IVariant variant = this.getRandomType();
-        if(livingdata instanceof AgeableTypeData) {
-            variant = ((AgeableTypeData) livingdata).typeData;
-        } else if(livingdata instanceof AgeableData) {
-            livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
-        } else {
-            livingdata = new AgeableTypeData(variant);
-        }
-        this.setType(variant);
-        return livingdata;
+        return ageableDataFromVariant(this.getRandomType(), livingdata);
     }
 
     /**
@@ -146,8 +131,7 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
 
     @Nullable
     default ResourceLocation getVariantTextureOrNull() {
-        Optional<IVariant> variant = getVariant();
-        return variant.isPresent() ? variant.get().getTexture(this.getImplementation()) : null;
+        return getVariant().map(v -> v.getTexture(this.getImplementation())).orElse(null);
     }
 
     default String getVariantNameOrEmpty() {
@@ -155,4 +139,25 @@ public interface IVariantTypes<T extends MobEntity> extends IContainerEntity<T> 
         return variant.isPresent() ? variant.get().getName() : "";
     }
 
+    default ILivingEntityData ageableDataFromVariant(IVariant variant, ILivingEntityData livingdata) {
+        if(livingdata instanceof AgeableTypeData) {
+            variant = ((AgeableTypeData) livingdata).typeData;
+        } else if(livingdata instanceof AgeableData) {
+            livingdata = new AgeableTypeData((AgeableData) livingdata, variant);
+        } else {
+            livingdata = new AgeableTypeData(variant);
+        }
+        this.setType(variant);
+        return livingdata;
+    }
+
+    default ILivingEntityData dataFromVariant(IVariant variant, ILivingEntityData livingdata) {
+        if(livingdata instanceof TypeData) {
+            variant = ((TypeData) livingdata).typeData;
+        } else {
+            livingdata = new TypeData(variant);
+        }
+        this.setType(variant);
+        return livingdata;
+    }
 }

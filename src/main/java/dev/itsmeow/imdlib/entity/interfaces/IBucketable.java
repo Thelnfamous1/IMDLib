@@ -1,4 +1,4 @@
-package dev.itsmeow.imdlib.entity.util;
+package dev.itsmeow.imdlib.entity.interfaces;
 
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.entity.player.PlayerEntity;
