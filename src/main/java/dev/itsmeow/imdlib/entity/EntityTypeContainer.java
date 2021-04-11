@@ -376,28 +376,59 @@ public class EntityTypeContainer<T extends MobEntity> {
             this.container = container;
         }
 
-        public ForgeConfigSpec.IntValue getInt(String path) {
+        public int getInt(String path) {
+            return getIntHolder(path).get();
+        }
+
+        public String getString(String path) {
+            return getStringHolder(path).get();
+        }
+
+        public double getDouble(String path) {
+            return getDoubleHolder(path).get();
+        }
+
+        public long getLong(String path) {
+            return getLongHolder(path).get();
+        }
+
+        public boolean getBoolean(String path) {
+            return getBooleanHolder(path).get();
+        }
+
+        @SuppressWarnings("unchecked")
+        public <V> ForgeConfigSpec.ConfigValue<V> getAnyHolder(String path) {
+            return (ForgeConfigSpec.ConfigValue<V>) values.get(path);
+        }
+
+        @SuppressWarnings("unchecked")
+        public ForgeConfigSpec.ConfigValue<List<String>> getStringListHolder(String path) {
+            ForgeConfigSpec.ConfigValue<?> v = values.get(path);
+            return v.get() instanceof List<?> ? (ForgeConfigSpec.ConfigValue<List<String>>) v : null;
+        }
+
+        public ForgeConfigSpec.IntValue getIntHolder(String path) {
             ForgeConfigSpec.ConfigValue<?> v = values.get(path);
             return v instanceof ForgeConfigSpec.IntValue ? (ForgeConfigSpec.IntValue) v : null;
         }
 
         @SuppressWarnings("unchecked")
-        public ForgeConfigSpec.ConfigValue<String> getString(String path) {
+        public ForgeConfigSpec.ConfigValue<String> getStringHolder(String path) {
             ForgeConfigSpec.ConfigValue<?> v = values.get(path);
             return v.get() instanceof String ? (ForgeConfigSpec.ConfigValue<String>) v : null;
         }
 
-        public ForgeConfigSpec.DoubleValue getDouble(String path) {
+        public ForgeConfigSpec.DoubleValue getDoubleHolder(String path) {
             ForgeConfigSpec.ConfigValue<?> v = values.get(path);
             return v instanceof ForgeConfigSpec.DoubleValue ? (ForgeConfigSpec.DoubleValue) v : null;
         }
 
-        public ForgeConfigSpec.LongValue getLong(String path) {
+        public ForgeConfigSpec.LongValue getLongHolder(String path) {
             ForgeConfigSpec.ConfigValue<?> v = values.get(path);
             return v instanceof ForgeConfigSpec.LongValue ? (ForgeConfigSpec.LongValue) v : null;
         }
 
-        public ForgeConfigSpec.BooleanValue getBoolean(String path) {
+        public ForgeConfigSpec.BooleanValue getBooleanHolder(String path) {
             ForgeConfigSpec.ConfigValue<?> v = values.get(path);
             return v instanceof ForgeConfigSpec.BooleanValue ? (ForgeConfigSpec.BooleanValue) v : null;
         }

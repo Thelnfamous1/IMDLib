@@ -11,7 +11,7 @@ public interface IContainerEntity<T extends MobEntity> {
 
     T getImplementation();
 
-    EntityTypeContainer<?> getContainer();
+    EntityTypeContainer<? extends T> getContainer();
 
     /* Default Methods */
 
@@ -32,7 +32,11 @@ public interface IContainerEntity<T extends MobEntity> {
     }
 
     @SuppressWarnings("unchecked")
-    default EntityType<T> type() {
-        return (EntityType<T>) getContainer().getEntityType();
+    default EntityType<? extends T> type() {
+        return getContainer().getEntityType();
+    }
+
+    default T createType() {
+        return type().create(getImplementation().getEntityWorld());
     }
 }

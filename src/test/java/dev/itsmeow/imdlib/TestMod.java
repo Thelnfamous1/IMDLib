@@ -43,7 +43,7 @@ public class TestMod {
             .config((holder, builder) -> {
                 holder.put(builder.define("testKey", "test"));
             }, holder -> {
-                System.out.println("LOAD: " + holder.getString("testKey").get());
+                System.out.println("LOAD: " + holder.getString("testKey"));
             })
     );
 
@@ -85,7 +85,7 @@ public class TestMod {
     public static class TestEntity extends AnimalEntity implements IContainerEntity<TestEntity> {
         public TestEntity(EntityType<? extends TestEntity> type, World world) {
             super(type, world);
-            this.setCustomName(new StringTextComponent(TEST_ENTITY.getCustomConfiguration().getString("testKey").get()));
+            this.setCustomName(new StringTextComponent(TEST_ENTITY.getCustomConfiguration().getString("testKey")));
         }
 
         @Nullable
@@ -100,7 +100,7 @@ public class TestMod {
         }
 
         @Override
-        public EntityTypeContainer<?> getContainer() {
+        public EntityTypeContainer<? extends TestEntity> getContainer() {
             return TEST_ENTITY;
         }
 
