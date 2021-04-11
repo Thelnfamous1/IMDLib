@@ -173,11 +173,18 @@ public class EntityTypeContainer<T extends MobEntity> {
         this.config = new EntityConfiguration(builder);
     }
 
-    protected void clientConfigurationLoad() {
+    protected void customConfigurationLoad() {
+        if (definition.getCustomConfigLoad() != null) {
+            definition.getCustomConfigLoad().load(customConfigHolder);
+        }
+    }
+
+    protected void clientCustomConfigurationLoad() {
         if (definition.getCustomClientConfigLoad() != null) {
             definition.getCustomClientConfigLoad().load(customConfigHolderClient);
         }
     }
+
 
     protected void customConfigurationInit(ForgeConfigSpec.Builder builder) {
         if (definition.getCustomConfigInit() != null) {
@@ -357,9 +364,7 @@ public class EntityTypeContainer<T extends MobEntity> {
                     EntityTypeContainer.this.setSpawnCostBiomesSupplier(spawnCostBiomes.get().size() == 0 ? spawnBiomesSupplier : () -> biomesLoader.apply(spawnCostBiomes));
                 }
             }
-            if (definition.getCustomConfigLoad() != null) {
-                definition.getCustomConfigLoad().load(customConfigHolder);
-            }
+            EntityTypeContainer.this.customConfigurationLoad();
         }
     }
 

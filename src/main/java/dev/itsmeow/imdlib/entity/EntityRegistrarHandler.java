@@ -283,7 +283,7 @@ public class EntityRegistrarHandler {
         }
 
         public void onLoad() {
-            ENTITIES.values().forEach(EntityTypeContainer::clientConfigurationLoad);
+            ENTITIES.values().forEach(EntityTypeContainer::clientCustomConfigurationLoad);
         }
 
     }
