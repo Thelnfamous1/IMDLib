@@ -144,6 +144,10 @@ public class EntityTypeContainer<T extends MobEntity> {
         return despawn;
     }
 
+    public ModSpawnEggItem getEggItem() {
+        return egg;
+    }
+
     /* Protected/package-private operations */
     void setHeadType(HeadType headType) {
         this.headType = headType;
