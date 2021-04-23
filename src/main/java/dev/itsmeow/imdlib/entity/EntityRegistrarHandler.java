@@ -191,21 +191,25 @@ public class EntityRegistrarHandler {
         }
 
         public void onLoad() {
+            boolean server = Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER;
+
             // Remove old biome spawns
-            for(EntityTypeContainer<?> entry : ENTITIES.values()) {
-                for(Biome biome : entry.getSpawnBiomes()) {
-                    List<SpawnListEntry> spawnListEntries = biome.getSpawns(entry.getDefinition().getSpawnClassification());
-                    spawnListEntries.removeIf(e -> e.entityType == entry.getEntityType());
-                    try {
-                        biome.spawns.put(entry.getDefinition().getSpawnClassification(), spawnListEntries);
-                    } catch(IllegalAccessError e) {
-                        // attempt using reflection
+            if(server) {
+                for (EntityTypeContainer<?> entry : ENTITIES.values()) {
+                    for (Biome biome : entry.getSpawnBiomes()) {
+                        List<SpawnListEntry> spawnListEntries = biome.getSpawns(entry.getDefinition().getSpawnClassification());
+                        spawnListEntries.removeIf(e -> e.entityType == entry.getEntityType());
                         try {
-                            SPAWNS.setAccessible(true);
-                            ((Map<EntityClassification, List<SpawnListEntry>>) SPAWNS.get(biome)).put(entry.getDefinition().getSpawnClassification(), spawnListEntries);
-                        } catch(IllegalAccessException | IllegalArgumentException e2) {
-                            e2.printStackTrace();
-                            e.printStackTrace();
+                            biome.spawns.put(entry.getDefinition().getSpawnClassification(), spawnListEntries);
+                        } catch (IllegalAccessError e) {
+                            // attempt using reflection
+                            try {
+                                SPAWNS.setAccessible(true);
+                                ((Map<EntityClassification, List<SpawnListEntry>>) SPAWNS.get(biome)).put(entry.getDefinition().getSpawnClassification(), spawnListEntries);
+                            } catch (IllegalAccessException | IllegalArgumentException e2) {
+                                e2.printStackTrace();
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -214,7 +218,7 @@ public class EntityRegistrarHandler {
             // Update entity data
             ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
-            if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
+            if(server) {
                 for(EntityTypeContainer<?> entry : ENTITIES.values()) {
                     EntityType<?> type = entry.getEntityType();
                     EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
