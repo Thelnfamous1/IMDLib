@@ -19,6 +19,9 @@
       "dev.itsmeow.betteranimalsplus.FabricMod"
     ]
   },
+  "mixins": [
+    "mixin.imdlib.json"
+  ],
   "depends": {
     "minecraft": "1.16.5",
     "architectury": ">=1.1.55"

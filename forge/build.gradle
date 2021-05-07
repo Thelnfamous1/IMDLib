@@ -85,3 +85,6 @@ publishing {
         // Add repositories to publish to here.
     }
 }
+loom {
+    mixinConfig "mixin.imdlib.json"
+}

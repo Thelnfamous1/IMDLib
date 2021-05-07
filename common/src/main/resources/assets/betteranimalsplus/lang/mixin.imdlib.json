@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "dev.itsmeow.imdlib.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ItemPropertiesAccessor"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
