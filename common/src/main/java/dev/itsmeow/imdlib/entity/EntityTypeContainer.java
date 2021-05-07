@@ -6,15 +6,20 @@ import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariantList;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import dev.itsmeow.imdlib.mixin.SpawnPlacementsInvoker;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
@@ -63,7 +68,7 @@ public class EntityTypeContainer<T extends Mob> {
     }
 
     protected static List<String> setBiomesToIDs(Set<ResourceKey<Biome>> set) {
-        return set.parallelStream().filter(Objects::nonNull).map(b -> b.getLocation().toString()).collect(Collectors.toList());
+        return set.parallelStream().filter(Objects::nonNull).map(biomeResourceKey -> biomeResourceKey.location().toString()).collect(Collectors.toList());
     }
 
     /* Simple Getters */
@@ -157,16 +162,19 @@ public class EntityTypeContainer<T extends Mob> {
     void registerPlacement() {
         if (definition.getPlacementType() != null && definition.getPlacementPredicate() != null && definition.getPlacementHeightMapType() != null) {
             if (!placementRegistered) {
-                EntitySpawnPlacementRegistry.register(this.entityType, definition.getPlacementType(), definition.getPlacementHeightMapType(), definition.getPlacementPredicate());
+                SpawnPlacementsInvoker.invokeRegister(this.entityType, definition.getPlacementType(), definition.getPlacementHeightMapType(), definition.getPlacementPredicate());
                 placementRegistered = true;
             }
         }
     }
 
     @SuppressWarnings("deprecation")
+    /* what
     boolean registerAttributes() {
-        return definition.getAttributeMap() != null && GlobalEntityTypeAttributes.put(entityType, definition.getAttributeMap().get().create()) != null;
+        return definition.getAttributeMap() != null && DefaultAttributes.put(entityType, definition.getAttributeMap().get().build()) != null;
     }
+
+     */
 
     protected void createConfiguration(ForgeConfigSpec.Builder builder) {
         this.config = new EntityConfiguration(builder);
@@ -207,33 +215,31 @@ public class EntityTypeContainer<T extends Mob> {
         return setBiomesToIDs(this.getSpawnCostBiomes());
     }
 
-    public Set<RegistryKey<Biome>> getSpawnBiomes() {
+    public Set<ResourceKey<Biome>> getSpawnBiomes() {
         if (this.spawnBiomesCache == null) {
             this.spawnBiomesCache = spawnBiomesSupplier.get();
         }
         return this.spawnBiomesCache;
     }
 
-    public Set<RegistryKey<Biome>> getSpawnCostBiomes() {
+    public Set<ResourceKey<Biome>> getSpawnCostBiomes() {
         if (this.spawnCostBiomesCache == null) {
             this.spawnCostBiomesCache = spawnCostBiomesSupplier.get();
         }
         return this.spawnCostBiomesCache;
     }
 
-    protected void setSpawnBiomesSupplier(Supplier<Set<RegistryKey<Biome>>> biomesSupplier) {
+    protected void setSpawnBiomesSupplier(Supplier<Set<ResourceKey<Biome>>> biomesSupplier) {
         this.spawnBiomesCache = null;
         this.spawnBiomesSupplier = biomesSupplier;
     }
 
-    protected void setSpawnCostBiomesSupplier(Supplier<Set<RegistryKey<Biome>>> biomesSupplier) {
+    protected void setSpawnCostBiomesSupplier(Supplier<Set<ResourceKey<Biome>>> biomesSupplier) {
         this.spawnCostBiomesCache = null;
         this.spawnCostBiomesSupplier = biomesSupplier;
     }
 
     /* Variant getters */
-    @Nullable
-    @CheckForNull
     public IVariant getVariantForName(String name) {
         return this.variantList.getVariantForName(name);
     }
@@ -252,9 +258,9 @@ public class EntityTypeContainer<T extends Mob> {
         return this.variantList.getVariantIndex(variant);
     }
 
-    public DataParameter<String> getVariantDataKey() {
+    public EntityDataAccessor<String> getVariantDataKey() {
         if (this.variantDataKey == null) {
-            this.variantDataKey = EntityDataManager.createKey(this.getEntityClass(), DataSerializers.STRING);
+            this.variantDataKey = SynchedEntityData.defineId(this.getEntityClass(), EntityDataSerializers.STRING);
         }
         return this.variantDataKey;
     }
@@ -270,13 +276,13 @@ public class EntityTypeContainer<T extends Mob> {
     }
 
     /* Subclasses */
-    public static class Builder<T extends MobEntity> extends AbstractEntityBuilder<T, EntityTypeContainer<T>, Builder<T>> {
+    public static class Builder<T extends Mob> extends AbstractEntityBuilder<T, EntityTypeContainer<T>, Builder<T>> {
 
-        private Builder(Class<T> EntityClass, EntityType.IFactory<T> factory, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
+        private Builder(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
             super(EntityClass, factory, entityNameIn, attributeMap, modid);
         }
 
-        public static <T extends MobEntity> Builder<T> create(Class<T> EntityClass, EntityType.IFactory<T> factory, String entityNameIn, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, String modid) {
+        public static <T extends Mob> Builder<T> create(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
             return new Builder<>(EntityClass, factory, entityNameIn, attributeMap, modid);
         }
 
@@ -291,7 +297,7 @@ public class EntityTypeContainer<T extends Mob> {
 
     }
 
-    public static class CustomConfigurationHolder<T extends MobEntity> {
+    public static class CustomConfigurationHolder<T extends Mob> {
         protected Map<String, ForgeConfigSpec.ConfigValue<?>> values = new HashMap<>();
         protected EntityTypeContainer<T> container;
 
@@ -412,15 +418,15 @@ public class EntityTypeContainer<T extends Mob> {
         protected void load() {
             if (hasSpawns()) {
                 despawn = definition.getSpawnClassification() == EntityClassification.CREATURE ? doDespawn.get() : definition.despawns();
-                Function<ForgeConfigSpec.ConfigValue<List<? extends String>>, Set<RegistryKey<Biome>>> biomesLoader = (configList) -> {
-                    HashSet<RegistryKey<Biome>> biomeKeys = new HashSet<>();
+                Function<ForgeConfigSpec.ConfigValue<List<? extends String>>, Set<ResourceKey<Biome>>> biomesLoader = (configList) -> {
+                    HashSet<ResourceKey<Biome>> biomeKeys = new HashSet<>();
                     for (String biomeName : configList.get()) {
                         try {
                             Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeName));
                             if (biome == null || biome.getRegistryName() == null) {
                                 LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + getEntityName() + ". No biome exists with that name. Skipping.");
                             } else {
-                                biomeKeys.add(RegistryKey.getOrCreateKey(Registry.BIOME_KEY, biome.getRegistryName()));
+                                biomeKeys.add(ResourceKey.getOrCreateKey(Registry.BIOME_KEY, biome.getRegistryName()));
                             }
                         } catch (Exception e) {
                             LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + getEntityName() + ". Is it formatted correctly? Skipping.");

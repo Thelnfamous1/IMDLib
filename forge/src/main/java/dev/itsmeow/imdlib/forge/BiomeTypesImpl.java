@@ -1,4 +1,4 @@
-package dev.itsmeow.betteranimalsplus.forge;
+package dev.itsmeow.imdlib.forge;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraftforge.common.BiomeDictionary;

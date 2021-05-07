@@ -3,7 +3,7 @@ package dev.itsmeow.imdlib.entity.util.builder;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
-import dev.itsmeow.imdlib.entity.util.TypeWrapper;
+import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import dev.itsmeow.imdlib.util.HeadType;
@@ -45,9 +45,9 @@ public interface IEntityBuilder<T extends Mob, C extends EntityTypeContainer<T>,
 
     B waterPlacement(SpawnPlacements.SpawnPredicate<T> predicate);
 
-    B biomes(TypeWrapper... biomeTypes);
+    B biomes(BiomeTypes.Type... biomeTypes);
 
-    B biomesOverworld(TypeWrapper... biomeTypes);
+    B biomesOverworld(BiomeTypes.Type... biomeTypes);
 
     B biomes(Supplier<ResourceKey<Biome>[]> biomes);
 

@@ -3,7 +3,8 @@
   "package": "dev.itsmeow.imdlib.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ItemPropertiesAccessor"
+    "ItemPropertiesInvoker",
+    "SpawnPlacementsInvoker"
   ],
   "client": [
   ],

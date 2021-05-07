@@ -1,4 +1,4 @@
-package dev.itsmeow.betteranimalsplus;
+package dev.itsmeow.imdlib;
 
 import me.shedaniel.architectury.platform.forge.EventBuses;
 import net.minecraftforge.fml.common.Mod;

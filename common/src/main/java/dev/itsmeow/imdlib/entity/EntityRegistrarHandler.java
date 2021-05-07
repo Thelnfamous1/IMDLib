@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.entity;
 
+import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
@@ -7,21 +8,35 @@ import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModFishBucket;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
+import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
+import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import dev.itsmeow.imdlib.util.HeadType;
+import me.shedaniel.architectury.platform.Platform;
+import net.fabricmc.api.EnvType;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 import org.apache.logging.log4j.LogManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class EntityRegistrarHandler {
-
-    private static final Field SERIALIZABLE = ObfuscationReflectionHelper.findField(EntityType.class, "field_200733_aL");
     public static boolean useAttributeEvents;
 
     static {
@@ -34,7 +49,7 @@ public class EntityRegistrarHandler {
     }
 
     public final String modid;
-    public final LinkedHashMap<String, EntityTypeContainer<? extends MobEntity>> ENTITIES = new LinkedHashMap<>();
+    public final LinkedHashMap<String, EntityTypeContainer<? extends Mob>> ENTITIES = new LinkedHashMap<>();
 
 
     public EntityRegistrarHandler(String modid) {
@@ -51,10 +66,14 @@ public class EntityRegistrarHandler {
         field.set(object, newValue);
     }
 
+    //TODO
+    /*
     public void subscribe(IEventBus modBus) {
         modBus.register(new EventHandler(this));
         ClassLoadHacks.runIf(useAttributeEvents, () -> () -> modBus.register(new EntityAttributeRegistrar(this)));
     }
+
+     */
 
     @SuppressWarnings("unchecked")
     public <T extends Mob> EntityTypeContainer<T> getEntityTypeContainer(String name) {
@@ -66,15 +85,15 @@ public class EntityRegistrarHandler {
         return (EntityType<T>) ENTITIES.get(name).getEntityType();
     }
 
-    public <T extends Mob> EntityTypeContainer<T> add(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainer.Builder<T>, EntityTypeContainer.Builder<T>> transformer) {
+    public <T extends Mob> EntityTypeContainer<T> add(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainer.Builder<T>, EntityTypeContainer.Builder<T>> transformer) {
         return add(transformer.apply(EntityTypeContainer.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
-    public <T extends Mob & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> addContainable(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
+    public <T extends Mob & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> addContainable(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
         return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
-    public <T extends Mob & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> addContainableB(Class<T> entityClass, EntityType.IFactory<T> factory, String name, Supplier<AttributeModifierMap.MutableAttribute> attributeMap, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
+    public <T extends Mob & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> addContainableB(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
         return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
@@ -86,26 +105,14 @@ public class EntityRegistrarHandler {
         return c;
     }
 
-    public <T extends MobEntity> EntityType<T> createEntityType(EntityTypeContainer<T> container) {
+    public <T extends Mob> EntityType<T> createEntityType(EntityTypeContainer<T> container) {
         return createEntityType(container.getDefinition().getEntityFactory(), container.getEntityName(), container.getDefinition().getSpawnClassification(), 64, 1, true, container.getWidth(), container.getHeight());
     }
 
-    public <T extends Entity> EntityType<T> createEntityType(EntityType.IFactory<T> factory, String entityNameIn, EntityClassification classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
-        EntityType<T> type = EntityType.Builder.create(factory, classification).setTrackingRange(trackingRange).setUpdateInterval(updateInterval).setShouldReceiveVelocityUpdates(velUpdates).size(width, height).disableSerialization().build(modid + ":" + entityNameIn.toLowerCase());
-        type.setRegistryName(modid + ":" + entityNameIn.toLowerCase());
-        try {
-            // attempt using AT, which might not present in implementer
-            // to explain, I do this to avoid the "no data fixer registered" log spam - it's not really an issue but why not avoid it
-            type.serializable = true;
-        } catch (Exception e) {
-            // attempt using reflection, which doesn't work on newer JDK. maybe implement some logic that checks the security manager?
-            try {
-                setFinalField(SERIALIZABLE, type, true);
-            } catch (Exception e2) {
-                LogManager.getLogger().error("Unable to set serializable for {}. This could result in possible saving issues with entities!", entityNameIn);
-                e2.printStackTrace();
-            }
-        }
+    public <T extends Entity> EntityType<T> createEntityType(EntityType.EntityFactory<T> factory, String entityNameIn, MobCategory classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
+        EntityType<T> type = EntityType.Builder.of(factory, classification).clientTrackingRange(trackingRange).updateInterval(updateInterval).sized(width, height).noSave().build(modid + ":" + entityNameIn.toLowerCase());
+        //type.setRegistryName(modid + ":" + entityNameIn.toLowerCase());
+        ((EntityTypeAccessor) type).setSerialize(true);
 
         return type;
     }
@@ -192,78 +199,6 @@ public class EntityRegistrarHandler {
         }
     }
 
-    public class ServerEntityConfiguration {
 
-        ServerEntityConfiguration(ForgeConfigSpec.Builder builder) {
-            builder.push("entities");
-            {
-                ENTITIES.values().forEach(c -> c.createConfiguration(builder));
-            }
-            builder.pop();
-        }
-
-        public void onLoad() {
-            // Update entity data
-            ENTITIES.values().forEach(e -> e.getConfiguration().load());
-
-            if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-                MutableRegistry<Biome> biomeRegistry = ServerLifecycleHooks.getCurrentServer().getDynamicRegistries().getRegistry(Registry.BIOME_KEY);
-                for (ResourceLocation key : biomeRegistry.keySet()) {
-                    Biome biome = biomeRegistry.getOptional(key).get();
-                    MobSpawnInfo spawnInfo = biome.getMobSpawnInfo();
-                    // make spawns mutable
-                    spawnInfo.spawners = new HashMap<>(spawnInfo.spawners);
-                    // make spawner lists mutable
-                    for (EntityClassification classification : EntityClassification.values()) {
-                        ArrayList<MobSpawnInfo.Spawners> newList = new ArrayList<>();
-                        List<MobSpawnInfo.Spawners> oldList = spawnInfo.spawners.get(classification);
-                        if (oldList != null) {
-                            newList.addAll(oldList);
-                        }
-                        spawnInfo.spawners.put(classification, newList);
-                    }
-                    // make costs mutable
-                    spawnInfo.spawnCosts = new HashMap<>(spawnInfo.spawnCosts);
-                    for (EntityTypeContainer<?> entry : ENTITIES.values()) {
-                        EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
-                        if (config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
-                            entry.registerPlacement();
-                            List<MobSpawnInfo.Spawners> list = spawnInfo.spawners.get(entry.getDefinition().getSpawnClassification());
-                            if (list != null) {
-                                list.add(entry.getSpawnEntry());
-                            }
-                            if (config.spawnCostPer.get() != 0 && config.spawnMaxCost.get() != 0 && entry.getSpawnCostBiomeIDs().contains(key.toString())) {
-                                // stupid private constructors
-                                MobSpawnInfo.SpawnCosts costs = new MobSpawnInfo.Builder().withSpawnCost(entry.getEntityType(), config.spawnCostPer.get(), config.spawnMaxCost.get()).build().spawnCosts.get(entry.getEntityType());
-                                spawnInfo.spawnCosts.put(entry.getEntityType(), costs);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    public class ClientEntityConfiguration {
-
-        ClientEntityConfiguration(ForgeConfigSpec.Builder builder) {
-            builder.comment("This is the CLIENT SIDE configuration for " + modid + ".",
-                    "To configure SERVER values (spawning, behavior, etc), go to:",
-                    "saves/(world)/serverconfig/" + modid + "-server.toml",
-                    "or, on a dedicated server:",
-                    "(world)/serverconfig/" + modid + "-server.toml");
-            builder.push("entities");
-            {
-                ENTITIES.values().forEach(c -> c.clientCustomConfigurationInit(builder));
-            }
-            builder.pop();
-        }
-
-        public void onLoad() {
-            ENTITIES.values().forEach(EntityTypeContainer::clientCustomConfigurationLoad);
-        }
-
-    }
 
 }

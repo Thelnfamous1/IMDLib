@@ -1,4 +1,4 @@
-package dev.itsmeow.betteranimalsplus;
+package dev.itsmeow.imdlib;
 
 import net.fabricmc.api.ModInitializer;
 

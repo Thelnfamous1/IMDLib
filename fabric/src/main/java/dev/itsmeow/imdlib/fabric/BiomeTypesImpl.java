@@ -1,4 +1,4 @@
-package dev.itsmeow.betteranimalsplus.fabric;
+package dev.itsmeow.imdlib.fabric;
 
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
@@ -15,13 +15,13 @@ public class BiomeTypesImpl {
             Biome biomeIn = reg.get(biome.location());
             float temperature = biomeIn.getBaseTemperature();
             Biome.BiomeCategory category = biomeIn.getBiomeCategory();
-            return temperature > 0.75 || category == Biome.BiomeCategory.DESERT;
+            return temperature > 0.85F || category == Biome.BiomeCategory.DESERT;
         });
         BiomeTypes.COLD = new BiomeTypes.Type(biome -> {
             Biome biomeIn = reg.get(biome.location());
             float temperature = biomeIn.getBaseTemperature();
             Biome.BiomeCategory category = biomeIn.getBiomeCategory();
-            return temperature < 0.1F || category == Biome.BiomeCategory.ICY;
+            return temperature < 0.15F || category == Biome.BiomeCategory.ICY;
         });
         BiomeTypes.SPARSE = new BiomeTypes.Type(biome -> false);
         BiomeTypes.DENSE = new BiomeTypes.Type(biome -> false);
@@ -55,6 +55,11 @@ public class BiomeTypesImpl {
         BiomeTypes.WASTELAND = new BiomeTypes.Type(biome -> false);
         BiomeTypes.BEACH = new BiomeTypes.Type((biome) -> reg.get(biome.location()).getBiomeCategory() == Biome.BiomeCategory.BEACH);
         BiomeTypes.VOID = new BiomeTypes.Type((biome) -> reg.get(biome.location()).getBiomeCategory() == Biome.BiomeCategory.NONE);
+        //TODO come up with a better check for overworld
+        BiomeTypes.OVERWORLD = new BiomeTypes.Type((biome) -> {
+            Biome.BiomeCategory category = reg.get(biome.location()).getBiomeCategory();
+            return category != Biome.BiomeCategory.NETHER && category != Biome.BiomeCategory.THEEND;
+        });
         BiomeTypes.NETHER = new BiomeTypes.Type((biome) -> reg.get(biome.location()).getBiomeCategory() == Biome.BiomeCategory.NETHER);
         BiomeTypes.END = new BiomeTypes.Type((biome) -> reg.get(biome.location()).getBiomeCategory() == Biome.BiomeCategory.THEEND);
     }

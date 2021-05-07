@@ -2,15 +2,17 @@ package dev.itsmeow.imdlib.entity;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
-import dev.itsmeow.imdlib.entity.util.TypeWrapper;
+import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import dev.itsmeow.imdlib.util.HeadType;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -19,8 +21,6 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.common.BiomeDictionary;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -85,9 +85,21 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
         this.attributeMap = attributeMap;
     }
 
-    @ExpectPlatform
-    protected static Supplier<Set<ResourceKey<Biome>>> toBiomes(TypeWrapper[] biomeTypes, boolean overworldOnly) {
-        return () -> Lists.newArrayList(biomeTypes).stream().flatMap(type -> BiomeDictionary.getBiomes(type).stream()).filter(b -> !overworldOnly || BiomeDictionary.hasType(b, BiomeDictionary.Type.OVERWORLD)).collect(Collectors.toSet());
+    protected static Supplier<Set<ResourceKey<Biome>>> toBiomes(BiomeTypes.Type[] biomeTypes, boolean overworldOnly) {
+        Set<ResourceKey<Biome>> set = new HashSet<>();
+        me.shedaniel.architectury.registry.Registry<Biome> reg = IMDLib.REGISTRIES.get().get(Registry.BIOME_REGISTRY);
+
+        for (Biome biome : reg) {
+            ResourceKey<Biome> biomeResourceKey = reg.getKey(biome).get();
+
+            for (BiomeTypes.Type predicate : biomeTypes) {
+                if (!predicate.hasType(biomeResourceKey) && (!overworldOnly || BiomeTypes.OVERWORLD.hasType(biomeResourceKey))) {
+                    set.add(biomeResourceKey);
+                }
+            }
+        }
+
+        return () -> set;
     }
 
     public abstract B getImplementation();
@@ -187,7 +199,7 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     }
 
     @Override
-    public B biomes(TypeWrapper... biomeTypes) {
+    public B biomes(BiomeTypes.Type... biomeTypes) {
         if (!hasSpawns) {
             throw new RuntimeException("You must specify spawns before biomes");
         }
@@ -196,7 +208,7 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     }
 
     @Override
-    public B biomesOverworld(TypeWrapper... biomeTypes) {
+    public B biomesOverworld(BiomeTypes.Type... biomeTypes) {
         if (!hasSpawns) {
             throw new RuntimeException("You must specify spawns before biomes");
         }

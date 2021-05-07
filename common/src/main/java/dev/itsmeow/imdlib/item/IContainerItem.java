@@ -3,7 +3,7 @@ package dev.itsmeow.imdlib.item;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
-import dev.itsmeow.imdlib.mixin.ItemPropertiesAccessor;
+import dev.itsmeow.imdlib.mixin.ItemPropertiesInvoker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -43,7 +43,7 @@ public interface IContainerItem<T extends Mob & IContainable> {
     @SuppressWarnings("deprecation")
     @Environment(EnvType.CLIENT)
     default <A extends Item & IContainerItem<T>> void addPropertyOverrides(A item) {
-        ItemPropertiesAccessor.invokeRegister(item, new ResourceLocation(item.getContainer().getModId(), "variant"), (stack, world, entity) -> {
+        ItemPropertiesInvoker.invokeRegister(item, new ResourceLocation(item.getContainer().getModId(), "variant"), (stack, world, entity) -> {
             String variant = IContainerItem.getVariantIfPresent(stack);
             return !variant.isEmpty() ? item.getContainer().getVariantIndex(item.getContainer().getVariantForName(variant)) + 1 : 0;
         });
