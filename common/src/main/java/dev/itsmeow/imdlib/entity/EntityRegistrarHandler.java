@@ -4,6 +4,7 @@ import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.Registration;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.config.ClientEntityConfiguration;
+import dev.itsmeow.imdlib.config.EntityRegistrarConfigHandler;
 import dev.itsmeow.imdlib.config.ServerEntityConfiguration;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
@@ -164,8 +165,10 @@ public class EntityRegistrarHandler {
         return type;
     }
 
-
-
+    @ExpectPlatform
+    public static EntityRegistrarConfigHandler getConfigHandlerFor(EntityRegistrarHandler handler) {
+        throw new RuntimeException();
+    }
 
 
 

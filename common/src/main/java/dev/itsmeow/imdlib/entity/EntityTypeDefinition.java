@@ -1,7 +1,5 @@
 package dev.itsmeow.imdlib.entity;
 
-import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
-import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.resources.ResourceKey;
@@ -109,6 +107,7 @@ public class EntityTypeDefinition<T extends Mob> implements IEntityTypeDefinitio
         return builder.variants;
     }
 
+    /*
     @Override
     public CustomConfigurationLoad getCustomConfigLoad() {
         return builder.customConfigLoad;
@@ -128,6 +127,8 @@ public class EntityTypeDefinition<T extends Mob> implements IEntityTypeDefinitio
     public CustomConfigurationInit getCustomClientConfigInit() {
         return builder.customClientConfigInit;
     }
+
+     */
 
     @Override
     public Supplier<Set<ResourceKey<Biome>>> getDefaultSpawnBiomes() {
