@@ -41,4 +41,6 @@ public class BiomeTypesImpl {
         BiomeTypes.END = new BiomeTypes.Type(biome -> BiomeDictionary.hasType(biome, BiomeDictionary.Type.END));
 
     }
+
+    
 }

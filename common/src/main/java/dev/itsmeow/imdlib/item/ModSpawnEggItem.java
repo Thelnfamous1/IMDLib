@@ -28,13 +28,13 @@ public class ModSpawnEggItem extends SpawnEggItem {
     };
     private final EntityType<?> type;
     private final String modid;
-    private final String name;
+    public final String name;
 
     public ModSpawnEggItem(EntityTypeContainer<?> container) {
         super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties().tab(CreativeModeTab.TAB_MISC));
         this.type = container.getEntityType();
         this.modid = container.getModId();
-        this.name = container.getEntityName().toLowerCase();
+        this.name = container.getEntityName().toLowerCase() + "_spawn_egg";
         // TODO this.setRegistryName(container.getModId(), name + "_spawn_egg");
         DispenserBlock.registerBehavior(this, EGG_DISPENSE_ACTION);
     }

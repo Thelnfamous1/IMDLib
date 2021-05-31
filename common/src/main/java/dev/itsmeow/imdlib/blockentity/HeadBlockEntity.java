@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class HeadBlockEntity extends BlockEntity {
 
-    protected static final BlockEntityType<HeadBlockEntity> HEAD_TYPE = BlockEntityType.Builder.of(HeadBlockEntity::new, HeadType.getAllBlocks()).build(null);
+    public static final BlockEntityType<HeadBlockEntity> HEAD_TYPE = BlockEntityType.Builder.of(HeadBlockEntity::new, HeadType.getAllBlocks()).build(null);
 
     /*TODO
     public static void registerType(RegistryEvent.Register<TileEntityType<?>> event, String modid) {

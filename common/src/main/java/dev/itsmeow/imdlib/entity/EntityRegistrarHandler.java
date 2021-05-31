@@ -1,7 +1,10 @@
 package dev.itsmeow.imdlib.entity;
 
 import dev.itsmeow.imdlib.IMDLib;
+import dev.itsmeow.imdlib.Registration;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
+import dev.itsmeow.imdlib.config.ClientEntityConfiguration;
+import dev.itsmeow.imdlib.config.ServerEntityConfiguration;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
@@ -12,9 +15,11 @@ import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
 import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import dev.itsmeow.imdlib.util.HeadType;
+import me.shedaniel.architectury.annotations.ExpectPlatform;
 import me.shedaniel.architectury.platform.Platform;
+import me.shedaniel.architectury.registry.Registry;
 import net.fabricmc.api.EnvType;
-import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -24,11 +29,15 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.rmi.AccessException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -56,14 +65,52 @@ public class EntityRegistrarHandler {
         this.modid = modid;
     }
 
-    private static void setFinalField(Field field, Object object, Object newValue) throws Exception {
-        field.setAccessible(true);
+    public void init() {
 
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        //items
+        Registry<Item> items = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.ITEM_REGISTRY);
 
-        field.set(object, newValue);
+        for (HeadType type : HeadType.values()) {
+            items.register(new ResourceLocation(type.getMod(), type.getName()), type::getItem);
+        }
+
+        // Containers & eggs
+        for (EntityTypeContainer<?> container : ENTITIES.values()) {
+            if (container instanceof EntityTypeContainerContainable<?, ?>) {
+                EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
+                if (!items.containsValue(c.getContainerItem())) {
+                    items.register(new ResourceLocation(modid, c.getContainerItemName()), c::getContainerItem);
+                }
+                if (!items.containsValue(c.getEmptyContainerItem())) {
+                    items.register(new ResourceLocation(modid, c.getEmptyContainerItemName()), c::getEmptyContainerItem);
+                }
+            }
+            if (container.hasEgg()) {
+                items.register(new ResourceLocation(modid, container.egg.name), () -> container.egg);
+            }
+        }
+
+        //blocks
+        Registry<Block> blocks = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.BLOCK_REGISTRY);
+        for (HeadType type : HeadType.values()) {
+            blocks.register(new ResourceLocation(type.getMod(), type.getName()), type::getBlock);
+        }
+        Registry<BlockEntityType<?>> blockEntities = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
+        blockEntities.register(new ResourceLocation(modid, "head"), () -> HeadBlockEntity.HEAD_TYPE);
+        Registry<EntityType<?>> entityTypes = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
+        //entity types
+        for (EntityTypeContainer<?> container : ENTITIES.values()) {
+            entityTypes.register(new ResourceLocation(modid, container.getEntityName()), container::getEntityType);
+            if (!useAttributeEvents) {
+                //container.registerAttributes();
+            }
+        }
+        platformInit(useAttributeEvents, this);
+    }
+
+    @ExpectPlatform
+    public static void platformInit(boolean useAttributeEvents, EntityRegistrarHandler handler) {
+        throw new RuntimeException();
     }
 
     //TODO
@@ -89,12 +136,12 @@ public class EntityRegistrarHandler {
         return add(transformer.apply(EntityTypeContainer.Builder.create(entityClass, factory, name, attributeMap, modid)));
     }
 
-    public <T extends Mob & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> addContainable(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
-        return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, attributeMap, modid)));
+    public <T extends Mob & IContainable, I extends Item & IContainerItem<T>> EntityTypeContainerContainable<T, I> addContainable(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, String itemName, String emptyItemName, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainerContainable.Builder<T, I>, EntityTypeContainerContainable.Builder<T, I>> transformer) {
+        return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, itemName, emptyItemName, attributeMap, modid)));
     }
 
-    public <T extends Mob & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> addContainableB(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
-        return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, attributeMap, modid)));
+    public <T extends Mob & IContainable> EntityTypeContainerContainable<T, ItemModFishBucket<T>> addContainableB(Class<T> entityClass, EntityType.EntityFactory<T> factory, String name, String itemName, String emptyItemName, Supplier<AttributeSupplier.Builder> attributeMap, Function<EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>, EntityTypeContainerContainable.Builder<T, ItemModFishBucket<T>>> transformer) {
+        return add(transformer.apply(EntityTypeContainerContainable.Builder.create(entityClass, factory, name, itemName, emptyItemName, attributeMap, modid)));
     }
 
     public <T extends Mob, C extends EntityTypeContainer<T>> C add(IEntityBuilder<T, C, ?> builder) {
@@ -117,87 +164,9 @@ public class EntityRegistrarHandler {
         return type;
     }
 
-    public ServerEntityConfiguration serverConfig(ForgeConfigSpec.Builder builder) {
-        return new ServerEntityConfiguration(builder);
-    }
 
-    public ClientEntityConfiguration clientConfig(ForgeConfigSpec.Builder builder) {
-        return new ClientEntityConfiguration(builder);
-    }
 
-    public static class EventHandler {
-        private final EntityRegistrarHandler handler;
 
-        public EventHandler(EntityRegistrarHandler handler) {
-            this.handler = handler;
-        }
-
-        @SubscribeEvent
-        public void gatherData(GatherDataEvent event) {
-            event.getGenerator().addProvider(new ModSpawnEggItem.DataProvider(handler, event.getGenerator(), event.getExistingFileHelper()));
-        }
-
-        @SubscribeEvent
-        public void registerEntityTypes(RegistryEvent.Register<EntityType<?>> event) {
-            for (EntityTypeContainer<?> container : handler.ENTITIES.values()) {
-                event.getRegistry().register(container.entityType);
-                if (!useAttributeEvents) {
-                    container.registerAttributes();
-                }
-            }
-        }
-
-        @SubscribeEvent
-        public void registerBlocks(RegistryEvent.Register<Block> event) {
-            for (HeadType type : HeadType.values()) {
-                event.getRegistry().registerAll(type.getBlockSet().toArray(new Block[0]));
-            }
-        }
-
-        @SubscribeEvent
-        public void registerItems(RegistryEvent.Register<Item> event) {
-            // Heads
-            for (HeadType type : HeadType.values()) {
-                event.getRegistry().registerAll(type.getItemSet().toArray(new Item[0]));
-            }
-
-            // Containers & eggs
-            for (EntityTypeContainer<?> container : handler.ENTITIES.values()) {
-                if (container instanceof EntityTypeContainerContainable<?, ?>) {
-                    EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
-                    if (!ForgeRegistries.ITEMS.containsValue(c.getContainerItem()) && handler.modid.equals(c.getContainerItem().getRegistryName().getNamespace())) {
-                        event.getRegistry().register(c.getContainerItem());
-                    }
-                    if (!ForgeRegistries.ITEMS.containsValue(c.getEmptyContainerItem()) && handler.modid.equals(c.getEmptyContainerItem().getRegistryName().getNamespace())) {
-                        event.getRegistry().register(c.getEmptyContainerItem());
-                    }
-                }
-                if (container.hasEgg()) {
-                    event.getRegistry().register(container.egg);
-                }
-            }
-        }
-
-        @SubscribeEvent
-        public void registerTileEntities(RegistryEvent.Register<TileEntityType<?>> event) {
-            HeadBlockEntity.registerType(event, handler.modid);
-        }
-    }
-
-    public static class EntityAttributeRegistrar {
-        private final EntityRegistrarHandler handler;
-
-        public EntityAttributeRegistrar(EntityRegistrarHandler handler) {
-            this.handler = handler;
-        }
-
-        @SubscribeEvent
-        public void attributeCreate(EntityAttributeCreationEvent event) {
-            for (EntityTypeContainer<?> container : handler.ENTITIES.values()) {
-                event.put(container.entityType, container.getAttributeBuilder().get().create());
-            }
-        }
-    }
 
 
 

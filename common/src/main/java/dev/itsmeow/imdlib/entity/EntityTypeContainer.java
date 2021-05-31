@@ -7,6 +7,7 @@ import dev.itsmeow.imdlib.entity.util.variant.EntityVariantList;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.SpawnPlacementsInvoker;
+import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -14,6 +15,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
@@ -24,6 +26,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.material.Fluids;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.*;
 import java.util.function.Function;
@@ -49,7 +52,7 @@ public class EntityTypeContainer<T extends Mob> {
     protected HeadType headType;
     protected ModSpawnEggItem egg;
     protected EntityType<T> entityType;
-    protected final NonNullList<MobSpawnSettings.SpawnerData> spawnEntry = NonNullList.of(() -> new MobSpawnSettings.SpawnerData(this.entityType, config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
+    protected final LazyLoadedValue<MobSpawnSettings.SpawnerData> spawnEntry = new LazyLoadedValue<>(() -> new MobSpawnSettings.SpawnerData(this.entityType, config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
 
     protected EntityTypeContainer(IEntityTypeDefinition<T> def) {
         this.definition = def;
@@ -168,43 +171,9 @@ public class EntityTypeContainer<T extends Mob> {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    /* what
-    boolean registerAttributes() {
-        return definition.getAttributeMap() != null && DefaultAttributes.put(entityType, definition.getAttributeMap().get().build()) != null;
-    }
 
-     */
 
-    protected void createConfiguration(ForgeConfigSpec.Builder builder) {
-        this.config = new EntityConfiguration(builder);
-    }
 
-    protected void customConfigurationLoad() {
-        if (definition.getCustomConfigLoad() != null) {
-            definition.getCustomConfigLoad().load(customConfigHolder);
-        }
-    }
-
-    protected void clientCustomConfigurationLoad() {
-        if (definition.getCustomClientConfigLoad() != null) {
-            definition.getCustomClientConfigLoad().load(customConfigHolderClient);
-        }
-    }
-
-    protected void customConfigurationInit(ForgeConfigSpec.Builder builder) {
-        if (definition.getCustomConfigInit() != null) {
-            definition.getCustomConfigInit().init(customConfigHolder, builder);
-        }
-    }
-
-    protected void clientCustomConfigurationInit(ForgeConfigSpec.Builder builder) {
-        if (definition.getCustomClientConfigInit() != null) {
-            builder.push(this.getEntityName());
-            definition.getCustomClientConfigInit().init(customConfigHolderClient, builder);
-            builder.pop();
-        }
-    }
 
     /* Biome Getter/Setters */
     public List<String> getBiomeIDs() {
@@ -265,6 +234,36 @@ public class EntityTypeContainer<T extends Mob> {
         return this.variantDataKey;
     }
 
+    //move configuration to everything down here
+    protected void createConfiguration(ForgeConfigSpec.Builder builder) {
+        this.config = new EntityConfiguration(builder);
+    }
+
+    protected void customConfigurationLoad() {
+        if (definition.getCustomConfigLoad() != null) {
+            definition.getCustomConfigLoad().load(customConfigHolder);
+        }
+    }
+
+    protected void clientCustomConfigurationLoad() {
+        if (definition.getCustomClientConfigLoad() != null) {
+            definition.getCustomClientConfigLoad().load(customConfigHolderClient);
+        }
+    }
+
+    protected void customConfigurationInit(ForgeConfigSpec.Builder builder) {
+        if (definition.getCustomConfigInit() != null) {
+            definition.getCustomConfigInit().init(customConfigHolder, builder);
+        }
+    }
+
+    protected void clientCustomConfigurationInit(ForgeConfigSpec.Builder builder) {
+        if (definition.getCustomClientConfigInit() != null) {
+            builder.push(this.getEntityName());
+            definition.getCustomClientConfigInit().init(customConfigHolderClient, builder);
+            builder.pop();
+        }
+    }
     @FunctionalInterface
     public interface CustomConfigurationLoad {
         void load(CustomConfigurationHolder<?> holder);
