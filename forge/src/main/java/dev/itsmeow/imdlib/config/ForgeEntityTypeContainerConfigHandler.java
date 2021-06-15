@@ -4,24 +4,35 @@ import dev.itsmeow.imdlib.entity.AbstractEntityBuilder;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.EntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.interfaces.ISelectiveVariantTypes;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ForgeEntityTypeContainerConfigHandler implements EntityTypeContainerConfigHandler{
-    public EntityTypeContainer<?> container;
+public class ForgeEntityTypeContainerConfigHandler<T extends Mob> implements EntityTypeContainerConfigHandler {
+    protected final CustomConfigurationHolder<T> customConfigHolder;
+    protected final CustomConfigurationHolder<T> customConfigHolderClient;
+    private final IForgeEntityTypeDefinition<T> definition;
+    public EntityTypeContainer<T> container;
     public EntityConfiguration config;
 
-    public ForgeEntityTypeContainerConfigHandler(EntityTypeContainer<?> container) {
+
+    public ForgeEntityTypeContainerConfigHandler(EntityTypeContainer<T> container) {
         this.container = container;
+        customConfigHolder = new CustomConfigurationHolder<>(container);
+        customConfigHolderClient = new CustomConfigurationHolder<>(container);
+        definition = (IForgeEntityTypeDefinition<T>) container.getDefinition();
     }
 
     //move configuration to everything down here
@@ -30,8 +41,8 @@ public class ForgeEntityTypeContainerConfigHandler implements EntityTypeContaine
     }
 
     protected void customConfigurationLoad() {
-        if (container.getDefinition().getCustomConfigLoad() != null) {
-            container.getDefinition().getCustomConfigLoad().load(customConfigHolder);
+        if (definition.getCustomConfigLoad() != null) {
+            definition.getCustomConfigLoad().load(customConfigHolder);
         }
     }
 
@@ -49,11 +60,27 @@ public class ForgeEntityTypeContainerConfigHandler implements EntityTypeContaine
 
     protected void clientCustomConfigurationInit(ForgeConfigSpec.Builder builder) {
         if (definition.getCustomClientConfigInit() != null) {
-            builder.push(this.getEntityName());
+            builder.push(container.getEntityName());
             definition.getCustomClientConfigInit().init(customConfigHolderClient, builder);
             builder.pop();
         }
     }
+
+    @Override
+    public int getSpawnWeight() {
+        return config.spawnWeight.get();
+    }
+
+    @Override
+    public int getSpawnMinGroup() {
+        return config.spawnMinGroup.get();
+    }
+
+    @Override
+    public int getSpawnMaxGroup() {
+        return config.spawnMaxGroup.get();
+    }
+
     @FunctionalInterface
     public interface CustomConfigurationLoad {
         void load(CustomConfigurationHolder<?> holder);
@@ -172,20 +199,20 @@ public class ForgeEntityTypeContainerConfigHandler implements EntityTypeContaine
         public ForgeConfigSpec.BooleanValue doDespawn;
 
         protected EntityConfiguration(ForgeConfigSpec.Builder builder) {
-            EntityTypeContainer<T> container = EntityTypeContainer.this;
+            EntityTypeContainer<T> container = ForgeEntityTypeContainerConfigHandler.this.container;
             builder.push(container.getEntityName());
             {
-                if (definition.getSpawnClassification() == EntityClassification.CREATURE)
+                if (definition.getSpawnClassification() == MobCategory.CREATURE)
                     doDespawn = builder.comment("Allows the entity to despawn freely when no players are nearby, like vanilla monsters do").worldRestart().define("can_despawn", definition.despawns());
-                if (hasSpawns()) {
+                if (container.hasSpawns()) {
                     builder.push("spawning");
                     {
                         doSpawning = builder.comment("Enables natural spawning - More info on these options: https://minecraft.fandom.com/wiki/Spawn#Java_Edition").worldRestart().define("spawn_naturally", true);
                         spawnWeight = builder.comment("The spawn weight compared to other entities (typically between 6-20)").worldRestart().defineInRange("spawn_weight", definition.getSpawnWeight(), 1, 9999);
                         spawnMinGroup = builder.comment("Minimum amount of entities in spawned groups").worldRestart().defineInRange("minimum_group_size", definition.getSpawnMinGroup(), 1, 9999);
                         spawnMaxGroup = builder.comment("Maximum amount of entities in spawned groups - Must be greater or equal to min value").worldRestart().defineInRange("maximum_group_size", definition.getSpawnMaxGroup(), 1, 9999);
-                        biomesList = builder.comment("Enter biome IDs. Supports modded biomes https://minecraft.fandom.com/wiki/Biome#Biome_IDs").worldRestart().defineList("spawn_biomes", setBiomesToIDs(definition.getDefaultSpawnBiomes().get()), input -> input instanceof String);
-                        if (ISelectiveVariantTypes.class.isAssignableFrom(getEntityClass())) {
+                        biomesList = builder.comment("Enter biome IDs. Supports modded biomes https://minecraft.fandom.com/wiki/Biome#Biome_IDs").worldRestart().defineList("spawn_biomes", EntityTypeContainer.setBiomesToIDs(definition.getDefaultSpawnBiomes().get()), input -> input instanceof String);
+                        if (ISelectiveVariantTypes.class.isAssignableFrom(container.getEntityClass())) {
                             biomeVariants = builder.comment("Enables biome based variant selection. This will make this entity choose variants tailored to the biome they spawn in (Only applies to natural spawns)").worldRestart().define("biome_based_variants", true);
                         }
                         builder.push("spawn_costs");
@@ -199,37 +226,37 @@ public class ForgeEntityTypeContainerConfigHandler implements EntityTypeContaine
                     }
                     builder.pop();
                 }
-                EntityTypeContainer.this.customConfigurationInit(builder);
+                ForgeEntityTypeContainerConfigHandler.this.customConfigurationInit(builder);
             }
             builder.pop();
         }
 
         protected void load() {
-            if (hasSpawns()) {
-                despawn = definition.getSpawnClassification() == EntityClassification.CREATURE ? doDespawn.get() : definition.despawns();
+            if (container.hasSpawns()) {
+                container.despawn = definition.getSpawnClassification() == MobCategory.CREATURE ? doDespawn.get() : definition.despawns();
                 Function<ForgeConfigSpec.ConfigValue<List<? extends String>>, Set<ResourceKey<Biome>>> biomesLoader = (configList) -> {
                     HashSet<ResourceKey<Biome>> biomeKeys = new HashSet<>();
                     for (String biomeName : configList.get()) {
                         try {
                             Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomeName));
                             if (biome == null || biome.getRegistryName() == null) {
-                                LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + getEntityName() + ". No biome exists with that name. Skipping.");
+                                LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + container.getEntityName() + ". No biome exists with that name. Skipping.");
                             } else {
-                                biomeKeys.add(ResourceKey.getOrCreateKey(Registry.BIOME_KEY, biome.getRegistryName()));
+                                biomeKeys.add(ResourceKey.create(Registry.BIOME_REGISTRY, biome.getRegistryName()));
                             }
                         } catch (Exception e) {
-                            LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + getEntityName() + ". Is it formatted correctly? Skipping.");
+                            LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + container.getEntityName() + ". Is it formatted correctly? Skipping.");
                         }
                     }
                     return biomeKeys;
                 };
 
-                EntityTypeContainer.this.setSpawnBiomesSupplier(() -> biomesLoader.apply(biomesList));
+                container.setSpawnBiomesSupplier(() -> biomesLoader.apply(biomesList));
                 if (useSpawnCosts.get()) {
-                    EntityTypeContainer.this.setSpawnCostBiomesSupplier(spawnCostBiomes.get().size() == 0 ? spawnBiomesSupplier : () -> biomesLoader.apply(spawnCostBiomes));
+                    container.setSpawnCostBiomesSupplier(spawnCostBiomes.get().size() == 0 ? container.spawnBiomesSupplier : () -> biomesLoader.apply(spawnCostBiomes));
                 }
             }
-            EntityTypeContainer.this.customConfigurationLoad();
+            ForgeEntityTypeContainerConfigHandler.this.customConfigurationLoad();
         }
     }
 }

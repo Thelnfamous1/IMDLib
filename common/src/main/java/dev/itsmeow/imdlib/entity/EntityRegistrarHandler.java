@@ -1,26 +1,17 @@
 package dev.itsmeow.imdlib.entity;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.itsmeow.imdlib.IMDLib;
-import dev.itsmeow.imdlib.Registration;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
-import dev.itsmeow.imdlib.config.ClientEntityConfiguration;
 import dev.itsmeow.imdlib.config.EntityRegistrarConfigHandler;
-import dev.itsmeow.imdlib.config.ServerEntityConfiguration;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModFishBucket;
-import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
-import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
-import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import dev.itsmeow.imdlib.util.HeadType;
-import me.shedaniel.architectury.annotations.ExpectPlatform;
-import me.shedaniel.architectury.platform.Platform;
 import me.shedaniel.architectury.registry.Registry;
-import net.fabricmc.api.EnvType;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -28,21 +19,10 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import org.apache.logging.log4j.LogManager;
-import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.rmi.AccessException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -64,6 +44,16 @@ public class EntityRegistrarHandler {
 
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
+    }
+
+    @ExpectPlatform
+    public static void platformInit(boolean useAttributeEvents, EntityRegistrarHandler handler) {
+        throw new RuntimeException();
+    }
+
+    @ExpectPlatform
+    public static EntityRegistrarConfigHandler getConfigHandlerFor(EntityRegistrarHandler handler) {
+        throw new RuntimeException();
     }
 
     public void init() {
@@ -109,20 +99,6 @@ public class EntityRegistrarHandler {
         platformInit(useAttributeEvents, this);
     }
 
-    @ExpectPlatform
-    public static void platformInit(boolean useAttributeEvents, EntityRegistrarHandler handler) {
-        throw new RuntimeException();
-    }
-
-    //TODO
-    /*
-    public void subscribe(IEventBus modBus) {
-        modBus.register(new EventHandler(this));
-        ClassLoadHacks.runIf(useAttributeEvents, () -> () -> modBus.register(new EntityAttributeRegistrar(this)));
-    }
-
-     */
-
     @SuppressWarnings("unchecked")
     public <T extends Mob> EntityTypeContainer<T> getEntityTypeContainer(String name) {
         return (EntityTypeContainer<T>) ENTITIES.get(name);
@@ -164,13 +140,6 @@ public class EntityRegistrarHandler {
 
         return type;
     }
-
-    @ExpectPlatform
-    public static EntityRegistrarConfigHandler getConfigHandlerFor(EntityRegistrarHandler handler) {
-        throw new RuntimeException();
-    }
-
-
 
 
 }

@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib.blockentity;
 
 import dev.itsmeow.imdlib.block.AnimalSkullBlock;
+import dev.itsmeow.imdlib.client.render.RenderGenericHead;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.fabricmc.api.EnvType;
@@ -16,32 +17,25 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 public class HeadBlockEntity extends BlockEntity {
 
     public static final BlockEntityType<HeadBlockEntity> HEAD_TYPE = BlockEntityType.Builder.of(HeadBlockEntity::new, HeadType.getAllBlocks()).build(null);
-
-    /*TODO
-    public static void registerType(RegistryEvent.Register<TileEntityType<?>> event, String modid) {
-        HEAD_TYPE.setRegistryName(modid, "head");
-        event.getRegistry().register(HEAD_TYPE);
-    }
-
-     */
-
-    /*TODO
-    @Environment(EnvType.CLIENT)
-    public static void registerTypeRender() {
-        ClientRegistry.bindTileEntityRenderer(HEAD_TYPE, RenderGenericHead::new);
-    }
-
-     */
-
     private HeadType cachedType = null;
     private IVariant cachedVariant = null;
+
 
     public HeadBlockEntity() {
         super(HEAD_TYPE);
     }
-
     public HeadBlockEntity(HeadType type) {
         super(HEAD_TYPE);
+    }
+
+    public static void registerType(RegistryEvent.Register<BlockEntityType<?>> event, String modid) {
+        HEAD_TYPE.setRegistryName(modid, "head");
+        event.getRegistry().register(HEAD_TYPE);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void registerTypeRender() {
+        ClientRegistry.bindTileEntityRenderer(HEAD_TYPE, RenderGenericHead::new);
     }
 
     @Environment(EnvType.CLIENT)

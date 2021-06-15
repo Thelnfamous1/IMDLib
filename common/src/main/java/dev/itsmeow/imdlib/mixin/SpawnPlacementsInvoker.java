@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface SpawnPlacementsInvoker {
 
     @Invoker
-     static <T extends Mob> void invokeRegister(EntityType<T> entityType, SpawnPlacements.Type type, Heightmap.Types types, SpawnPlacements.SpawnPredicate<T> spawnPredicate) {
+    static <T extends Mob> void invokeRegister(EntityType<T> entityType, SpawnPlacements.Type type, Heightmap.Types types, SpawnPlacements.SpawnPredicate<T> spawnPredicate) {
         throw new RuntimeException();
     }
 

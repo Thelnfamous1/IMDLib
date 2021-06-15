@@ -1,18 +1,15 @@
 package dev.itsmeow.imdlib.entity;
 
 import com.google.common.collect.ImmutableList;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.itsmeow.imdlib.config.EntityTypeContainerConfigHandler;
-import dev.itsmeow.imdlib.entity.interfaces.ISelectiveVariantTypes;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariantList;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.SpawnPlacementsInvoker;
-import dev.itsmeow.imdlib.util.ClassLoadHacks;
 import dev.itsmeow.imdlib.util.HeadType;
-import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -21,45 +18,36 @@ import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.material.Fluids;
-import org.apache.logging.log4j.LogManager;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class EntityTypeContainer<T extends Mob> {
 
     protected final IEntityTypeDefinition<T> definition;
-    /* FIGURE this out
-    protected final CustomConfigurationHolder<T> customConfigHolder = new CustomConfigurationHolder<>(this);
-    protected final CustomConfigurationHolder<T> customConfigHolderClient = new CustomConfigurationHolder<>(this);
-
-     */
+    public boolean despawn;
+    public Supplier<Set<ResourceKey<Biome>>> spawnBiomesSupplier;
+    public EntityTypeContainerConfigHandler config;
     /* Other optional data */
     protected EntityVariantList variantList;
     protected EntityDataAccessor<String> variantDataKey;
-    protected boolean despawn;
     /* Internals */
     protected boolean placementRegistered = false;
-    protected Supplier<Set<ResourceKey<Biome>>> spawnBiomesSupplier;
     protected Set<ResourceKey<Biome>> spawnBiomesCache = null;
     protected Supplier<Set<ResourceKey<Biome>>> spawnCostBiomesSupplier;
     protected Set<ResourceKey<Biome>> spawnCostBiomesCache = null;
-    public EntityTypeContainerConfigHandler config;
     protected HeadType headType;
     protected ModSpawnEggItem egg;
     protected EntityType<T> entityType;
-    protected final LazyLoadedValue<MobSpawnSettings.SpawnerData> spawnEntry = new LazyLoadedValue<>(() -> new MobSpawnSettings.SpawnerData(this.entityType, config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
+    protected final LazyLoadedValue<MobSpawnSettings.SpawnerData> spawnEntry = new LazyLoadedValue<>(() -> new MobSpawnSettings.SpawnerData(this.entityType, config.getSpawnWeight(), config.getSpawnMinGroup(), config.getSpawnMaxGroup()));
 
-    protected EntityTypeContainer(IEntityTypeDefinition<T> def) {
+    public EntityTypeContainer(IEntityTypeDefinition<T> def) {
         this.definition = def;
         if (this.hasVariants()) {
             variantList = new EntityVariantList(def.getVariantAmount());
@@ -75,8 +63,13 @@ public class EntityTypeContainer<T extends Mob> {
         return pos.getY() > 45 && pos.getY() < (world.getSeaLevel() - 1) && world.getFluidState(pos).getType() == Fluids.WATER;
     }
 
-    protected static List<String> setBiomesToIDs(Set<ResourceKey<Biome>> set) {
+    public static List<String> setBiomesToIDs(Set<ResourceKey<Biome>> set) {
         return set.parallelStream().filter(Objects::nonNull).map(biomeResourceKey -> biomeResourceKey.location().toString()).collect(Collectors.toList());
+    }
+
+    @ExpectPlatform
+    public static EntityTypeContainerConfigHandler getConfigHandlerFor(EntityTypeContainer<?> container) {
+        throw new RuntimeException();
     }
 
     /* Simple Getters */
@@ -128,11 +121,6 @@ public class EntityTypeContainer<T extends Mob> {
         return this.headType;
     }
 
-    /* Protected/package-private operations */
-    void setHeadType(HeadType headType) {
-        this.headType = headType;
-    }
-
     /*TODO figure out
     public CustomConfigurationHolder<T> getCustomConfiguration() {
         return customConfigHolder;
@@ -143,6 +131,11 @@ public class EntityTypeContainer<T extends Mob> {
     }
 
      */
+
+    /* Protected/package-private operations */
+    void setHeadType(HeadType headType) {
+        this.headType = headType;
+    }
 
     public boolean hasVariants() {
         return definition.getVariantAmount() > 0;
@@ -179,10 +172,6 @@ public class EntityTypeContainer<T extends Mob> {
         }
     }
 
-
-
-
-
     /* Biome Getter/Setters */
     public List<String> getBiomeIDs() {
         return setBiomesToIDs(this.getSpawnBiomes());
@@ -206,12 +195,12 @@ public class EntityTypeContainer<T extends Mob> {
         return this.spawnCostBiomesCache;
     }
 
-    protected void setSpawnBiomesSupplier(Supplier<Set<ResourceKey<Biome>>> biomesSupplier) {
+    public void setSpawnBiomesSupplier(Supplier<Set<ResourceKey<Biome>>> biomesSupplier) {
         this.spawnBiomesCache = null;
         this.spawnBiomesSupplier = biomesSupplier;
     }
 
-    protected void setSpawnCostBiomesSupplier(Supplier<Set<ResourceKey<Biome>>> biomesSupplier) {
+    public void setSpawnCostBiomesSupplier(Supplier<Set<ResourceKey<Biome>>> biomesSupplier) {
         this.spawnCostBiomesCache = null;
         this.spawnCostBiomesSupplier = biomesSupplier;
     }
@@ -242,10 +231,26 @@ public class EntityTypeContainer<T extends Mob> {
         return this.variantDataKey;
     }
 
-    @ExpectPlatform
-    public static EntityTypeContainerConfigHandler getConfigHandlerFor(EntityTypeContainer<?> container) {
-        throw new RuntimeException();
-    }
+    /* Subclasses */
+    public static class Builder<T extends Mob> extends AbstractEntityBuilder<T, EntityTypeContainer<T>, Builder<T>> {
 
+        private Builder(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
+            super(EntityClass, factory, entityNameIn, attributeMap, modid);
+        }
+
+        public static <T extends Mob> Builder<T> create(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
+            return new Builder<>(EntityClass, factory, entityNameIn, attributeMap, modid);
+        }
+
+        public EntityTypeContainer<T> rawBuild() {
+            return new EntityTypeContainer<>(new EntityTypeDefinition<>(this));
+        }
+
+        @Override
+        public Builder<T> getImplementation() {
+            return this;
+        }
+
+    }
 
 }

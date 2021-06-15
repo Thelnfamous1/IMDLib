@@ -47,28 +47,28 @@ public class ForgeEntityRegistrarConfigHandler implements EntityRegistrarConfigH
             // Update entity data
             handler.ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
-            if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-                Optional<WritableRegistry<Biome>> biomeRegistry= ServerLifecycleHooks.getCurrentServer().registryAccess().registry(Registry.BIOME_REGISTRY);
+            if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
+                Optional<WritableRegistry<Biome>> biomeRegistry = ServerLifecycleHooks.getCurrentServer().registryAccess().registry(Registry.BIOME_REGISTRY);
                 if (biomeRegistry.isPresent()) {
-                    for(ResourceLocation key : biomeRegistry.get().keySet()) {
+                    for (ResourceLocation key : biomeRegistry.get().keySet()) {
                         Biome biome = biomeRegistry.get().getOptional(key).get();
                         MobSpawnSettings spawnInfo = biome.getMobSettings();
                         // make spawns mutable
                         spawnInfo.spawners = new HashMap<>(spawnInfo.spawners);
                         // make spawner lists mutable
-                        for(MobCategory classification : MobCategory.values()) {
+                        for (MobCategory classification : MobCategory.values()) {
                             ArrayList<MobSpawnSettings.SpawnerData> newList = new ArrayList<>();
                             List<MobSpawnSettings.SpawnerData> oldList = spawnInfo.spawners.get(classification);
-                            if(oldList != null) {
+                            if (oldList != null) {
                                 newList.addAll(oldList);
                             }
                             spawnInfo.spawners.put(classification, newList);
                         }
                         // make costs mutable
                         spawnInfo.spawnCosts = new HashMap<>(spawnInfo.spawnCosts);
-                        for(EntityTypeContainer<?> entry : ENTITIES.values()) {
+                        for (EntityTypeContainer<?> entry : ENTITIES.values()) {
                             EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
-                            if(config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
+                            if (config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
                                 entry.registerPlacement();
                                 List<MobSpawnInfo.Spawners> list = spawnInfo.spawners.get(entry.getDefinition().getSpawnClassification());
                                 if (list != null) {

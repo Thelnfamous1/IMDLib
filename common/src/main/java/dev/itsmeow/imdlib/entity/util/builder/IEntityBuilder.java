@@ -1,8 +1,6 @@
 package dev.itsmeow.imdlib.entity.util.builder;
 
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
-import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
@@ -28,14 +26,6 @@ public interface IEntityBuilder<T extends Mob, C extends EntityTypeContainer<T>,
     B size(float width, float height);
 
     B despawn();
-
-    B config(CustomConfigurationInit configurationInit);
-
-    B clientConfig(CustomConfigurationInit configurationInit);
-
-    B config(CustomConfigurationInit configurationInit, CustomConfigurationLoad configurationLoad);
-
-    B clientConfig(CustomConfigurationInit configurationInit, CustomConfigurationLoad configurationLoad);
 
     B placement(SpawnPlacements.Type type, Heightmap.Types heightMap, SpawnPlacements.SpawnPredicate<T> predicate);
 

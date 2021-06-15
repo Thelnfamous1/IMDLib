@@ -12,8 +12,8 @@ import java.util.Map;
 public interface SpawnSettingsAccessor {
 
     @Accessor("spawners")
-    void setSpawners(Map<MobCategory, List<MobSpawnSettings.SpawnerData>> spawners);
+    Map<MobCategory, List<MobSpawnSettings.SpawnerData>> getSpawners();
 
     @Accessor("spawners")
-    Map<MobCategory, List<MobSpawnSettings.SpawnerData>> getSpawners();
+    void setSpawners(Map<MobCategory, List<MobSpawnSettings.SpawnerData>> spawners);
 }

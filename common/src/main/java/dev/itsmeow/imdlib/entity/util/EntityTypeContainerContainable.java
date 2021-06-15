@@ -124,6 +124,7 @@ public class EntityTypeContainerContainable<T extends Mob & IContainable, I exte
     public static class Builder<T extends Mob & IContainable, I extends Item & IContainerItem<T>> extends AbstractEntityBuilderContainable<T, I, EntityTypeContainerContainable<T, I>, Builder<T, I>> {
         String itemName;
         String emptyItemName;
+
         protected Builder(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, String itemName, String emptyItemName, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
             super(EntityClass, factory, entityNameIn, attributeMap, modid);
             this.itemName = itemName;

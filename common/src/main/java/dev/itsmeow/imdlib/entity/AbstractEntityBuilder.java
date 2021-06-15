@@ -1,17 +1,13 @@
 package dev.itsmeow.imdlib.entity;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import dev.itsmeow.imdlib.IMDLib;
-import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationInit;
-import dev.itsmeow.imdlib.entity.EntityTypeContainer.CustomConfigurationLoad;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import dev.itsmeow.imdlib.util.HeadType;
-import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
@@ -21,11 +17,11 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeContainer<T>, B extends AbstractEntityBuilder<T, C, B>> implements IEntityBuilder<T, C, B> {
     protected final Class<T> entityClass;
@@ -46,10 +42,6 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     protected float width;
     protected float height;
     protected boolean despawn;
-    protected CustomConfigurationLoad customConfigLoad;
-    protected CustomConfigurationInit customConfigInit;
-    protected CustomConfigurationLoad customClientConfigLoad;
-    protected CustomConfigurationInit customClientConfigInit;
     protected Supplier<Set<ResourceKey<Biome>>> defaultBiomeSupplier;
     protected SpawnPlacements.Type placementType;
     protected Heightmap.Types heightMapType;
@@ -146,31 +138,7 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
         return getImplementation();
     }
 
-    @Override
-    public B config(CustomConfigurationInit configurationInit) {
-        return config(configurationInit, holder -> {
-        });
-    }
 
-    @Override
-    public B clientConfig(CustomConfigurationInit configurationInit) {
-        return clientConfig(configurationInit, holder -> {
-        });
-    }
-
-    @Override
-    public B config(CustomConfigurationInit configurationInit, CustomConfigurationLoad configurationLoad) {
-        this.customConfigLoad = configurationLoad;
-        this.customConfigInit = configurationInit;
-        return getImplementation();
-    }
-
-    @Override
-    public B clientConfig(CustomConfigurationInit configurationInit, CustomConfigurationLoad configurationLoad) {
-        this.customClientConfigLoad = configurationLoad;
-        this.customClientConfigInit = configurationInit;
-        return getImplementation();
-    }
 
     @Override
     public B placement(SpawnPlacements.Type type, Heightmap.Types heightMap, SpawnPlacements.SpawnPredicate<T> predicate) {
