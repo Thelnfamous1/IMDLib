@@ -5,7 +5,6 @@ import org.apache.logging.log4j.LogManager;
 
 import java.util.function.Supplier;
 
-
 public final class ClassLoadHacks {
 
     /**
@@ -86,17 +85,5 @@ public final class ClassLoadHacks {
         }
         return proxy;
     }
-
-    /*TODO
-    public static void subscribeInstanceIf(boolean condition, IEventBus bus, String classNameActive) {
-        try {
-            if(condition) {
-                bus.register(Class.forName(classNameActive).newInstance());
-            }
-        } catch(ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            LogManager.getLogger().error("Error retrieving compatibility class. This is a bug.");
-        }
-    }
-     */
 
 }

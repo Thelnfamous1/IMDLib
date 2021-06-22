@@ -1,11 +1,14 @@
 package dev.itsmeow.imdlib.forge;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
+import me.shedaniel.architectury.registry.Registries;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 
 public class BiomeTypesImpl {
 
-    public static void init() {
+    public static void init(Registries registries) {
         BiomeTypes.HOT = get(BiomeDictionary.Type.HOT);
         BiomeTypes.COLD = get(BiomeDictionary.Type.COLD);
         BiomeTypes.SPARSE = get(BiomeDictionary.Type.SPARSE);

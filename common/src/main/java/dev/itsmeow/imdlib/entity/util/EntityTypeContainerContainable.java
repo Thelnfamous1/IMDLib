@@ -26,12 +26,12 @@ public class EntityTypeContainerContainable<T extends Mob & IContainable, I exte
     protected String containerItemName;
     protected String emptyContainerItemName;
 
-    protected EntityTypeContainerContainable(ContainableEntityTypeDefinition<T, I, EntityTypeContainerContainable<T, I>> def, String containerItemName, String emptyContainerItemName) {
+    protected EntityTypeContainerContainable(ContainableEntityTypeDefinition<T, I, EntityTypeContainerContainable<T, I>> def) {
         super(def);
         this.containerItem = def.getContainerSupplier().apply(this, def.getTooltipFunction());
         this.emptyContainerItem = def.getEmptyContainerSupplier().apply(this);
-        this.containerItemName = containerItemName;
-        this.emptyContainerItemName = emptyContainerItemName;
+        this.containerItemName = def.getContainerNameSupplier().apply(this);
+        this.emptyContainerItemName = def.getEmptyContainerNameSupplier().apply(this);
     }
 
     public EntityDataAccessor<Boolean> getFromContainerDataKey() {
@@ -77,6 +77,14 @@ public class EntityTypeContainerContainable<T extends Mob & IContainable, I exte
             return builder.emptyContainerSupplier;
         }
 
+        public Function<C, String> getContainerNameSupplier() {
+            return builder.containerNameSupplier;
+        }
+
+        public Function<C, String> getEmptyContainerNameSupplier() {
+            return builder.emptyContainerNameSupplier;
+        }
+
     }
 
     public static abstract class AbstractEntityBuilderContainable<T extends Mob & IContainable, I extends Item & IContainerItem<T>, C extends EntityTypeContainerContainable<T, I>, B extends AbstractEntityBuilderContainable<T, I, C, B>> extends AbstractEntityBuilder<T, C, B> {
@@ -85,19 +93,23 @@ public class EntityTypeContainerContainable<T extends Mob & IContainable, I exte
         protected ITooltipFunction tooltipFinal;
         protected BiFunction<C, ITooltipFunction, I> containerSupplier;
         protected Function<C, Item> emptyContainerSupplier;
+        protected Function<C, String> containerNameSupplier;
+        protected Function<C, String> emptyContainerNameSupplier;
 
         protected AbstractEntityBuilderContainable(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
             super(EntityClass, factory, entityNameIn, attributeMap, modid);
         }
 
-        public B containers(BiFunction<C, ITooltipFunction, I> containerSupplier, Function<C, Item> emptyContainerSupplier) {
-            return containers(containerSupplier, emptyContainerSupplier, null);
+        public B containers(String containerNameFormat, BiFunction<C, ITooltipFunction, I> containerSupplier, String emptyContainerNameFormat, Function<C, Item> emptyContainerSupplier) {
+            return containers(containerNameFormat, containerSupplier, emptyContainerNameFormat, emptyContainerSupplier, null);
         }
 
-        public B containers(BiFunction<C, ITooltipFunction, I> containerSupplier, Function<C, Item> emptyContainerSupplier, ITooltipFunction tooltip) {
+        public B containers(String containerNameFormat, BiFunction<C, ITooltipFunction, I> containerSupplier, String emptyContainerNameFormat, Function<C, Item> emptyContainerSupplier, ITooltipFunction tooltip) {
             this.containerSupplier = containerSupplier;
             this.emptyContainerSupplier = emptyContainerSupplier;
             this.tooltip = tooltip;
+            this.containerNameSupplier = c -> String.format(containerNameFormat, c.getEntityName());
+            this.emptyContainerNameSupplier = c -> String.format(emptyContainerNameFormat, c.getEntityName());
             return getImplementation();
         }
 
@@ -122,22 +134,18 @@ public class EntityTypeContainerContainable<T extends Mob & IContainable, I exte
     }
 
     public static class Builder<T extends Mob & IContainable, I extends Item & IContainerItem<T>> extends AbstractEntityBuilderContainable<T, I, EntityTypeContainerContainable<T, I>, Builder<T, I>> {
-        String itemName;
-        String emptyItemName;
 
-        protected Builder(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, String itemName, String emptyItemName, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
+        protected Builder(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
             super(EntityClass, factory, entityNameIn, attributeMap, modid);
-            this.itemName = itemName;
-            this.emptyItemName = emptyItemName;
         }
 
-        public static <T extends Mob & IContainable, I extends Item & IContainerItem<T>> Builder<T, I> create(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, String itemName, String emptyItemName, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
-            return new Builder<>(EntityClass, factory, entityNameIn, itemName, emptyItemName, attributeMap, modid);
+        public static <T extends Mob & IContainable, I extends Item & IContainerItem<T>> Builder<T, I> create(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
+            return new Builder<>(EntityClass, factory, entityNameIn, attributeMap, modid);
         }
 
         @Override
         public EntityTypeContainerContainable<T, I> rawBuild() {
-            return new EntityTypeContainerContainable<>(new ContainableEntityTypeDefinition<>(this), itemName, emptyItemName);
+            return new EntityTypeContainerContainable<>(new ContainableEntityTypeDefinition<>(this));
         }
 
         @Override

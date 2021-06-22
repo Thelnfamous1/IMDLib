@@ -35,7 +35,6 @@ public class ItemModFishBucket<T extends Mob & IContainable> extends BucketItem 
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ITooltipFunction tooltip, CreativeModeTab group) {
         super(fluid.get(), new Item.Properties().stacksTo(1).tab(group));
         this.typeContainer = typeContainer;
-        //TODO this.setRegistryName(typeContainer.getEntityName() + "_bucket");
         this.tooltip = tooltip;
     }
 

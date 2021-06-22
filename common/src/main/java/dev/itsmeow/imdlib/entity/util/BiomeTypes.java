@@ -2,6 +2,7 @@ package dev.itsmeow.imdlib.entity.util;
 
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import me.shedaniel.architectury.registry.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 
@@ -62,7 +63,7 @@ public class BiomeTypes {
     public static Type END;
 
     @ExpectPlatform
-    public static void init() {
+    public static void init(Registries registries) {
         throw new AssertionError();
     }
 

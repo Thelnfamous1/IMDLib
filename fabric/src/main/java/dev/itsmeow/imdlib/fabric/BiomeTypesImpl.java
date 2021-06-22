@@ -1,17 +1,17 @@
 package dev.itsmeow.imdlib.fabric;
 
-import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
+import me.shedaniel.architectury.registry.Registries;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 
 public class BiomeTypesImpl {
 
-    //otherwise it was getting the vanilla registry but .get gets the architectury registry
-    private static me.shedaniel.architectury.registry.Registry<Biome> REG = IMDLib.REGISTRIES.get().get(Registry.BIOME_REGISTRY);
+    private static me.shedaniel.architectury.registry.Registry<Biome> REG;
 
-    public static void init() {
+    public static void init(Registries registries) {
+        REG = registries.get(Registry.BIOME_REGISTRY);
         BiomeTypes.HOT = new BiomeTypes.Type(biome -> {
             Biome biomeIn = get(biome);
             float temperature = biomeIn.getBaseTemperature();

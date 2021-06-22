@@ -31,19 +31,18 @@ public class ItemModEntityContainer<T extends Mob & IContainable> extends Item i
     protected final EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer;
     protected final ITooltipFunction tooltip;
 
-    public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, String name, CreativeModeTab group) {
-        this(typeContainer, name, IContainerItem.VARIANT_TOOLTIP, group);
+    public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, CreativeModeTab group) {
+        this(typeContainer, IContainerItem.VARIANT_TOOLTIP, group);
     }
 
-    public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, String name, ITooltipFunction tooltip, CreativeModeTab group) {
+    public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, ITooltipFunction tooltip, CreativeModeTab group) {
         super(new Item.Properties().stacksTo(1).tab(group));
-        //TODO this.setRegistryName(typeContainer.getModId(), name);
         this.typeContainer = typeContainer;
         this.tooltip = tooltip;
     }
 
-    public static <T extends Mob & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModEntityContainer<T>>, ITooltipFunction, ItemModEntityContainer<T>> get(String name, CreativeModeTab group) {
-        return (container, tooltip) -> new ItemModEntityContainer<>(container, String.format(name, container.getEntityName()), tooltip, group);
+    public static <T extends Mob & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModEntityContainer<T>>, ITooltipFunction, ItemModEntityContainer<T>> get(CreativeModeTab group) {
+        return (container, tooltip) -> new ItemModEntityContainer<>(container, tooltip, group);
     }
 
     @Override

@@ -6,8 +6,6 @@ import net.minecraft.util.LazyLoadedValue;
 
 public class IMDLib {
 
-    public static final String MOD_ID = "imdlib";
-
     public static EntityRegistrarHandler entityHandler(String modid) {
         return new EntityRegistrarHandler(modid);
     }
