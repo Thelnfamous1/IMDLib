@@ -1,16 +1,12 @@
 package dev.itsmeow.imdlib.config;
 
-import dev.itsmeow.imdlib.entity.AbstractEntityBuilder;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
-import dev.itsmeow.imdlib.entity.EntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.interfaces.ISelectiveVariantTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -18,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ForgeEntityTypeContainerConfigHandler<T extends Mob> implements EntityTypeContainerConfigHandler {
     protected final CustomConfigurationHolder<T> customConfigHolder;
@@ -89,28 +84,6 @@ public class ForgeEntityTypeContainerConfigHandler<T extends Mob> implements Ent
     @FunctionalInterface
     public interface CustomConfigurationInit {
         void init(CustomConfigurationHolder<?> holder, ForgeConfigSpec.Builder builder);
-    }
-
-    /* Subclasses */
-    public static class Builder<T extends Mob> extends AbstractEntityBuilder<T, EntityTypeContainer<T>, Builder<T>> {
-
-        private Builder(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
-            super(EntityClass, factory, entityNameIn, attributeMap, modid);
-        }
-
-        public static <T extends Mob> Builder<T> create(Class<T> EntityClass, EntityType.EntityFactory<T> factory, String entityNameIn, Supplier<AttributeSupplier.Builder> attributeMap, String modid) {
-            return new Builder<>(EntityClass, factory, entityNameIn, attributeMap, modid);
-        }
-
-        public EntityTypeContainer<T> rawBuild() {
-            return new EntityTypeContainer<>(new EntityTypeDefinition<>(this));
-        }
-
-        @Override
-        public Builder<T> getImplementation() {
-            return this;
-        }
-
     }
 
     public static class CustomConfigurationHolder<T extends Mob> {

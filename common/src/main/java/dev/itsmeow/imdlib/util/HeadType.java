@@ -9,9 +9,13 @@ import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.item.ItemBlockHeadType;
 import me.shedaniel.architectury.platform.Platform;
+import me.shedaniel.architectury.registry.Registries;
+import me.shedaniel.architectury.registry.RegistrySupplier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -22,26 +26,29 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class HeadType {
 
     protected static final Set<HeadType> HEADS = new HashSet<>();
     protected static final Map<String, HeadType> HEADS_MAP = new HashMap<>();
-    protected static final Map<Block, HeadType> HEADS_BLOCK_MAP = new HashMap<>();
+    protected static final Map<ResourceLocation, HeadType> HEADS_BLOCK_MAP = new HashMap<>();
     private final String name;
     private final PlacementType placement;
-    private final Map<IVariant, Pair<GenericSkullBlock, ItemBlockHeadType>> heads = new HashMap<>();
-    private final Set<ItemBlockHeadType> items = new HashSet<>();
-    private final Set<GenericSkullBlock> blocks = new HashSet<>();
     private final EntityTypeContainer<? extends LivingEntity> container;
-    private final Map<Block, IVariant> reverseVariantMap = new HashMap<>();
     private final String modid;
     @Environment(EnvType.CLIENT)
     public Supplier<Supplier<EntityModel<? extends Entity>>> modelSupplier;
     private float yOffset = 0F;
     private IVariant singletonVariant;
+    private final Map<IVariant, Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>>> heads = new HashMap<>();
+    private final Set<RegistrySupplier<ItemBlockHeadType>> items = new HashSet<>();
+    private final Set<RegistrySupplier<GenericSkullBlock>> blocks = new HashSet<>();
+    private final Map<ResourceLocation, IVariant> reverseVariantMap = new HashMap<>();
+    private final Consumer<Registries> registerVariants;
 
     public HeadType(String modid, CreativeModeTab group, String name, PlacementType placement, float yOffset, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
         this.name = name;
@@ -52,63 +59,54 @@ public class HeadType {
         if (!container.hasVariants() && mapping != HeadIDMapping.SINGLETON) {
             throw new RuntimeException("Tried to create non-singleton head type with a variantless entity!");
         }
-        switch (mapping) {
-            case NAMES:
-                for (IVariant variant : container.getVariants()) {
-                    if (variant.hasHead()) {
-                        GenericSkullBlock block = new GenericSkullBlock(this, variant.getName());
-                        ItemBlockHeadType item = new ItemBlockHeadType(block, this, variant.getName(), variant, group);
-                        heads.put(variant, Pair.of(block, item));
-                        blocks.add(block);
-                        items.add(item);
-                        reverseVariantMap.put(block, variant);
-                        HEADS_BLOCK_MAP.put(block, this);
+        this.registerVariants = (registries) -> {
+            switch (mapping) {
+                case NAMES:
+                    for (IVariant variant : container.getVariants()) {
+                        if (variant.hasHead()) {
+                            setupVariant(registries, variant, group, variant.getName());
+                        }
                     }
-                }
-                break;
-            case NUMBERS:
-                for (IVariant variant : container.getVariants()) {
-                    if (variant.hasHead()) {
-                        int index = container.getVariants().indexOf(variant) + 1;
-                        GenericSkullBlock block = new GenericSkullBlock(this, String.valueOf(index));
-                        ItemBlockHeadType item = new ItemBlockHeadType(block, this, String.valueOf(index), variant, group);
-                        heads.put(variant, Pair.of(block, item));
-                        blocks.add(block);
-                        items.add(item);
-                        reverseVariantMap.put(block, variant);
-                        HEADS_BLOCK_MAP.put(block, this);
+                    break;
+                case NUMBERS:
+                    for (IVariant variant : container.getVariants()) {
+                        if (variant.hasHead()) {
+                            setupVariant(registries, variant, group, String.valueOf(container.getVariants().indexOf(variant) + 1));
+                        }
                     }
-                }
-                break;
-            case CUSTOM:
-                for (IVariant variant : container.getVariants()) {
-                    if (variant.hasHead()) {
-                        String id = variantMapper.apply(variant);
-                        GenericSkullBlock block = new GenericSkullBlock(this, id);
-                        ItemBlockHeadType item = new ItemBlockHeadType(block, this, id, variant, group);
-                        heads.put(variant, Pair.of(block, item));
-                        blocks.add(block);
-                        items.add(item);
-                        reverseVariantMap.put(block, variant);
-                        HEADS_BLOCK_MAP.put(block, this);
+                    break;
+                case CUSTOM:
+                    for (IVariant variant : container.getVariants()) {
+                        if (variant.hasHead()) {
+                            setupVariant(registries, variant, group, variantMapper.apply(variant));
+                        }
                     }
-                }
-                break;
-            case SINGLETON:
-                GenericSkullBlock block = new GenericSkullBlock(this, singletonID);
-                ItemBlockHeadType item = new ItemBlockHeadType(block, this, singletonID, singletonVariant, group);
-                heads.put(singletonVariant, Pair.of(block, item));
-                blocks.add(block);
-                items.add(item);
-                reverseVariantMap.put(block, singletonVariant);
-                HEADS_BLOCK_MAP.put(block, this);
-                this.singletonVariant = singletonVariant;
-                break;
-            default:
-                break;
-        }
-        HEADS.add(this);
-        HEADS_MAP.put(name, this);
+                    break;
+                case SINGLETON:
+                    setupVariant(registries, singletonVariant, group, singletonID);
+                    this.singletonVariant = singletonVariant;
+                    break;
+                default:
+                    break;
+            }
+            HEADS.add(this);
+            HEADS_MAP.put(name, this);
+        };
+    }
+
+    public void register(Registries registries) {
+        registerVariants.accept(registries);
+    }
+
+    protected void setupVariant(Registries registries, IVariant variant, CreativeModeTab group, String id) {
+        ResourceLocation rl = new ResourceLocation(this.getMod(), this.getName() + "_" + id);
+        RegistrySupplier<GenericSkullBlock> block = registries.get(Registry.BLOCK_REGISTRY).registerSupplied(rl, () -> new GenericSkullBlock(this, id));
+        RegistrySupplier<ItemBlockHeadType> item = registries.get(Registry.ITEM_REGISTRY).registerSupplied(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
+        heads.put(variant, Pair.of(block, item));
+        blocks.add(block);
+        items.add(item);
+        reverseVariantMap.put(rl, variant);
+        HEADS_BLOCK_MAP.put(rl, this);
     }
 
     public static Set<HeadType> values() {
@@ -124,56 +122,50 @@ public class HeadType {
     }
 
     public static GenericSkullBlock[] getAllBlocks() {
-        ArrayList<GenericSkullBlock> blocks = new ArrayList<>();
-        for (HeadType type : HeadType.values()) {
-            blocks.addAll(type.getBlockSet());
-        }
-        GenericSkullBlock[] list = new GenericSkullBlock[blocks.size()];
-        list = blocks.toArray(list);
-        return list;
+        return HeadType.values().stream().map(type -> type.getBlockObjects()).flatMap(Collection::stream).map(Supplier::get).collect(Collectors.toList()).toArray(new GenericSkullBlock[0]);
     }
 
     public float getYOffset() {
         return this.yOffset;
     }
 
-    public IVariant getVariant(Block block) {
-        return reverseVariantMap.get(block);
+    public IVariant getVariantForBlock(Block block) {
+        return reverseVariantMap.get(Registry.BLOCK.getKey(block));
     }
 
-    public Pair<GenericSkullBlock, ItemBlockHeadType> getPair(IVariant variant) {
+    public Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>> getPairForVariant(IVariant variant) {
         return heads.get(variant);
     }
 
-    public GenericSkullBlock getBlock(IVariant variant) {
-        if (getPair(variant) == null)
+    public RegistrySupplier<GenericSkullBlock> getBlockForVariant(IVariant variant) {
+        if (getPairForVariant(variant) == null)
             return null;
-        return getPair(variant).getLeft();
+        return getPairForVariant(variant).getLeft();
     }
 
-    public ItemBlockHeadType getItem(IVariant variant) {
-        if (getPair(variant) == null)
+    public RegistrySupplier<ItemBlockHeadType> getItemForVariant(IVariant variant) {
+        if (getPairForVariant(variant) == null)
             return null;
-        return getPair(variant).getRight();
+        return getPairForVariant(variant).getRight();
     }
 
-    public GenericSkullBlock getBlock() {
-        if (getPair(singletonVariant) == null)
+    public RegistrySupplier<GenericSkullBlock> getSingletonBlock() {
+        if (getPairForVariant(singletonVariant) == null)
             return null;
-        return getPair(singletonVariant).getLeft();
+        return getPairForVariant(singletonVariant).getLeft();
     }
 
-    public ItemBlockHeadType getItem() {
-        if (getPair(singletonVariant) == null)
+    public RegistrySupplier<ItemBlockHeadType> getSingletonItem() {
+        if (getPairForVariant(singletonVariant) == null)
             return null;
-        return getPair(singletonVariant).getRight();
+        return getPairForVariant(singletonVariant).getRight();
     }
 
-    public Set<ItemBlockHeadType> getItemSet() {
+    public Set<RegistrySupplier<ItemBlockHeadType>> getItemObjects() {
         return items;
     }
 
-    public Set<GenericSkullBlock> getBlockSet() {
+    public Set<RegistrySupplier<GenericSkullBlock>> getBlockObjects() {
         return blocks;
     }
 
@@ -209,7 +201,7 @@ public class HeadType {
     public void drop(Mob entity, int chance, IVariant variant) {
         if (variant != null && !entity.level.isClientSide && !entity.isBaby()) {
             if (entity.getRandom().nextInt(chance) == 0) {
-                ItemStack stack = new ItemStack(this.getItem(variant));
+                ItemStack stack = new ItemStack(this.getItemForVariant(variant).get());
                 entity.spawnAtLocation(stack, 0.5F);
             }
         }
@@ -253,6 +245,7 @@ public class HeadType {
         private IVariant singletonVariant;
         private String singletonID;
         private CreativeModeTab group;
+        private Registries registries;
 
         public Builder(B initial, String name) {
             this.initial = initial;

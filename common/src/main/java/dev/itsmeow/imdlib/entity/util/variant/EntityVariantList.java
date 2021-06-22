@@ -2,8 +2,6 @@ package dev.itsmeow.imdlib.entity.util.variant;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -28,8 +26,6 @@ public class EntityVariantList {
         return variantList.indexOf(variant);
     }
 
-    @Nullable
-    @CheckForNull
     public IVariant getVariantForName(String name) {
         return nameMap.getOrDefault(name, EMPTY_VARIANT);
     }

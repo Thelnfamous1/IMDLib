@@ -9,6 +9,7 @@ import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.SpawnPlacementsInvoker;
 import dev.itsmeow.imdlib.util.HeadType;
+import me.shedaniel.architectury.registry.RegistrySupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -43,7 +44,7 @@ public class EntityTypeContainer<T extends Mob> {
     protected Supplier<Set<ResourceKey<Biome>>> spawnCostBiomesSupplier;
     protected Set<ResourceKey<Biome>> spawnCostBiomesCache = null;
     protected HeadType headType;
-    protected ModSpawnEggItem egg;
+    protected RegistrySupplier<ModSpawnEggItem> egg;
     protected EntityType<T> entityType;
     protected final LazyLoadedValue<MobSpawnSettings.SpawnerData> spawnEntry = new LazyLoadedValue<>(() -> new MobSpawnSettings.SpawnerData(this.entityType, config.getSpawnWeight(), config.getSpawnMinGroup(), config.getSpawnMaxGroup()));
 
@@ -153,14 +154,8 @@ public class EntityTypeContainer<T extends Mob> {
         return despawn;
     }
 
-    public ModSpawnEggItem getEggItem() {
+    public RegistrySupplier<ModSpawnEggItem> getEggItem() {
         return egg;
-    }
-
-    protected void onCreateEntityType() {
-        if (this.hasEgg()) {
-            this.egg = new ModSpawnEggItem(this);
-        }
     }
 
     void registerPlacement() {
@@ -170,6 +165,9 @@ public class EntityTypeContainer<T extends Mob> {
                 placementRegistered = true;
             }
         }
+    }
+
+    public void onCreateEntityType() {
     }
 
     /* Biome Getter/Setters */

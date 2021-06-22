@@ -1,7 +1,6 @@
 package dev.itsmeow.imdlib.entity;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.config.EntityRegistrarConfigHandler;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
@@ -9,17 +8,20 @@ import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModFishBucket;
+import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
+import me.shedaniel.architectury.registry.Registries;
 import me.shedaniel.architectury.registry.Registry;
+import me.shedaniel.architectury.registry.entity.EntityAttributes;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.LinkedHashMap;
@@ -27,28 +29,18 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class EntityRegistrarHandler {
-    public static boolean useAttributeEvents;
-
-    static {
-        try {
-            Class.forName("net.minecraftforge.event.entity.EntityAttributeCreationEvent");
-            useAttributeEvents = true;
-        } catch (ClassNotFoundException | LinkageError e) {
-            useAttributeEvents = false;
-        }
-    }
 
     public final String modid;
     public final LinkedHashMap<String, EntityTypeContainer<? extends Mob>> ENTITIES = new LinkedHashMap<>();
-
+    protected final LazyLoadedValue<Registries> registry;
 
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
+        this.registry = new LazyLoadedValue<>(() -> Registries.get(modid));
     }
 
-    @ExpectPlatform
-    public static void platformInit(boolean useAttributeEvents, EntityRegistrarHandler handler) {
-        throw new RuntimeException();
+    public Registries getRegistries() {
+        return registry.get();
     }
 
     @ExpectPlatform
@@ -57,15 +49,12 @@ public class EntityRegistrarHandler {
     }
 
     public void init() {
-
-        //items
-        Registry<Item> items = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.ITEM_REGISTRY);
-
         for (HeadType type : HeadType.values()) {
-            items.register(new ResourceLocation(type.getMod(), type.getName()), type::getItem);
+            type.register(this.getRegistries());
         }
 
         // Containers & eggs
+        Registry<Item> items = this.getRegistries().get(net.minecraft.core.Registry.ITEM_REGISTRY);
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             if (container instanceof EntityTypeContainerContainable<?, ?>) {
                 EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
@@ -77,26 +66,18 @@ public class EntityRegistrarHandler {
                 }
             }
             if (container.hasEgg()) {
-                items.register(new ResourceLocation(modid, container.egg.name), () -> container.egg);
+                container.egg = items.registerSupplied(new ResourceLocation(container.getModId(), container.getEntityName().toLowerCase() + "_spawn_egg"), () -> new ModSpawnEggItem(container));
             }
         }
-
-        //blocks
-        Registry<Block> blocks = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.BLOCK_REGISTRY);
-        for (HeadType type : HeadType.values()) {
-            blocks.register(new ResourceLocation(type.getMod(), type.getName()), type::getBlock);
-        }
-        Registry<BlockEntityType<?>> blockEntities = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
+        Registry<BlockEntityType<?>> blockEntities = this.getRegistries().get(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
         blockEntities.register(new ResourceLocation(modid, "head"), () -> HeadBlockEntity.HEAD_TYPE);
-        Registry<EntityType<?>> entityTypes = IMDLib.REGISTRIES.get().get(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
+        Registry<EntityType<?>> entityTypes = this.getRegistries().get(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
         //entity types
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
-            entityTypes.register(new ResourceLocation(modid, container.getEntityName()), container::getEntityType);
-            if (!useAttributeEvents) {
-                //container.registerAttributes();
-            }
+            ResourceLocation rl = new ResourceLocation(modid, container.getEntityName());
+            entityTypes.register(rl, container::getEntityType);
+            EntityAttributes.register(container::getEntityType, container.getAttributeBuilder());
         }
-        platformInit(useAttributeEvents, this);
     }
 
     @SuppressWarnings("unchecked")
@@ -135,9 +116,7 @@ public class EntityRegistrarHandler {
 
     public <T extends Entity> EntityType<T> createEntityType(EntityType.EntityFactory<T> factory, String entityNameIn, MobCategory classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
         EntityType<T> type = EntityType.Builder.of(factory, classification).clientTrackingRange(trackingRange).updateInterval(updateInterval).sized(width, height).noSave().build(modid + ":" + entityNameIn.toLowerCase());
-        //type.setRegistryName(modid + ":" + entityNameIn.toLowerCase());
         ((EntityTypeAccessor) type).setSerialize(true);
-
         return type;
     }
 

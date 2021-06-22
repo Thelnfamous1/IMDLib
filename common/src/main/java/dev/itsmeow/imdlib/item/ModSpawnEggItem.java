@@ -34,8 +34,7 @@ public class ModSpawnEggItem extends SpawnEggItem {
         super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties().tab(CreativeModeTab.TAB_MISC));
         this.type = container.getEntityType();
         this.modid = container.getModId();
-        this.name = container.getEntityName().toLowerCase() + "_spawn_egg";
-        // TODO this.setRegistryName(container.getModId(), name + "_spawn_egg");
+        this.name = container.getEntityName().toLowerCase();
         DispenserBlock.registerBehavior(this, EGG_DISPENSE_ACTION);
     }
 

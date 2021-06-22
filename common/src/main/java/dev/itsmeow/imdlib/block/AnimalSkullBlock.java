@@ -40,14 +40,6 @@ public abstract class AnimalSkullBlock extends Block implements SimpleWaterlogge
         return SHAPES.get(state.getValue(FACING_EXCEPT_DOWN));
     }
 
-    /*TODO look into
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-
-
-    }*/
-
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.ENTITYBLOCK_ANIMATED;

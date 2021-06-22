@@ -4,6 +4,7 @@ import dev.itsmeow.imdlib.block.AnimalSkullBlock;
 import dev.itsmeow.imdlib.client.render.RenderGenericHead;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType;
+import me.shedaniel.architectury.registry.BlockEntityRenderers;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
@@ -20,22 +21,18 @@ public class HeadBlockEntity extends BlockEntity {
     private HeadType cachedType = null;
     private IVariant cachedVariant = null;
 
+    public HeadBlockEntity(HeadType type) {
+        super(HEAD_TYPE);
+        this.cachedType = type;
+    }
 
     public HeadBlockEntity() {
         super(HEAD_TYPE);
     }
-    public HeadBlockEntity(HeadType type) {
-        super(HEAD_TYPE);
-    }
-
-    public static void registerType(RegistryEvent.Register<BlockEntityType<?>> event, String modid) {
-        HEAD_TYPE.setRegistryName(modid, "head");
-        event.getRegistry().register(HEAD_TYPE);
-    }
 
     @Environment(EnvType.CLIENT)
     public static void registerTypeRender() {
-        ClientRegistry.bindTileEntityRenderer(HEAD_TYPE, RenderGenericHead::new);
+        BlockEntityRenderers.registerRenderer(HEAD_TYPE, RenderGenericHead::new);
     }
 
     @Environment(EnvType.CLIENT)
@@ -60,7 +57,7 @@ public class HeadBlockEntity extends BlockEntity {
 
     public IVariant getHeadVariant() {
         if (cachedVariant == null) {
-            cachedVariant = this.getHeadType().getVariant(this.getBlock());
+            cachedVariant = this.getHeadType().getVariantForBlock(this.getBlock());
         }
         return cachedVariant;
     }

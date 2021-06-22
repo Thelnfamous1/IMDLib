@@ -2,20 +2,17 @@ package dev.itsmeow.imdlib.client.util;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
-import it.unimi.dsi.fastutil.objects.ObjectList;
+import dev.itsmeow.imdlib.mixin.ModelPartAccessor;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.ModelPart.Cube;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 public class RenderUtil {
 
     private static final Map<ModelPart, Cube> cubeList = new WeakHashMap<>();
-    private static final Field cubeListField = ObfuscationReflectionHelper.findField(ModelPart.class, "field_78804_l");
 
     public static Vec3 partLocation(ModelPart... parts) {
         float x = 0F;
@@ -110,18 +107,12 @@ public class RenderUtil {
 
     @SuppressWarnings("unchecked")
     private static Cube getPartBox(ModelPart part) {
-        if (cubeList.containsKey(part)) {
-            return cubeList.get(part);
-        } else {
-            try {
-                Cube box = ((ObjectList<Cube>) cubeListField.get(part)).get(0);
-                cubeList.put(part, box);
-                return box;
-            } catch (IllegalArgumentException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
+        Cube res = cubeList.get(part);
+        if (res == null) {
+            res = ((ModelPartAccessor) part).cubes().get(0);
+            cubeList.put(part, res);
         }
-        return null;
+        return res;
     }
 
 }

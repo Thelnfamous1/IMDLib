@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.client.util;
 
+/*
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import dev.itsmeow.imdlib.client.render.ImplRenderer;
@@ -22,8 +23,9 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+ */
 public class ModelReplacementHandler {
-
+/*
     public final Logger LOG = LogManager.getLogger();
     public final String parent_modid;
     protected Map<RegistrationTime, Multimap<Pair<String, String>, Supplier<Supplier<ReplaceDefinition<?>>>>> replaceDefs = new HashMap<>();
@@ -156,5 +158,5 @@ public class ModelReplacementHandler {
         }
 
     }
-
+*/
 }
