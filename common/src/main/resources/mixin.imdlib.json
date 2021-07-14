@@ -4,7 +4,10 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "ItemPropertiesInvoker",
-    "SpawnPlacementsInvoker"
+    "SpawnPlacementsInvoker",
+    "EntityTypeAccessor",
+    "ModelPartAccessor",
+    "SpawnSettingsAccessor"
   ],
   "client": [
   ],
