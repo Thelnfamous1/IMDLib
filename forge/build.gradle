@@ -16,8 +16,7 @@ loom {
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
-    // Remove the next line if you don't want to depend on the API
+    forge "net.minecraftforge:forge:${rootProject.mc_version}-${rootProject.forge_version}"
     modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
 
     implementation(project(path: ":common")) {
@@ -50,6 +49,21 @@ remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
     classifier "forge"
+    manifest {
+        mainAttributes(
+                "Maven-Artifact": "${rootProject.maven_group}:${rootProject.mod_id}-${project.name}:${rootProject.version}",
+                "Specification-Title": rootProject.mod_id,
+                "Specification-Vendor": "its_meow",
+                "Specification-Version": "1",
+                "Implementation-Title": rootProject.mod_id,
+                "Implementation-Version": project.version,
+                "Implementation-Vendor": "its_meow",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "Built-On-Java": "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
+                "Built-On": "${rootProject.mc_version}-${rootProject.forge_version}",
+                "FMLModType": "LIBRARY"
+        )
+    }
 }
 
 jar {
@@ -64,25 +78,51 @@ sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
+    manifest {
+        mainAttributes(
+                "Maven-Artifact": "${rootProject.maven_group}:${rootProject.mod_id}-${project.name}:${rootProject.version}",
+                "Specification-Title": rootProject.mod_id,
+                "Specification-Vendor": "its_meow",
+                "Specification-Version": "1",
+                "Implementation-Title": rootProject.mod_id,
+                "Implementation-Version": project.version,
+                "Implementation-Vendor": "its_meow",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "Built-On-Java": "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
+                "Built-On": "${rootProject.mc_version}-${rootProject.forge_version}"
+        )
+    }
 }
 
 publishing {
     publications {
         mavenForge(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
-            // add all the jars that should be included when publishing to maven
+            artifactId = rootProject.mod_id + "-" + project.name
             artifact(remapJar) {
                 classifier null
             }
             artifact(sourcesJar) {
                 builtBy remapSourcesJar
             }
+            pom {
+                name = rootProject.name + "-" + project.name
+                url = rootProject.url
+                packaging = 'jar'
+                scm {
+                    connection = "scm:git:git://github.com/" + rootProject.github + ".git"
+                    developerConnection = "scm:git:git@github.com:" + rootProject.github + ".git"
+                    url = "https://github.com/" + rootProject.github
+                }
+                issueManagement {
+                    system = 'github'
+                    url = "https://github.com/" + rootProject.github + ".git/issues"
+                }
+                organization {
+                    name = 'itsmeow Mods'
+                    url = 'https://itsmeow.dev/'
+                }
+            }
         }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
     }
 }
 loom {
