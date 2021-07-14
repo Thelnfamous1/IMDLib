@@ -1,21 +1,21 @@
 package dev.itsmeow.imdlib.config;
 
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
-import dev.itsmeow.imdlib.entity.EntityTypeContainer;
+import net.minecraftforge.common.ForgeConfigSpec;
+/*import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
-import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.thread.SidedThreadGroups;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Optional;*/
 
 public class ForgeEntityRegistrarConfigHandler implements EntityRegistrarConfigHandler {
     private final EntityRegistrarHandler handler;
@@ -36,16 +36,16 @@ public class ForgeEntityRegistrarConfigHandler implements EntityRegistrarConfigH
     public class ServerEntityConfiguration {
 
         ServerEntityConfiguration(ForgeConfigSpec.Builder builder) {
-            builder.push("entities");
+            /*builder.push("entities");
             {
                 handler.ENTITIES.values().forEach(c -> c.createConfiguration(builder));
             }
-            builder.pop();
+            builder.pop();*/
         }
 
         public void onLoad() {
             // Update entity data
-            handler.ENTITIES.values().forEach(e -> e.getConfiguration().load());
+            /*handler.ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
             if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
                 Optional<WritableRegistry<Biome>> biomeRegistry = ServerLifecycleHooks.getCurrentServer().registryAccess().registry(Registry.BIOME_REGISTRY);
@@ -85,7 +85,7 @@ public class ForgeEntityRegistrarConfigHandler implements EntityRegistrarConfigH
                 }
 
 
-            }
+            }*/
         }
 
     }
@@ -93,7 +93,7 @@ public class ForgeEntityRegistrarConfigHandler implements EntityRegistrarConfigH
     public class ClientEntityConfiguration {
 
         ClientEntityConfiguration(ForgeConfigSpec.Builder builder) {
-            builder.comment("This is the CLIENT SIDE configuration for " + modid + ".",
+            /*builder.comment("This is the CLIENT SIDE configuration for " + modid + ".",
                     "To configure SERVER values (spawning, behavior, etc), go to:",
                     "saves/(world)/serverconfig/" + modid + "-server.toml",
                     "or, on a dedicated server:",
@@ -102,11 +102,11 @@ public class ForgeEntityRegistrarConfigHandler implements EntityRegistrarConfigH
             {
                 handler.ENTITIES.values().forEach(c -> c.clientCustomConfigurationInit(builder));
             }
-            builder.pop();
+            builder.pop();*/
         }
 
         public void onLoad() {
-            handler.ENTITIES.values().forEach(EntityTypeContainer::clientCustomConfigurationLoad);
+            //handler.ENTITIES.values().forEach(EntityTypeContainer::clientCustomConfigurationLoad);
         }
 
     }
