@@ -1,7 +1,7 @@
 package dev.itsmeow.imdlib.entity.util.variant;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 
 public class EntityVariant implements IVariant {
 

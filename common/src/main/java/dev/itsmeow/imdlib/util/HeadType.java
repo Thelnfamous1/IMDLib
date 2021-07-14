@@ -245,7 +245,6 @@ public class HeadType {
         private IVariant singletonVariant;
         private String singletonID;
         private CreativeModeTab group;
-        private Registries registries;
 
         public Builder(B initial, String name) {
             this.initial = initial;

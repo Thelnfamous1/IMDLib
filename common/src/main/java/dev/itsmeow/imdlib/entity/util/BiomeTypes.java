@@ -2,11 +2,14 @@ package dev.itsmeow.imdlib.entity.util;
 
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import me.shedaniel.architectury.registry.Registries;
+import dev.itsmeow.imdlib.IMDLib;
+import me.shedaniel.architectury.registry.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class BiomeTypes {
 
@@ -61,21 +64,44 @@ public class BiomeTypes {
     public static Type OVERWORLD;
     public static Type NETHER;
     public static Type END;
+    //private static Map<Type,  Set<ResourceKey<Biome>>> computedBiomes = new HashMap<>();
 
     @ExpectPlatform
-    public static void init(Registries registries) {
+    public static void init() {
         throw new AssertionError();
     }
 
+    public static Set<Type> getTypes(ResourceKey<Biome> biome) {
+        return Type.TYPES.stream().filter(t -> t.hasType(biome)).collect(Collectors.toSet());
+    }
+
+    public static Set<ResourceKey<Biome>> getBiomes(Type type) {
+        /*if(computedBiomes.containsKey(type)) {
+            return computedBiomes.get(type);
+        }*/
+        Registry<Biome> reg = IMDLib.getRegistry(net.minecraft.core.Registry.BIOME_REGISTRY);
+        Set<ResourceKey<Biome>> res = reg.getIds().stream().map(reg::get).map(reg::getKey).filter(Optional::isPresent).map(Optional::get).filter(type::hasType).collect(Collectors.toSet());
+        //computedBiomes.put(type, res);
+        return res;
+    }
+
     public static class Type {
+        protected static Set<Type> TYPES = new HashSet<>();
         private final Predicate<ResourceKey<Biome>> validator;
+        private final Map<ResourceKey<Biome>, Boolean> validations = new HashMap<>();
 
         public Type(Predicate<ResourceKey<Biome>> validator) {
             this.validator = validator;
+            TYPES.add(this);
         }
 
         public boolean hasType(ResourceKey<Biome> biome) {
-            return validator.test(biome);
+            if(validations.containsKey(biome)) {
+                return validations.get(biome);
+            }
+            boolean res = validator.test(biome);
+            validations.put(biome, res);
+            return res;
         }
     }
 }

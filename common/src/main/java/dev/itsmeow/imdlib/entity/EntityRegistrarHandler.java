@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib.entity;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.config.EntityRegistrarConfigHandler;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
@@ -12,11 +13,9 @@ import dev.itsmeow.imdlib.item.ItemModFishBucket;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
-import me.shedaniel.architectury.registry.Registries;
 import me.shedaniel.architectury.registry.Registry;
 import me.shedaniel.architectury.registry.entity.EntityAttributes;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -33,15 +32,9 @@ public class EntityRegistrarHandler {
 
     public final String modid;
     public final LinkedHashMap<String, EntityTypeContainer<? extends Mob>> ENTITIES = new LinkedHashMap<>();
-    protected final LazyLoadedValue<Registries> registry;
 
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
-        this.registry = new LazyLoadedValue<>(() -> Registries.get(modid));
-    }
-
-    public Registries getRegistries() {
-        return registry.get();
     }
 
     @ExpectPlatform
@@ -50,13 +43,13 @@ public class EntityRegistrarHandler {
     }
 
     public void init() {
-        BiomeTypes.init(this.getRegistries());
+        BiomeTypes.init();
         for (HeadType type : HeadType.values()) {
-            type.register(this.getRegistries());
+            type.register(IMDLib.getRegistries());
         }
 
         // Containers & eggs
-        Registry<Item> items = this.getRegistries().get(net.minecraft.core.Registry.ITEM_REGISTRY);
+        Registry<Item> items = IMDLib.getRegistry(net.minecraft.core.Registry.ITEM_REGISTRY);
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             if (container instanceof EntityTypeContainerContainable<?, ?>) {
                 EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
@@ -71,9 +64,9 @@ public class EntityRegistrarHandler {
                 container.egg = items.registerSupplied(new ResourceLocation(container.getModId(), container.getEntityName().toLowerCase() + "_spawn_egg"), () -> new ModSpawnEggItem(container));
             }
         }
-        Registry<BlockEntityType<?>> blockEntities = this.getRegistries().get(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
+        Registry<BlockEntityType<?>> blockEntities = IMDLib.getRegistry(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
         blockEntities.register(new ResourceLocation(modid, "head"), () -> HeadBlockEntity.HEAD_TYPE);
-        Registry<EntityType<?>> entityTypes = this.getRegistries().get(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
+        Registry<EntityType<?>> entityTypes = IMDLib.getRegistry(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
         //entity types
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             ResourceLocation rl = new ResourceLocation(modid, container.getEntityName());

@@ -7,10 +7,10 @@ import net.minecraft.world.entity.AgableMob;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.level.LevelAccessor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.logging.Level;
 
 public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
 
@@ -63,12 +63,12 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
     }
 
     @Nullable
-    default SpawnGroupData initData(Level world, MobSpawnType reason, AgableMob.AgableMobGroupData livingdata) {
+    default SpawnGroupData initData(LevelAccessor world, MobSpawnType reason, SpawnGroupData livingdata) {
         return dataFromVariant(this.getRandomType(), livingdata);
     }
 
     @Nullable
-    default SpawnGroupData initAgeableData(Level world, MobSpawnType reason, AgableMob.AgableMobGroupData livingdata) {
+    default SpawnGroupData initAgeableData(LevelAccessor world, MobSpawnType reason, SpawnGroupData livingdata) {
         return ageableDataFromVariant(this.getRandomType(), livingdata);
     }
 

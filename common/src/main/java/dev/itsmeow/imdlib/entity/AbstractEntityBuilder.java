@@ -79,7 +79,7 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
 
     protected static Supplier<Set<ResourceKey<Biome>>> toBiomes(BiomeTypes.Type[] biomeTypes, boolean overworldOnly) {
         Set<ResourceKey<Biome>> set = new HashSet<>();
-        me.shedaniel.architectury.registry.Registry<Biome> reg = IMDLib.REGISTRIES.get().get(Registry.BIOME_REGISTRY);
+        me.shedaniel.architectury.registry.Registry<Biome> reg = IMDLib.getRegistry(Registry.BIOME_REGISTRY);
 
         for (Biome biome : reg) {
             ResourceKey<Biome> biomeResourceKey = reg.getKey(biome).get();

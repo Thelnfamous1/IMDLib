@@ -1,52 +1,52 @@
 package dev.itsmeow.imdlib.entity.interfaces;
 
+import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
-import net.minecraft.entity.ILivingEntityData;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.biome.Biome;
-import net.minecraftforge.common.BiomeDictionary;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.biome.Biome;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Set;
 
-public interface ISelectiveVariantTypes<T extends MobEntity> extends IVariantTypes<T> {
+public interface ISelectiveVariantTypes<T extends Mob> extends IVariantTypes<T> {
 
     @Nullable
     @Override
-    default ILivingEntityData initData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
+    default SpawnGroupData initData(LevelAccessor world, MobSpawnType reason, SpawnGroupData livingdata) {
         return useSelectiveTypes(reason) ? dataFromVariant(getRandomVariantForBiome(world, reason), livingdata) : IVariantTypes.super.initData(world, reason, livingdata);
     }
 
     @Nullable
     @Override
-    default ILivingEntityData initAgeableData(IWorld world, SpawnReason reason, ILivingEntityData livingdata) {
+    default SpawnGroupData initAgeableData(LevelAccessor world, MobSpawnType reason, SpawnGroupData livingdata) {
         return useSelectiveTypes(reason) ? ageableDataFromVariant(getRandomVariantForBiome(world, reason), livingdata) : IVariantTypes.super.initAgeableData(world, reason, livingdata);
     }
 
-    String[] getTypesFor(RegistryKey<Biome> biomeKey, Biome biome, Set<BiomeDictionary.Type> types, SpawnReason reason);
+    String[] getTypesFor(ResourceKey<Biome> biomeKey, Biome biome, Set<BiomeTypes.Type> types, MobSpawnType reason);
 
     default boolean useSelectiveTypes() {
-        return this.getContainer().getConfiguration().biomeVariants.get();
+        // TODO implement config
+        // return this.getContainer().getConfiguration().biomeVariants.get();
+        return true;
     }
 
-    default boolean useSelectiveTypes(SpawnReason reason) {
-        return this.useSelectiveTypes() && (reason == SpawnReason.CHUNK_GENERATION || reason == SpawnReason.NATURAL);
+    default boolean useSelectiveTypes(MobSpawnType reason) {
+        return this.useSelectiveTypes() && (reason == MobSpawnType.CHUNK_GENERATION || reason == MobSpawnType.NATURAL);
     }
 
     @Nullable
-    @CheckForNull
-    default IVariant getRandomVariantForBiome(IWorld world, SpawnReason reason) {
-        Biome biome = world.getBiome(this.getImplementation().getPosition());
-        Optional<RegistryKey<Biome>> biomeKey = world.func_241828_r().getRegistry(Registry.BIOME_KEY).getOptionalKey(biome);
+    default IVariant getRandomVariantForBiome(LevelAccessor world, MobSpawnType reason) {
+        Biome biome = world.getBiome(this.getImplementation().blockPosition());
+        Optional<ResourceKey<Biome>> biomeKey = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getResourceKey(biome);
         biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
-        String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeDictionary.getTypes(biomeKey.get()), reason);
-        String varStr = validTypes[this.getImplementation().getRNG().nextInt(validTypes.length)];
+        String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeTypes.getTypes(biomeKey.get()), reason);
+        String varStr = validTypes[this.getImplementation().getRandom().nextInt(validTypes.length)];
         IVariant variant = this.getContainer().getVariantForName(varStr);
         if (variant == null || !varStr.equals(variant.getName())) {
             throw new RuntimeException("Received invalid variant \"" + varStr + "\" from selective type on entity " + this.getContainer().getEntityName());
