@@ -27,6 +27,14 @@ public interface IEntityBuilder<T extends Mob, C extends EntityTypeContainer<T>,
 
     B despawn();
 
+    B config(EntityTypeContainer.CustomConfigurationInit configurationInit);
+
+    B clientConfig(EntityTypeContainer.CustomConfigurationInit configurationInit);
+
+    B config(EntityTypeContainer.CustomConfigurationInit configurationInit, EntityTypeContainer.CustomConfigurationLoad configurationLoad);
+
+    B clientConfig(EntityTypeContainer.CustomConfigurationInit configurationInit, EntityTypeContainer.CustomConfigurationLoad configurationLoad);
+
     B placement(SpawnPlacements.Type type, Heightmap.Types heightMap, SpawnPlacements.SpawnPredicate<T> predicate);
 
     B defaultPlacement(SpawnPlacements.SpawnPredicate<T> predicate);

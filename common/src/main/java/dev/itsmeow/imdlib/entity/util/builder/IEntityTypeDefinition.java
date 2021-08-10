@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.entity.util.builder;
 
+import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
@@ -9,6 +10,7 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -55,19 +57,17 @@ public interface IEntityTypeDefinition<T extends Mob> {
 
     IVariant[] getVariants();
 
-    /*
     @Nullable
-    CustomConfigurationLoad getCustomConfigLoad();
+    EntityTypeContainer.CustomConfigurationLoad getCustomConfigLoad();
 
     @Nullable
-    CustomConfigurationInit getCustomConfigInit();
+    EntityTypeContainer.CustomConfigurationInit getCustomConfigInit();
 
     @Nullable
-    CustomConfigurationLoad getCustomClientConfigLoad();
+    EntityTypeContainer.CustomConfigurationLoad getCustomClientConfigLoad();
 
     @Nullable
-    CustomConfigurationInit getCustomClientConfigInit();
-     */
+    EntityTypeContainer.CustomConfigurationInit getCustomClientConfigInit();
 
     Supplier<Set<ResourceKey<Biome>>> getDefaultSpawnBiomes();
 

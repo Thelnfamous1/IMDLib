@@ -42,6 +42,10 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     protected float width;
     protected float height;
     protected boolean despawn;
+    protected EntityTypeContainer.CustomConfigurationLoad customConfigLoad;
+    protected EntityTypeContainer.CustomConfigurationInit customConfigInit;
+    protected EntityTypeContainer.CustomConfigurationLoad customClientConfigLoad;
+    protected EntityTypeContainer.CustomConfigurationInit customClientConfigInit;
     protected Supplier<Set<ResourceKey<Biome>>> defaultBiomeSupplier;
     protected SpawnPlacements.Type placementType;
     protected Heightmap.Types heightMapType;
@@ -139,6 +143,29 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     }
 
 
+    @Override
+    public B config(EntityTypeContainer.CustomConfigurationInit configurationInit) {
+        return config(configurationInit, holder -> {});
+    }
+
+    @Override
+    public B clientConfig(EntityTypeContainer.CustomConfigurationInit configurationInit) {
+        return clientConfig(configurationInit, holder -> {});
+    }
+
+    @Override
+    public B config(EntityTypeContainer.CustomConfigurationInit configurationInit, EntityTypeContainer.CustomConfigurationLoad configurationLoad) {
+        this.customConfigLoad = configurationLoad;
+        this.customConfigInit = configurationInit;
+        return getImplementation();
+    }
+
+    @Override
+    public B clientConfig(EntityTypeContainer.CustomConfigurationInit configurationInit, EntityTypeContainer.CustomConfigurationLoad configurationLoad) {
+        this.customClientConfigLoad = configurationLoad;
+        this.customClientConfigInit = configurationInit;
+        return getImplementation();
+    }
 
     @Override
     public B placement(SpawnPlacements.Type type, Heightmap.Types heightMap, SpawnPlacements.SpawnPredicate<T> predicate) {

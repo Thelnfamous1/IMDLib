@@ -107,28 +107,25 @@ public class EntityTypeDefinition<T extends Mob> implements IEntityTypeDefinitio
         return builder.variants;
     }
 
-    /*
     @Override
-    public CustomConfigurationLoad getCustomConfigLoad() {
+    public EntityTypeContainer.CustomConfigurationLoad getCustomConfigLoad() {
         return builder.customConfigLoad;
     }
 
     @Override
-    public CustomConfigurationInit getCustomConfigInit() {
+    public EntityTypeContainer.CustomConfigurationInit getCustomConfigInit() {
         return builder.customConfigInit;
     }
 
     @Override
-    public CustomConfigurationLoad getCustomClientConfigLoad() {
+    public EntityTypeContainer.CustomConfigurationLoad getCustomClientConfigLoad() {
         return builder.customClientConfigLoad;
     }
 
     @Override
-    public CustomConfigurationInit getCustomClientConfigInit() {
+    public EntityTypeContainer.CustomConfigurationInit getCustomClientConfigInit() {
         return builder.customClientConfigInit;
     }
-
-     */
 
     @Override
     public Supplier<Set<ResourceKey<Biome>>> getDefaultSpawnBiomes() {

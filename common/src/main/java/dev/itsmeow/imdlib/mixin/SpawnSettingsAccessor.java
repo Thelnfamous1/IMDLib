@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.mixin;
 
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,4 +17,10 @@ public interface SpawnSettingsAccessor {
 
     @Accessor("spawners")
     void setSpawners(Map<MobCategory, List<MobSpawnSettings.SpawnerData>> spawners);
+
+    @Accessor("mobSpawnCosts")
+    Map<EntityType<?>, MobSpawnSettings.MobSpawnCost> getMobSpawnCosts();
+
+    @Accessor("mobSpawnCosts")
+    void setMobSpawnCosts(Map<EntityType<?>, MobSpawnSettings.MobSpawnCost> costs);
 }

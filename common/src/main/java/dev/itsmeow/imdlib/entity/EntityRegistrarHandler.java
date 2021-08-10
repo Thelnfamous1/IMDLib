@@ -1,9 +1,7 @@
 package dev.itsmeow.imdlib.entity;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
-import dev.itsmeow.imdlib.config.EntityRegistrarConfigHandler;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
@@ -12,7 +10,9 @@ import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModFishBucket;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
 import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
+import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
+import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import me.shedaniel.architectury.registry.Registry;
 import me.shedaniel.architectury.registry.entity.EntityAttributes;
 import net.minecraft.resources.ResourceLocation;
@@ -22,9 +22,14 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -35,11 +40,6 @@ public class EntityRegistrarHandler {
 
     public EntityRegistrarHandler(String modid) {
         this.modid = modid;
-    }
-
-    @ExpectPlatform
-    public static EntityRegistrarConfigHandler getConfigHandlerFor(EntityRegistrarHandler handler) {
-        throw new RuntimeException();
     }
 
     public void init() {
@@ -73,6 +73,59 @@ public class EntityRegistrarHandler {
             entityTypes.register(rl, container::getEntityType);
             EntityAttributes.register(container::getEntityType, container.getAttributeBuilder());
         }
+
+        CommonConfigAPI.createConfig(CommonConfigAPI.ConfigType.SERVER, builder -> {
+            builder.push("entities");
+            {
+                ENTITIES.values().forEach(c -> c.createConfiguration(builder));
+            }
+            builder.pop();
+        }, () -> {
+            ENTITIES.values().forEach(e -> e.getConfiguration().load());
+
+            Registry<Biome> biomeRegistry = IMDLib.getRegistry(net.minecraft.core.Registry.BIOME_REGISTRY);
+            for (ResourceLocation key : biomeRegistry.getIds()) {
+                Biome biome = biomeRegistry.get(key);
+                MobSpawnSettings spawnInfo = biome.getMobSettings();
+                SpawnSettingsAccessor spawnInfoA = (SpawnSettingsAccessor) spawnInfo;
+                // make spawns mutable
+                spawnInfoA.setSpawners(new HashMap<>(spawnInfoA.getSpawners()));
+                // make spawner lists mutable
+                for (MobCategory classification : MobCategory.values()) {
+                    ArrayList<MobSpawnSettings.SpawnerData> newList = new ArrayList<>();
+                    List<MobSpawnSettings.SpawnerData> oldList = spawnInfoA.getSpawners().get(classification);
+                    if (oldList != null) {
+                        newList.addAll(oldList);
+                    }
+                    spawnInfoA.getSpawners().put(classification, newList);
+                }
+                // make costs mutable
+                spawnInfoA.setMobSpawnCosts(new HashMap<>(spawnInfoA.getMobSpawnCosts()));
+                for (EntityTypeContainer<?> entry : ENTITIES.values()) {
+                    EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
+                    if (config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
+                        entry.registerPlacement();
+                        List<MobSpawnSettings.SpawnerData> list = spawnInfoA.getSpawners().get(entry.getDefinition().getSpawnClassification());
+                        if (list != null) {
+                            list.add(entry.getSpawnEntry());
+                        }
+                        if (config.spawnCostPer.get() != 0 && config.spawnMaxCost.get() != 0 && entry.getSpawnCostBiomeIDs().contains(key.toString())) {
+                            // private constructors be like
+                            MobSpawnSettings.MobSpawnCost costs = ((SpawnSettingsAccessor) new MobSpawnSettings.Builder().addMobCharge(entry.getEntityType(), config.spawnCostPer.get(), config.spawnMaxCost.get()).build()).getMobSpawnCosts().get(entry.getEntityType());
+                            spawnInfoA.getMobSpawnCosts().put(entry.getEntityType(), costs);
+                        }
+                    }
+                }
+            }
+        });
+
+        CommonConfigAPI.createConfig(CommonConfigAPI.ConfigType.CLIENT, builder -> {
+            builder.push("entities");
+            {
+                ENTITIES.values().forEach(c -> c.clientCustomConfigurationInit(builder));
+            }
+            builder.pop();
+        }, () -> ENTITIES.values().forEach(EntityTypeContainer::clientCustomConfigurationLoad));
     }
 
     @SuppressWarnings("unchecked")
@@ -114,6 +167,5 @@ public class EntityRegistrarHandler {
         ((EntityTypeAccessor) type).setSerialize(true);
         return type;
     }
-
 
 }
