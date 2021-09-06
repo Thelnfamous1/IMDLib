@@ -223,7 +223,7 @@ public class EntityRegistrarHandler {
                     EntityType<?> type = entry.getEntityType();
                     EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
                     EntityClassification sType = entry.getDefinition().getSpawnClassification();
-                    if(config.doSpawning.get() && config.spawnWeight.get() > 0) {
+                    if(entry.getDefinition().hasSpawns() && config.doSpawning.get() && config.spawnWeight.get() > 0) {
                         entry.registerPlacement();
                         for(Biome biome : entry.getSpawnBiomes()) {
                             try {
