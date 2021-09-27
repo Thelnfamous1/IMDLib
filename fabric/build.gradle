@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
 configurations {
@@ -16,23 +16,15 @@ dependencies {
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
     modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
 
-    implementation(project(path: ":common")) {
+    implementation(project(path: ":common", configuration: "dev")) {
         transitive = false
     }
-    developmentFabric(project(path: ":common")) {
+    developmentFabric(project(path: ":common", configuration: "dev")) {
         transitive = false
     }
     shadowCommon("blue.endless:jankson:1.2.1")
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) {
         transitive = false
-    }
-}
-
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
     }
 }
 
@@ -63,10 +55,6 @@ remapJar {
 
 jar {
     classifier "dev"
-}
-
-java {
-    withSourcesJar()
 }
 
 sourcesJar {

@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
 configurations {
@@ -11,18 +11,14 @@ architectury {
     forge()
 }
 
-loom {
-    useFabricMixin = true
-}
-
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.mc_version}-${rootProject.forge_version}"
     modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
 
-    implementation(project(path: ":common")) {
+    implementation(project(path: ":common", configuration: "dev")) {
         transitive = false
     }
-    developmentForge(project(path: ":common")) {
+    developmentForge(project(path: ":common", configuration: "dev")) {
         transitive = false
     }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) {
@@ -30,17 +26,7 @@ dependencies {
     }
 }
 
-processResources {
-    inputs.property "version", project.version
-
-    filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
-    }
-}
-
 shadowJar {
-    exclude "fabric.mod.json"
-
     configurations = [project.configurations.shadowCommon]
     classifier "dev-shadow"
 }
@@ -68,10 +54,6 @@ remapJar {
 
 jar {
     classifier "dev"
-}
-
-java {
-    withSourcesJar()
 }
 
 sourcesJar {
@@ -124,7 +106,4 @@ publishing {
             }
         }
     }
-}
-loom {
-    mixinConfig "mixin.imdlib.json"
 }
