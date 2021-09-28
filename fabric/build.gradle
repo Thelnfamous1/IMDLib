@@ -37,8 +37,12 @@ remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
     classifier "fabric"
+}
+
+jar {
+    classifier "dev"
     manifest {
-        mainAttributes(
+        attributes(
                 "Maven-Artifact": "${rootProject.maven_group}:${rootProject.mod_id}-${project.name}:${rootProject.version}",
                 "Specification-Title": rootProject.mod_id,
                 "Specification-Vendor": "its_meow",
@@ -53,16 +57,12 @@ remapJar {
     }
 }
 
-jar {
-    classifier "dev"
-}
-
 sourcesJar {
     def commonSources = project(":common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
     manifest {
-        mainAttributes(
+        attributes(
                 "Maven-Artifact": "${rootProject.maven_group}:${rootProject.mod_id}-${project.name}:${rootProject.version}",
                 "Specification-Title": rootProject.mod_id,
                 "Specification-Vendor": "its_meow",
