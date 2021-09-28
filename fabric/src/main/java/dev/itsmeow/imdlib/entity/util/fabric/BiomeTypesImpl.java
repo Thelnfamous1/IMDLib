@@ -1,4 +1,4 @@
-package dev.itsmeow.imdlib.fabric;
+package dev.itsmeow.imdlib.entity.util.fabric;
 
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;

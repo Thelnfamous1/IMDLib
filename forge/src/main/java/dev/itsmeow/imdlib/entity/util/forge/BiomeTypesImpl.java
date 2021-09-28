@@ -1,4 +1,4 @@
-package dev.itsmeow.imdlib.forge;
+package dev.itsmeow.imdlib.entity.util.forge;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraftforge.common.BiomeDictionary;
@@ -42,7 +42,7 @@ public class BiomeTypesImpl {
     }
 
     private static BiomeTypes.Type get(BiomeDictionary.Type type) {
-        return get(type);
+        return new BiomeTypes.Type(biome -> BiomeDictionary.hasType(biome, type));
     }
 
 }
