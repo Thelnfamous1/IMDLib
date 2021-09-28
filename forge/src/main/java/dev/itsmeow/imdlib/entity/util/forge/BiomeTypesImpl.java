@@ -37,6 +37,7 @@ public class BiomeTypesImpl {
         BiomeTypes.WASTELAND = get(BiomeDictionary.Type.WASTELAND);
         BiomeTypes.BEACH = get(BiomeDictionary.Type.BEACH);
         BiomeTypes.VOID = get(BiomeDictionary.Type.VOID);
+        BiomeTypes.OVERWORLD = get(BiomeDictionary.Type.OVERWORLD);
         BiomeTypes.NETHER = get(BiomeDictionary.Type.NETHER);
         BiomeTypes.END = get(BiomeDictionary.Type.END);
     }

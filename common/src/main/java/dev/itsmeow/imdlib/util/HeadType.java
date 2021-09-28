@@ -89,9 +89,9 @@ public class HeadType {
                 default:
                     break;
             }
-            HEADS.add(this);
-            HEADS_MAP.put(name, this);
         };
+        HEADS.add(this);
+        HEADS_MAP.put(name, this);
     }
 
     public void register(Registries registries) {

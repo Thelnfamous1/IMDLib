@@ -3,6 +3,7 @@ package dev.itsmeow.imdlib.item;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -41,8 +42,11 @@ public class ModSpawnEggItem extends SpawnEggItem {
     @Override
     public String getDescriptionId(ItemStack stack) {
         if (type != null) {
-            ResourceLocation eh = new ResourceLocation(this.type.getDescriptionId());
-            return "entity." + modid + "." + eh.getPath();
+            ResourceLocation typeRL = Registry.ENTITY_TYPE.getKey(this.type);
+            if(typeRL != null) {
+                ResourceLocation eh = new ResourceLocation(typeRL.getPath());
+                return "entity." + modid + "." + eh.getPath();
+            }
         }
         return "item." + modid + ".emptyegg";
     }

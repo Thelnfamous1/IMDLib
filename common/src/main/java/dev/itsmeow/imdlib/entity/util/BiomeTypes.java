@@ -66,6 +66,10 @@ public class BiomeTypes {
     public static Type END;
     //private static Map<Type,  Set<ResourceKey<Biome>>> computedBiomes = new HashMap<>();
 
+    static {
+        init();
+    }
+
     @ExpectPlatform
     public static void init() {
         throw new AssertionError();

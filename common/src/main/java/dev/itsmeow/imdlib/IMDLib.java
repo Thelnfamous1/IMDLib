@@ -1,7 +1,6 @@
 package dev.itsmeow.imdlib;
 
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
-import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import me.shedaniel.architectury.registry.Registries;
 import me.shedaniel.architectury.registry.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -24,7 +23,6 @@ public class IMDLib {
 
     public static void setRegistry(String modid) {
         REGISTRIES = new LazyLoadedValue<>(() -> Registries.get(modid));
-        BiomeTypes.init();
     }
 
     public static EntityRegistrarHandler entityHandler(String modid) {

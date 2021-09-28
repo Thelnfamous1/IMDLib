@@ -82,20 +82,21 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     }
 
     protected static Supplier<Set<ResourceKey<Biome>>> toBiomes(BiomeTypes.Type[] biomeTypes, boolean overworldOnly) {
-        Set<ResourceKey<Biome>> set = new HashSet<>();
-        me.shedaniel.architectury.registry.Registry<Biome> reg = IMDLib.getRegistry(Registry.BIOME_REGISTRY);
+        return () -> {
+            Set<ResourceKey<Biome>> set = new HashSet<>();
+            me.shedaniel.architectury.registry.Registry<Biome> reg = IMDLib.getRegistry(Registry.BIOME_REGISTRY);
 
-        for (Biome biome : reg) {
-            ResourceKey<Biome> biomeResourceKey = reg.getKey(biome).get();
+            for (Biome biome : reg) {
+                ResourceKey<Biome> biomeResourceKey = reg.getKey(biome).get();
 
-            for (BiomeTypes.Type predicate : biomeTypes) {
-                if (!predicate.hasType(biomeResourceKey) && (!overworldOnly || BiomeTypes.OVERWORLD.hasType(biomeResourceKey))) {
-                    set.add(biomeResourceKey);
+                for (BiomeTypes.Type predicate : biomeTypes) {
+                    if (!predicate.hasType(biomeResourceKey) && (!overworldOnly || BiomeTypes.OVERWORLD.hasType(biomeResourceKey))) {
+                        set.add(biomeResourceKey);
+                    }
                 }
             }
-        }
-
-        return () -> set;
+            return set;
+        };
     }
 
     public abstract B getImplementation();
