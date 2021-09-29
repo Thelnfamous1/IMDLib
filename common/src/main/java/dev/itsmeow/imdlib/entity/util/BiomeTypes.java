@@ -3,7 +3,9 @@ package dev.itsmeow.imdlib.entity.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.itsmeow.imdlib.IMDLib;
-import me.shedaniel.architectury.registry.Registry;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 
@@ -83,8 +85,8 @@ public class BiomeTypes {
         /*if(computedBiomes.containsKey(type)) {
             return computedBiomes.get(type);
         }*/
-        Registry<Biome> reg = IMDLib.getRegistry(net.minecraft.core.Registry.BIOME_REGISTRY);
-        Set<ResourceKey<Biome>> res = reg.getIds().stream().map(reg::get).map(reg::getKey).filter(Optional::isPresent).map(Optional::get).filter(type::hasType).collect(Collectors.toSet());
+        WritableRegistry<Biome> reg = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
+        Set<ResourceKey<Biome>> res = reg.stream().map(reg::getResourceKey).filter(Optional::isPresent).map(Optional::get).filter(type::hasType).collect(Collectors.toSet());
         //computedBiomes.put(type, res);
         return res;
     }

@@ -1,5 +1,7 @@
 package dev.itsmeow.imdlib.util.config;
 
+import net.minecraft.server.MinecraftServer;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -7,14 +9,18 @@ import java.util.function.Supplier;
 
 public abstract class ConfigBuilder {
 
-    private Runnable onLoadMethod;
+    private Consumer<MinecraftServer> onLoadMethod;
 
     protected ConfigBuilder(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
+        this.onLoadMethod = a -> onLoad.run();
+    }
+
+    protected ConfigBuilder(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
         this.onLoadMethod = onLoad;
     }
 
-    public void onLoad() {
-        this.onLoadMethod.run();
+    public void onLoad(MinecraftServer t) {
+        this.onLoadMethod.accept(t);
     }
 
     public abstract <T> Supplier<T> define(String path, T defaultValue);

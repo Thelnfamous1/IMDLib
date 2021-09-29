@@ -15,6 +15,8 @@ import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import me.shedaniel.architectury.registry.Registry;
 import me.shedaniel.architectury.registry.entity.EntityAttributes;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -74,17 +76,17 @@ public class EntityRegistrarHandler {
             EntityAttributes.register(container::getEntityType, container.getAttributeBuilder());
         }
 
-        CommonConfigAPI.createConfig(CommonConfigAPI.ConfigType.SERVER, builder -> {
+        CommonConfigAPI.createServerConfig(builder -> {
             builder.push("entities");
             {
                 ENTITIES.values().forEach(c -> c.createConfiguration(builder));
             }
             builder.pop();
-        }, () -> {
+        }, server -> {
             ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
-            Registry<Biome> biomeRegistry = IMDLib.getRegistry(net.minecraft.core.Registry.BIOME_REGISTRY);
-            for (ResourceLocation key : biomeRegistry.getIds()) {
+            WritableRegistry<Biome> biomeRegistry = server.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY);
+            for (ResourceLocation key : biomeRegistry.keySet()) {
                 Biome biome = biomeRegistry.get(key);
                 MobSpawnSettings spawnInfo = biome.getMobSettings();
                 SpawnSettingsAccessor spawnInfoA = (SpawnSettingsAccessor) spawnInfo;

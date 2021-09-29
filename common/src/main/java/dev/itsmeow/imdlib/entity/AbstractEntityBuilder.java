@@ -9,6 +9,8 @@ import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -84,13 +86,13 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
     protected static Supplier<Set<ResourceKey<Biome>>> toBiomes(BiomeTypes.Type[] biomeTypes, boolean overworldOnly) {
         return () -> {
             Set<ResourceKey<Biome>> set = new HashSet<>();
-            me.shedaniel.architectury.registry.Registry<Biome> reg = IMDLib.getRegistry(Registry.BIOME_REGISTRY);
+            WritableRegistry<Biome> reg = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
 
             for (Biome biome : reg) {
-                ResourceKey<Biome> biomeResourceKey = reg.getKey(biome).get();
+                ResourceKey<Biome> biomeResourceKey = reg.getResourceKey(biome).orElseThrow(RuntimeException::new);
 
                 for (BiomeTypes.Type predicate : biomeTypes) {
-                    if (!predicate.hasType(biomeResourceKey) && (!overworldOnly || BiomeTypes.OVERWORLD.hasType(biomeResourceKey))) {
+                    if (predicate.hasType(biomeResourceKey) && (!overworldOnly || BiomeTypes.OVERWORLD.hasType(biomeResourceKey))) {
                         set.add(biomeResourceKey);
                     }
                 }

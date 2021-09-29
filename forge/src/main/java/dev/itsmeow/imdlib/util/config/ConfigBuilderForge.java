@@ -1,9 +1,11 @@
 package dev.itsmeow.imdlib.util.config;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 
@@ -16,9 +18,11 @@ public class ConfigBuilderForge extends ConfigBuilder {
 
     private ForgeConfigSpec.Builder builder;
     private ForgeConfigSpec spec;
+    private CommonConfigAPI.ConfigType type;
 
     public ConfigBuilderForge(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
         super(type, init, onLoad);
+        this.type = type;
         final Pair<ConfigBuilder, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(builder -> {
             this.builder = builder;
             init.accept(this);
@@ -29,10 +33,23 @@ public class ConfigBuilderForge extends ConfigBuilder {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onLoadForge);
     }
 
+    public ConfigBuilderForge(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
+        super(init, onLoad);
+        this.type = CommonConfigAPI.ConfigType.SERVER;
+        final Pair<ConfigBuilder, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(builder -> {
+            this.builder = builder;
+            init.accept(this);
+            return this;
+        });
+        this.spec = specPair.getRight();
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, specPair.getRight());
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onLoadForge);
+    }
+
     private void onLoadForge(ModConfig.Loading configEvent) {
         LogManager.getLogger().debug("Loading {}", configEvent.getConfig().getFileName());
         if(configEvent.getConfig().getSpec() == spec) {
-            this.onLoad();
+            this.onLoad(type == CommonConfigAPI.ConfigType.SERVER ? ServerLifecycleHooks.getCurrentServer() : null);
         }
     }
 

@@ -1,5 +1,8 @@
 package dev.itsmeow.imdlib.util.config;
 
+import me.shedaniel.architectury.event.events.LifecycleEvent;
+import net.minecraft.server.MinecraftServer;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -9,6 +12,20 @@ public class ConfigBuilderFabric extends ConfigBuilder {
 
     public ConfigBuilderFabric(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
         super(type, init, onLoad);
+        // Dummy load call before world starts, so spawns etc. get added
+        LifecycleEvent.SERVER_BEFORE_START.register(state -> {
+            init.accept(this);
+            this.onLoad(null);
+        });
+    }
+
+    public ConfigBuilderFabric(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
+        super(init, onLoad);
+        // Dummy load call before world starts, so spawns etc. get added
+        LifecycleEvent.SERVER_BEFORE_START.register(state -> {
+            init.accept(this);
+            this.onLoad(state);
+        });
     }
 
     @Override

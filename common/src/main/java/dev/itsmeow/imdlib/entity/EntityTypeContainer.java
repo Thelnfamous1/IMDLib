@@ -1,7 +1,6 @@
 package dev.itsmeow.imdlib.entity;
 
 import com.google.common.collect.ImmutableList;
-import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.interfaces.ISelectiveVariantTypes;
 import dev.itsmeow.imdlib.entity.util.builder.IEntityTypeDefinition;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariantList;
@@ -13,6 +12,8 @@ import dev.itsmeow.imdlib.util.config.ConfigBuilder;
 import me.shedaniel.architectury.registry.RegistrySupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -340,7 +341,8 @@ public class EntityTypeContainer<T extends Mob> {
                     for (String biomeName : configList.get()) {
                         ResourceLocation rl = new ResourceLocation(biomeName);
                         try {
-                            Biome biome = IMDLib.getRegistry(Registry.BIOME_REGISTRY).get(rl);
+                            WritableRegistry<Biome> reg = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
+                            Biome biome = reg.get(rl);
                             if (biome == null) {
                                 LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + getEntityName() + ". No biome exists with that name. Skipping.");
                             } else {
