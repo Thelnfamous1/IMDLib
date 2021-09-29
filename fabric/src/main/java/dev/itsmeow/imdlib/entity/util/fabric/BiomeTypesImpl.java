@@ -1,18 +1,18 @@
 package dev.itsmeow.imdlib.entity.util.fabric;
 
+import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.level.biome.Biome;
 
 public class BiomeTypesImpl {
 
-    private static WritableRegistry<Biome> REG;
+    private static final LazyLoadedValue<WritableRegistry<Biome>> REG = new LazyLoadedValue(() -> IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY));
 
     public static void init() {
-        REG = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
         BiomeTypes.HOT = new BiomeTypes.Type(biome -> {
             Biome biomeIn = get(biome);
             float temperature = biomeIn.getBaseTemperature();
@@ -67,11 +67,11 @@ public class BiomeTypesImpl {
     }
 
     private static Biome get(ResourceKey<Biome> biome) {
-        return REG.get(biome.location());
+        return REG.get().get(biome.location());
     }
 
     private static Biome.BiomeCategory cat(ResourceKey<Biome> biome) {
-        return get(biome).getBiomeCategory();
+        return REG.get().get(biome).getBiomeCategory();
     }
 
     private static BiomeTypes.Type catMatch(Biome.BiomeCategory category) {

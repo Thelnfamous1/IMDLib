@@ -13,9 +13,9 @@ import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
 import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
+import me.shedaniel.architectury.event.events.LifecycleEvent;
 import me.shedaniel.architectury.registry.Registry;
 import me.shedaniel.architectury.registry.entity.EntityAttributes;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -45,6 +45,12 @@ public class EntityRegistrarHandler {
     }
 
     public void init() {
+        LifecycleEvent.SERVER_BEFORE_START.register(state -> {
+            IMDLib.setStaticServerInstance(state);
+        });
+        LifecycleEvent.SERVER_STOPPED.register(state -> {
+            IMDLib.setStaticServerInstance(null);
+        });
         BiomeTypes.init();
         for (HeadType type : HeadType.values()) {
             type.register(IMDLib.getRegistries());

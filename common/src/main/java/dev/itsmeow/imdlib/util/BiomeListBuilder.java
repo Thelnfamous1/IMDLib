@@ -3,10 +3,8 @@ package dev.itsmeow.imdlib.util;
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 
 import java.util.Arrays;
@@ -69,7 +67,7 @@ public class BiomeListBuilder {
             set.addAll(BiomeTypes.getBiomes(extraT));
         }
         if (required.size() > 0 || blacklist.size() > 0) {
-            WritableRegistry<Biome> registry = RegistryAccess.builtin().registryOrThrow(Registry.BIOME_REGISTRY);
+            WritableRegistry<Biome> registry = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
             for (Biome biome : registry) {
                 Optional<ResourceKey<Biome>> biomeKeyOpt = registry.getResourceKey(biome);
                 biomeKeyOpt.ifPresent(biomeKey -> {
