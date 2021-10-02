@@ -3,6 +3,7 @@ package dev.itsmeow.imdlib.entity.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.itsmeow.imdlib.IMDLib;
+import me.shedaniel.architectury.registry.BiomeModifications;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
@@ -76,6 +77,10 @@ public class BiomeTypes {
         throw new AssertionError();
     }
 
+    public static Set<Type> getTypes(BiomeModifications.BiomeContext ctx) {
+        return Type.TYPES.stream().filter(t -> t.hasType(ctx)).collect(Collectors.toSet());
+    }
+
     public static Set<Type> getTypes(ResourceKey<Biome> biome) {
         return Type.TYPES.stream().filter(t -> t.hasType(biome)).collect(Collectors.toSet());
     }
@@ -93,11 +98,23 @@ public class BiomeTypes {
     public static class Type {
         protected static Set<Type> TYPES = new HashSet<>();
         private final Predicate<ResourceKey<Biome>> validator;
+        private final Predicate<BiomeModifications.BiomeContext> ctxValidator;
         private final Map<ResourceKey<Biome>, Boolean> validations = new HashMap<>();
 
-        public Type(Predicate<ResourceKey<Biome>> validator) {
+        public Type(Predicate<ResourceKey<Biome>> validator, Predicate<BiomeModifications.BiomeContext> ctxValidator) {
             this.validator = validator;
+            this.ctxValidator = ctxValidator;
             TYPES.add(this);
+        }
+
+        public boolean hasType(BiomeModifications.BiomeContext ctx) {
+            ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, ctx.getKey());
+            if(validations.containsKey(key)) {
+                return validations.get(key);
+            }
+            boolean res = ctxValidator.test(ctx);
+            validations.put(key, res);
+            return res;
         }
 
         public boolean hasType(ResourceKey<Biome> biome) {

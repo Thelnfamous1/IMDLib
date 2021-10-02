@@ -1,7 +1,10 @@
 package dev.itsmeow.imdlib.entity.util.forge;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class BiomeTypesImpl {
 
@@ -43,7 +46,7 @@ public class BiomeTypesImpl {
     }
 
     private static BiomeTypes.Type get(BiomeDictionary.Type type) {
-        return new BiomeTypes.Type(biome -> BiomeDictionary.hasType(biome, type));
+        return new BiomeTypes.Type(biome -> BiomeDictionary.hasType(biome, type), biomeContext -> BiomeDictionary.hasType(ResourceKey.create(Registry.BIOME_REGISTRY, biomeContext.getKey()), type));
     }
 
 }

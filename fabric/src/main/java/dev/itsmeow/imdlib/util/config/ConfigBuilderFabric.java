@@ -59,6 +59,11 @@ public class ConfigBuilderFabric extends ConfigBuilder {
     }
 
     @Override
+    public <T> Supplier<List<? extends T>> defineList(String path, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator) {
+        return defaultSupplier::get;
+    }
+
+    @Override
     public <T> Supplier<T> define(String path, String comment, T defaultValue) {
         return () -> defaultValue;
     }
@@ -86,6 +91,11 @@ public class ConfigBuilderFabric extends ConfigBuilder {
     @Override
     public <T> Supplier<List<? extends T>> defineList(String path, String comment, List<? extends T> defaultValue, Predicate<Object> elementValidator) {
         return () -> defaultValue;
+    }
+
+    @Override
+    public <T> Supplier<List<? extends T>> defineList(String path, String comment, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator) {
+        return defaultSupplier::get;
     }
 
     @Override

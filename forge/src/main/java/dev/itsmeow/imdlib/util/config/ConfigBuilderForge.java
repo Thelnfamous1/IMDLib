@@ -84,6 +84,11 @@ public class ConfigBuilderForge extends ConfigBuilder {
     }
 
     @Override
+    public <T> Supplier<List<? extends T>> defineList(String path, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator) {
+        return builder.worldRestart().defineList(path, defaultSupplier, elementValidator)::get;
+    }
+
+    @Override
     public <T> Supplier<T> define(String path, String comment, T defaultValue) {
         return builder.comment(comment).worldRestart().define(path, defaultValue)::get;
     }
@@ -111,6 +116,11 @@ public class ConfigBuilderForge extends ConfigBuilder {
     @Override
     public <T> Supplier<List<? extends T>> defineList(String path, String comment, List<? extends T> defaultValue, Predicate<Object> elementValidator) {
         return builder.comment(comment).worldRestart().defineList(path, defaultValue, elementValidator)::get;
+    }
+
+    @Override
+    public <T> Supplier<List<? extends T>> defineList(String path, String comment, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator) {
+        return builder.comment(comment).worldRestart().defineList(path, defaultSupplier, elementValidator)::get;
     }
 
     @Override
