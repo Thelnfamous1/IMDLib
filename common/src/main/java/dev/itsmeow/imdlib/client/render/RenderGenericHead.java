@@ -25,33 +25,6 @@ public class RenderGenericHead extends BlockEntityRenderer<HeadBlockEntity> {
         super(dispatcher);
     }
 
-    private static void translateHead(PoseStack matrixStackIn, Direction face, float yOffset) {
-        if (face == null) {
-            matrixStackIn.translate(0.5F, 0.25F + yOffset + 0.3F, 1.0F);
-            return;
-        }
-        switch (face) {
-            case NORTH:
-                matrixStackIn.translate(0.5F, 0.25F + yOffset + 0.3F, 1.0F);
-                break;
-            case EAST:
-                matrixStackIn.translate(0F, 0.25F + yOffset + 0.3F, 0.5F);
-                break;
-            case SOUTH:
-                matrixStackIn.translate(0.5F, 0.25F + yOffset + 0.3F, 0F);
-                break;
-            case WEST:
-                matrixStackIn.translate(1F, 0.25F + yOffset + 0.3F, 0.5F);
-                break;
-            case UP:
-                matrixStackIn.translate(0.5F, 0.18F + yOffset, 0.5F);
-                break;
-            default:
-                matrixStackIn.translate(0F, 0.25F + yOffset, 0F);
-                break;
-        }
-    }
-
     @Override
     public void render(HeadBlockEntity te, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
         BlockState state = te.getBlockState();
@@ -71,12 +44,24 @@ public class RenderGenericHead extends BlockEntityRenderer<HeadBlockEntity> {
             model = newModel;
         }
 
-        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), model, te.getOffset());
+        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), model);
     }
 
-    public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, int packedOverlayIn, @Nullable Direction facing, float skullRotation, ResourceLocation texture, EntityModel<? extends Entity> model, float yOffset) {
+    public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, int packedOverlayIn, @Nullable Direction facing, float skullRotation, ResourceLocation texture, EntityModel<? extends Entity> model) {
         matrixStackIn.pushPose();
-        translateHead(matrixStackIn, facing, 1.5F + yOffset);
+        if(model instanceof HeadModel) {
+            matrixStackIn.translate(0F, ((HeadModel) model).globalOffsetY() * 0.0625F, 0F);
+        }
+        if (facing == Direction.UP) {
+            matrixStackIn.translate(0.5D, 0.0D, 0.5D);
+        } else {
+            if(model instanceof HeadModel) {
+                HeadModel m = (HeadModel) model;
+                matrixStackIn.translate(0.5F - (float) facing.getStepX() * 0.25F - ((float) facing.getStepX() * m.wallOffsetX() * 0.0625F), 0.25D + m.wallOffsetY() * 0.0625F, 0.5F - (float) facing.getStepZ() * 0.25F - ((float) facing.getStepZ() * m.wallOffsetZ() * 0.0625F));
+            } else {
+                matrixStackIn.translate(0.5F - (float) facing.getStepX() * 0.25F, 0.25D, 0.5F - (float) facing.getStepZ() * 0.25F);
+            }
+        }
         matrixStackIn.scale(-1.0F, -1.0F, 1.0F);
         float rotX = 0F;
         if (facing != null) {

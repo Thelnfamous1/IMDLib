@@ -62,10 +62,6 @@ public class HeadBlockEntity extends BlockEntity {
         return cachedVariant;
     }
 
-    public float getOffset() {
-        return this.getHeadType().getYOffset();
-    }
-
     public Direction getDirection() {
         return this.getBlockState().getValue(AnimalSkullBlock.FACING_EXCEPT_DOWN);
     }

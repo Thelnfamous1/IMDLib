@@ -42,7 +42,6 @@ public class HeadType {
     private final String modid;
     @Environment(EnvType.CLIENT)
     public Supplier<Supplier<EntityModel<? extends Entity>>> modelSupplier;
-    private float yOffset = 0F;
     private IVariant singletonVariant;
     private final Map<IVariant, Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>>> heads = new HashMap<>();
     private final Set<RegistrySupplier<ItemBlockHeadType>> items = new HashSet<>();
@@ -50,11 +49,10 @@ public class HeadType {
     private final Map<ResourceLocation, IVariant> reverseVariantMap = new HashMap<>();
     private final Consumer<Registries> registerVariants;
 
-    public HeadType(String modid, CreativeModeTab group, String name, PlacementType placement, float yOffset, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
+    public HeadType(String modid, CreativeModeTab group, String name, PlacementType placement, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
         this.name = name;
         this.modid = modid;
         this.placement = placement;
-        this.yOffset = yOffset;
         this.container = container;
         if (!container.hasVariants() && mapping != HeadIDMapping.SINGLETON) {
             throw new RuntimeException("Tried to create non-singleton head type with a variantless entity!");
@@ -123,10 +121,6 @@ public class HeadType {
 
     public static GenericSkullBlock[] getAllBlocks() {
         return HeadType.values().stream().map(type -> type.getBlockObjects()).flatMap(Collection::stream).map(Supplier::get).collect(Collectors.toList()).toArray(new GenericSkullBlock[0]);
-    }
-
-    public float getYOffset() {
-        return this.yOffset;
     }
 
     public IVariant getVariantForBlock(Block block) {
@@ -237,7 +231,6 @@ public class HeadType {
         private final String name;
         private final B initial;
         private PlacementType placement;
-        private float yOffset;
         @Environment(EnvType.CLIENT)
         private Supplier<Supplier<EntityModel<?>>> modelSupplier;
         private HeadIDMapping idMapping;
@@ -250,7 +243,6 @@ public class HeadType {
             this.initial = initial;
             this.name = name;
             this.placement = PlacementType.WALL_ONLY;
-            this.yOffset = 0.0F;
             this.idMapping = null;
         }
 
@@ -294,11 +286,6 @@ public class HeadType {
             return this;
         }
 
-        public Builder<T, C, B> offset(float yOffset) {
-            this.yOffset = yOffset;
-            return this;
-        }
-
         public B done() {
             initial.setHeadBuild(this::build);
             return initial;
@@ -308,7 +295,7 @@ public class HeadType {
             if (idMapping == null) {
                 throw new RuntimeException("No ID mapping set for head builder " + name);
             }
-            HeadType type = new HeadType(initial.getMod(), group, name, placement, yOffset, idMapping, customMapper, singletonVariant, singletonID, container);
+            HeadType type = new HeadType(initial.getMod(), group, name, placement, idMapping, customMapper, singletonVariant, singletonID, container);
             if (Platform.getEnv() == EnvType.CLIENT) {
                 type.modelSupplier = modelSupplier;
             }
