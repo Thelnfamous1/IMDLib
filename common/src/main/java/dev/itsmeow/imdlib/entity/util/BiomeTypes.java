@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib.entity.util;
 
 
+import com.google.common.collect.Lists;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.itsmeow.imdlib.IMDLib;
 import me.shedaniel.architectury.registry.BiomeModifications;
@@ -100,6 +101,7 @@ public class BiomeTypes {
         private final Predicate<ResourceKey<Biome>> validator;
         private final Predicate<BiomeModifications.BiomeContext> ctxValidator;
         private final Map<ResourceKey<Biome>, Boolean> validations = new HashMap<>();
+        private final Set<ResourceKey<Biome>> DEFAULTS = new HashSet<>();
 
         public Type(Predicate<ResourceKey<Biome>> validator, Predicate<BiomeModifications.BiomeContext> ctxValidator) {
             this.validator = validator;
@@ -107,8 +109,16 @@ public class BiomeTypes {
             TYPES.add(this);
         }
 
+        public Type addDefaults(ResourceKey<Biome>... biomes) {
+            DEFAULTS.addAll(Lists.newArrayList(biomes));
+            return this;
+        }
+
         public boolean hasType(BiomeModifications.BiomeContext ctx) {
             ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, ctx.getKey());
+            if(DEFAULTS.contains(key)) {
+                return true;
+            }
             if(validations.containsKey(key)) {
                 return validations.get(key);
             }
@@ -118,6 +128,9 @@ public class BiomeTypes {
         }
 
         public boolean hasType(ResourceKey<Biome> biome) {
+            if(DEFAULTS.contains(biome)) {
+                return true;
+            }
             if(validations.containsKey(biome)) {
                 return validations.get(biome);
             }
