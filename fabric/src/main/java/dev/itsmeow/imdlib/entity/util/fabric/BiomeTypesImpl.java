@@ -7,9 +7,10 @@ import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Biomes;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class BiomeTypesImpl {
@@ -56,7 +57,7 @@ public class BiomeTypesImpl {
         BiomeTypes.RIVER = catMatch(Biome.BiomeCategory.RIVER);
         BiomeTypes.WATER = catPredicate(c -> c == Biome.BiomeCategory.OCEAN || c == Biome.BiomeCategory.RIVER);
         BiomeTypes.MESA = catMatch(Biome.BiomeCategory.MESA);
-        BiomeTypes.FOREST = catPath(Biome.BiomeCategory.FOREST, "forest");
+        BiomeTypes.FOREST = catPathMulti(Biome.BiomeCategory.FOREST, "forest", "taiga");
         BiomeTypes.PLAINS = catPath(Biome.BiomeCategory.PLAINS, "plain");
         BiomeTypes.MOUNTAIN = catPath(Biome.BiomeCategory.EXTREME_HILLS, "mountain");
         BiomeTypes.HILL = catPath(Biome.BiomeCategory.EXTREME_HILLS, "hill");
@@ -181,6 +182,14 @@ public class BiomeTypesImpl {
 
     private static BiomeTypes.Type catPath(Biome.BiomeCategory category, String content) {
         return new BiomeTypes.Type(biome -> cat(biome) == category || biome.location().getPath().contains(content), biomeContext -> biomeContext.getProperties().getCategory() == category || biomeContext.getKey().getPath().contains(content));
+    }
+
+    private static BiomeTypes.Type catMultiPathMulti(Set<Biome.BiomeCategory> category, String... content) {
+        return new BiomeTypes.Type(biome -> category.contains(cat(biome)) || Arrays.stream(content).anyMatch(c -> biome.location().getPath().contains(c)), biomeContext -> category.contains(biomeContext.getProperties().getCategory()) || Arrays.stream(content).anyMatch(c -> biomeContext.getKey().getPath().contains(c)));
+    }
+
+    private static BiomeTypes.Type catPathMulti(Biome.BiomeCategory category, String... content) {
+        return new BiomeTypes.Type(biome -> cat(biome) == category || Arrays.stream(content).anyMatch(c -> biome.location().getPath().contains(c)), biomeContext -> biomeContext.getProperties().getCategory() == category || Arrays.stream(content).anyMatch(c -> biomeContext.getKey().getPath().contains(c)));
     }
 
     private static BiomeTypes.Type reject() {
