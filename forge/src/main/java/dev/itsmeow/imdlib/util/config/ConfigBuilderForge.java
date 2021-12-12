@@ -59,11 +59,6 @@ public class ConfigBuilderForge extends ConfigBuilder {
     }
 
     @Override
-    public <T extends Comparable<? super T>> Supplier<T> defineInRange(List<String> path, T defaultValue, T min, T max, Class<T> clazz) {
-        return builder.worldRestart().defineInRange(path, defaultValue, min, max, clazz)::get;
-    }
-
-    @Override
     public Supplier<Double> defineInRange(String path, double defaultValue, double min, double max) {
         return builder.worldRestart().defineInRange(path, defaultValue, min, max)::get;
     }
@@ -79,23 +74,18 @@ public class ConfigBuilderForge extends ConfigBuilder {
     }
 
     @Override
-    public <T> Supplier<List<? extends T>> defineList(String path, List<? extends T> defaultValue, Predicate<Object> elementValidator) {
+    public <T> Supplier<List<? extends T>> defineList(String path, List<? extends T> defaultValue, T baseTypeValue, Predicate<Object> elementValidator) {
         return builder.worldRestart().defineList(path, defaultValue, elementValidator)::get;
     }
 
     @Override
-    public <T> Supplier<List<? extends T>> defineList(String path, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator) {
+    public <T> Supplier<List<? extends T>> defineList(String path, Supplier<List<? extends T>> defaultSupplier, T baseTypeValue, Predicate<Object> elementValidator) {
         return builder.worldRestart().defineList(path, defaultSupplier, elementValidator)::get;
     }
 
     @Override
     public <T> Supplier<T> define(String path, String comment, T defaultValue) {
         return builder.comment(comment).worldRestart().define(path, defaultValue)::get;
-    }
-
-    @Override
-    public <T extends Comparable<? super T>> Supplier<T> defineInRange(List<String> path, String comment, T defaultValue, T min, T max, Class<T> clazz) {
-        return builder.comment(comment).worldRestart().defineInRange(path, defaultValue, min, max, clazz)::get;
     }
 
     @Override
@@ -114,12 +104,12 @@ public class ConfigBuilderForge extends ConfigBuilder {
     }
 
     @Override
-    public <T> Supplier<List<? extends T>> defineList(String path, String comment, List<? extends T> defaultValue, Predicate<Object> elementValidator) {
+    public <T> Supplier<List<? extends T>> defineList(String path, String comment, List<? extends T> defaultValue, T baseTypeValue, Predicate<Object> elementValidator) {
         return builder.comment(comment).worldRestart().defineList(path, defaultValue, elementValidator)::get;
     }
 
     @Override
-    public <T> Supplier<List<? extends T>> defineList(String path, String comment, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator) {
+    public <T> Supplier<List<? extends T>> defineList(String path, String comment, Supplier<List<? extends T>> defaultSupplier, T baseTypeValue, Predicate<Object> elementValidator) {
         return builder.comment(comment).worldRestart().defineList(path, defaultSupplier, elementValidator)::get;
     }
 

@@ -4,6 +4,8 @@ plugins {
 
 configurations {
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    shadowImplementation
+    implementation.extendsFrom shadowImplementation
 }
 
 architectury {
@@ -11,10 +13,17 @@ architectury {
     fabric()
 }
 
+repositories {
+    maven {
+        url = "https://maven.modmuss50.me/"
+    }
+}
+
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
     modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
+    shadowImplementation "me.zeroeightsix:fiber:0.23.0-SNAPSHOT"
 
     implementation(project(path: ":common", configuration: "dev")) {
         transitive = false
@@ -22,14 +31,13 @@ dependencies {
     developmentFabric(project(path: ":common", configuration: "dev")) {
         transitive = false
     }
-    shadowCommon("blue.endless:jankson:1.2.1")
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) {
         transitive = false
     }
 }
 
 shadowJar {
-    configurations = [project.configurations.shadowCommon]
+    configurations = [project.configurations.shadowCommon, project.configurations.shadowImplementation]
     classifier "dev-shadow"
 }
 

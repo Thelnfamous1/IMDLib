@@ -313,7 +313,7 @@ public class EntityTypeContainer<T extends Mob> {
                         spawnWeight = builder.defineInRange("spawn_weight", "The spawn weight compared to other entities (typically between 6-20)", definition.getSpawnWeight(), 1, 9999);
                         spawnMinGroup = builder.defineInRange("minimum_group_size", "Minimum amount of entities in spawned groups", definition.getSpawnMinGroup(), 1, 9999);
                         spawnMaxGroup = builder.defineInRange("maximum_group_size", "Maximum amount of entities in spawned groups - Must be greater or equal to min value", definition.getSpawnMaxGroup(), 1, 9999);
-                        biomesList = builder.defineList("spawn_biomes", "Enter biome IDs. Supports modded biomes https://minecraft.fandom.com/wiki/Biome#Biome_IDs", () -> setBiomesToIDs(definition.getDefaultSpawnBiomes().get()), input -> input instanceof String);
+                        biomesList = builder.defineList("spawn_biomes", "Enter biome IDs. Supports modded biomes https://minecraft.fandom.com/wiki/Biome#Biome_IDs", () -> setBiomesToIDs(definition.getDefaultSpawnBiomes().get()), "", input -> input instanceof String);
                         if (ISelectiveVariantTypes.class.isAssignableFrom(getEntityClass())) {
                             biomeVariants = builder.define("biome_based_variants", "Enables biome based variant selection. This will make this entity choose variants tailored to the biome they spawn in (Only applies to natural spawns)", true);
                         }
@@ -322,7 +322,7 @@ public class EntityTypeContainer<T extends Mob> {
                             useSpawnCosts = builder.define("use_spawn_costs", "Whether to use spawn costs in spawning or not", definition.useSpawnCosts());
                             spawnCostPer = builder.defineInRange("cost_per_spawn", "Cost to spawning algorithm per entity spawned", definition.getSpawnCostPer(), Double.MIN_VALUE, Double.MAX_VALUE);
                             spawnMaxCost = builder.defineInRange("maximum_cost_per_biome", "Maximum cost the spawning algorithm can accrue for this entity", definition.getSpawnMaxCost(), Double.MIN_VALUE, Double.MAX_VALUE);
-                            spawnCostBiomes = builder.defineList("spawn_cost_biomes", "Enter biome IDs to use these costs in. Supports modded biomes. An empty list will use spawn_biomes https://minecraft.fandom.com/wiki/Biome#Biome_IDs", new ArrayList<>(), input -> input instanceof String);
+                            spawnCostBiomes = builder.defineList("spawn_cost_biomes", "Enter biome IDs to use these costs in. Supports modded biomes. An empty list will use spawn_biomes https://minecraft.fandom.com/wiki/Biome#Biome_IDs", new ArrayList<>(), "", input -> input instanceof String);
                         }
                         builder.pop();
                     }

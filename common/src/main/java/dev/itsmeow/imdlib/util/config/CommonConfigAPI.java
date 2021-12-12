@@ -8,12 +8,12 @@ import java.util.function.Consumer;
 public class CommonConfigAPI {
 
     @ExpectPlatform
-    public static ConfigBuilder createConfig(ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
+    public static void createConfig(ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
         throw new RuntimeException("ExpectPlatform CommonConfigAPI.createConfig() failed");
     }
 
     @ExpectPlatform
-    public static ConfigBuilder createServerConfig(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
+    public static void createServerConfig(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
         throw new RuntimeException("ExpectPlatform CommonConfigAPI.createServerConfig() failed");
     }
 

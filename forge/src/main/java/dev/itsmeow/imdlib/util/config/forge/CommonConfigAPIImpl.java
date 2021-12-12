@@ -9,11 +9,11 @@ import java.util.function.Consumer;
 
 public class CommonConfigAPIImpl {
 
-    public static ConfigBuilder createConfig(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
-        return new ConfigBuilderForge(type, init, onLoad);
+    public static void createConfig(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
+        new ConfigBuilderForge(type, init, onLoad);
     }
 
-    public static ConfigBuilder createServerConfig(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
-        return new ConfigBuilderForge(init, onLoad);
+    public static void createServerConfig(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
+        new ConfigBuilderForge(init, onLoad);
     }
 }

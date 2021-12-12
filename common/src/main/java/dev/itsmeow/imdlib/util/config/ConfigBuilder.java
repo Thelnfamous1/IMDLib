@@ -25,21 +25,17 @@ public abstract class ConfigBuilder {
 
     public abstract <T> Supplier<T> define(String path, T defaultValue);
 
-    public abstract <T extends Comparable<? super T>> Supplier<T> defineInRange(List<String> path, T defaultValue, T min, T max, Class<T> clazz);
-
     public abstract Supplier<Double> defineInRange(String path, double defaultValue, double min, double max);
 
     public abstract Supplier<Integer> defineInRange(String path, int defaultValue, int min, int max);
 
     public abstract Supplier<Long> defineInRange(String path, long defaultValue, long min, long max);
 
-    public abstract <T> Supplier<List<? extends T>> defineList(String path, List<? extends T> defaultValue, Predicate<Object> elementValidator);
+    public abstract <T> Supplier<List<? extends T>> defineList(String path, List<? extends T> defaultValue, T baseTypeValue, Predicate<Object> elementValidator);
 
-    public abstract <T> Supplier<List<? extends T>> defineList(String path, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator);
+    public abstract <T> Supplier<List<? extends T>> defineList(String path, Supplier<List<? extends T>> defaultSupplier, T baseTypeValue, Predicate<Object> elementValidator);
 
     public abstract <T> Supplier<T> define(String path, String comment, T defaultValue);
-
-    public abstract <T extends Comparable<? super T>> Supplier<T> defineInRange(List<String> path, String comment, T defaultValue, T min, T max, Class<T> clazz);
 
     public abstract Supplier<Double> defineInRange(String path, String comment, double defaultValue, double min, double max);
 
@@ -47,9 +43,9 @@ public abstract class ConfigBuilder {
 
     public abstract Supplier<Long> defineInRange(String path, String comment, long defaultValue, long min, long max);
 
-    public abstract <T> Supplier<List<? extends T>> defineList(String path, String comment, List<? extends T> defaultValue, Predicate<Object> elementValidator);
+    public abstract <T> Supplier<List<? extends T>> defineList(String path, String comment, List<? extends T> defaultValue, T baseTypeValue, Predicate<Object> elementValidator);
 
-    public abstract <T> Supplier<List<? extends T>> defineList(String path, String comment, Supplier<List<? extends T>> defaultSupplier, Predicate<Object> elementValidator);
+    public abstract <T> Supplier<List<? extends T>> defineList(String path, String comment, Supplier<List<? extends T>> defaultSupplier, T baseTypeValue, Predicate<Object> elementValidator);
 
     public abstract void push(String path);
 
