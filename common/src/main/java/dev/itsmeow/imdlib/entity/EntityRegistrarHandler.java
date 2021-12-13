@@ -111,7 +111,7 @@ public class EntityRegistrarHandler {
                 spawnInfoA.setMobSpawnCosts(new HashMap<>(spawnInfoA.getMobSpawnCosts()));
                 for (EntityTypeContainer<?> entry : ENTITIES.values()) {
                     EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
-                    if (config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
+                    if (entry.getDefinition().hasSpawns() && config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
                         entry.registerPlacement();
                         List<MobSpawnSettings.SpawnerData> list = spawnInfoA.getSpawners().get(entry.getDefinition().getSpawnClassification());
                         if (list != null) {
