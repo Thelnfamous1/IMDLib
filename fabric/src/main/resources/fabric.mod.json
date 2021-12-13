@@ -1,20 +1,29 @@
 {
   "schemaVersion": 1,
   "id": "imdlib",
-  "version": "1.0.0",
+  "version": "${version}",
   "name": "IMDLib",
-  "description": "",
+  "description": "Internal entity management library - used in mods by itsmeowdev",
   "authors": ["itsmeowdev"],
   "contact": {
     "homepage": "https://github.com/itsmeow/IMDLib",
-    "sources": "https://github.com/itsmeow/IMDLib"
+    "sources": "https://github.com/itsmeow/IMDLib",
+    "issues": "https://github.com/itsmeow/IMDLib/issues"
   },
   "license": "MIT",
-  "icon": "icon.png",
   "environment": "*",
   "entrypoints": {},
   "depends": {
     "minecraft": "1.16.5",
-    "architectury": ">=1.1.55"
+    "architectury": ">=1.26.0",
+    "fabric-loader": ">=0.12.0",
+    "fabric": ">=0.32.0"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.itsmeow.dev/"
+      }
+    }
   }
 }
