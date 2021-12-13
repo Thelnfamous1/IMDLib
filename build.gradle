@@ -1,3 +1,4 @@
+// BEFORE SYNCING, YOU MUST GO TO Settings -> Build, Execution, Deployment -> Build Tools -> Gradle and change "Gradle JVM" to Java 11 or higher
 plugins {
     id "architectury-plugin" version "$architectury_plugin_version"
     id "dev.architectury.loom" version "$loom_version" apply false
@@ -32,9 +33,6 @@ allprojects {
         if (JavaVersion.current().isJava9Compatible()) {
             options.release = targetVersion
         }
-    }
-    architectury {
-        transformerVersion = rootProject.architectury_transformer_version
     }
     java {
         withSourcesJar()
