@@ -19,12 +19,14 @@ public class ConfigBuilderFabric extends ConfigBuilder {
 
     private ConfigTreeBuilder builder = ConfigTree.builder();
 
-    public ConfigBuilderFabric(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
+    public ConfigBuilderFabric(String name, CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
         super(type, init, onLoad);
+        builder = builder.withName(name);
     }
 
-    public ConfigBuilderFabric(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
+    public ConfigBuilderFabric(String name, Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
         super(init, onLoad);
+        builder = builder.withName(name);
     }
 
     public ConfigTreeBuilder getBuilder() {

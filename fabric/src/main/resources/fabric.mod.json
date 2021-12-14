@@ -23,7 +23,8 @@
     "modmenu": {
       "links": {
         "modmenu.discord": "https://discord.itsmeow.dev/"
-      }
+      },
+      "badges": [ "library" ]
     }
   }
 }

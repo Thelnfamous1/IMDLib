@@ -5,10 +5,8 @@ import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationEx
 import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.FiberSerialization;
 import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.JanksonValueSerializer;
 import io.github.fablabsmc.fablabs.api.fiber.v1.tree.ConfigBranch;
-import me.shedaniel.architectury.event.events.LifecycleEvent;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.util.LazyLoadedValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,61 +18,73 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
 
-public class FabricConfigContainer {
+public abstract class FabricConfigContainer {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LogManager.getLogger();
+
+    protected static final JanksonValueSerializer JANKSON_VALUE_SERIALIZER = new JanksonValueSerializer(false);
 
     private final CommonConfigAPI.ConfigType type;
-    private ConfigBuilderFabric builder;
-    private final String name;
-    private final Consumer<ConfigBuilder> init;
+    protected String name;
+    protected final Consumer<ConfigBuilder> init;
     private ConfigBranch builtConfig;
     private boolean initialized = false;
 
-    public FabricConfigContainer(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
+    public FabricConfigContainer(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init) {
         this.type = type;
-        this.builder = new ConfigBuilderFabric(type, init, onLoad);
         this.name = IMDLib.getRegistries().getModId() + "-" + type.name().toLowerCase();
         this.init = init;
-        LifecycleEvent.SERVER_BEFORE_START.register(state -> {
-            this.createOrLoad(null);
-            builder.onLoad(state);
-        });
     }
 
-    public FabricConfigContainer(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
-        this.type = CommonConfigAPI.ConfigType.SERVER;
-        this.name = IMDLib.getRegistries().getModId() + "-" + type.name().toLowerCase();
-        this.init = init;
-        LifecycleEvent.SERVER_BEFORE_START.register(state -> {
-            this.initialized = false;
-            this.builder = new ConfigBuilderFabric(init, onLoad);
-            this.createOrLoad(state.getWorldPath(LevelResource.ROOT).resolve("serverconfig"));
-            builder.onLoad(state);
-        });
+    public void invalidate() {
+        this.initialized = false;
+    }
+
+    public CommonConfigAPI.ConfigType getType() {
+        return type;
+    }
+
+    public ConfigBranch getBranch() {
+        if(builtConfig == null) {
+            return this.init();
+        }
+        return builtConfig;
     }
 
     public String getConfigName() {
         return name;
     }
 
-    private ConfigBranch init() {
+    protected abstract LazyLoadedValue<ConfigBuilderFabric> getBuilder();
+
+    protected ConfigBranch init() {
         if(!initialized) {
             this.initialized = true;
-            init.accept(builder);
-            this.builtConfig = builder.getBuilder().build();
+            init.accept(getBuilder().get());
+            this.builtConfig = getBuilder().get().getBuilder().build();
         }
         return this.builtConfig;
     }
 
-    public void createOrLoad(Path serverConfigPath) {
+    public File getConfigFile(Path serverConfigPath) {
         Path configFolder = serverConfigPath != null ? serverConfigPath : FabricLoader.getInstance().getConfigDir();
         if(serverConfigPath != null && !serverConfigPath.toFile().exists()) {
             serverConfigPath.toFile().mkdirs();
         }
-        File file = new File(configFolder.toFile(), getConfigName() + ".json5");
-        JanksonValueSerializer configSerializer = new JanksonValueSerializer(false);
-        setupConfigFile(file, this.init(), configSerializer);
+        return new File(configFolder.toFile(), getConfigName() + ".json5");
+    }
+
+    public void createOrLoad(Path serverConfigPath) {
+        setupConfigFile(this.getConfigFile(serverConfigPath), this.init(), JANKSON_VALUE_SERIALIZER);
+    }
+
+    public void saveBranch(File configFile, ConfigBranch branch) {
+        try {
+            FiberSerialization.serialize(branch, Files.newOutputStream(configFile.toPath()), JANKSON_VALUE_SERIALIZER);
+            LOGGER.info("Successfully wrote menu edits to config file '{}'", configFile.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void deserializeFromDefault(ConfigBranch configNode, JanksonValueSerializer serializer) throws IOException {

@@ -67,7 +67,12 @@ public class BiomeListBuilder {
             set.addAll(BiomeTypes.getBiomes(extraT));
         }
         if (required.size() > 0 || blacklist.size() > 0) {
-            WritableRegistry<Biome> registry = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+            WritableRegistry<Biome> registry = null;
+            try {
+                registry = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+            } catch(RuntimeException e) {
+                return new ResourceKey[0];
+            }
             for (Biome biome : registry) {
                 Optional<ResourceKey<Biome>> biomeKeyOpt = registry.getResourceKey(biome);
                 biomeKeyOpt.ifPresent(biomeKey -> {
