@@ -3,16 +3,17 @@ package dev.itsmeow.imdlib.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.itsmeow.imdlib.entity.interfaces.IVariantTypes;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Mob;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -26,8 +27,8 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
     private final SuperCallApplyRotations applyRotationsSuper;
     private final RenderLayer<T> renderLayer;
 
-    public ImplRenderer(EntityRendererProvider.Context mgr, float shadow, TextureContainer<T, A> textureContainer, ModelContainer<T, A> modelContainer, PreRenderCallback<T> preRenderCallback, HandleRotation<T> handleRotation, ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer) {
-        super(mgr, modelContainer.getBaseModel(), shadow);
+    public ImplRenderer(EntityRendererProvider.Context ctx, float shadow, TextureContainer<T, A> textureContainer, ModelContainer<T, A> modelContainer, PreRenderCallback<T> preRenderCallback, HandleRotation<T> handleRotation, ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer) {
+        super(ctx, modelContainer.getBaseModel(ctx), shadow);
         this.textureContainer = textureContainer;
         this.modelContainer = modelContainer;
         this.preRenderCallback = preRenderCallback;
@@ -43,6 +44,10 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
 
     private static ResourceLocation tex(String modid, String location) {
         return new ResourceLocation(modid, "textures/entity/" + location + ".png");
+    }
+
+    private static ModelLayerLocation mll(String modid, String location) {
+        return new ModelLayerLocation(new ResourceLocation(modid, location), "main");
     }
 
     @Override
@@ -180,59 +185,88 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
 
     public static class ModelContainer<T extends Mob, A extends EntityModel<T>> {
 
+        private final String modId;
         private final Strategy strategy;
-        private final A baseModel;
-        private Function<T, EntityModel<T>> modelMapper;
+        private final Function<EntityRendererProvider.Context, A> baseModelProvider;
+        private final Set<Pair<String, Function<EntityRendererProvider.Context, EntityModel<T>>>> modelEntries = new HashSet<>();
+        private final Map<String, EntityModel<T>> builtModelMap = new HashMap<>();
+        private Function<T, String> modelKeyMapper;
+        private Function<EntityRendererProvider.Context, EntityModel<T>> falseModelProvider;
+        private Predicate<T> condition;
+        private A baseModel;
         private A trueModel;
         private EntityModel<T> falseModel;
-        private Predicate<T> condition;
-        private EntityModel<T> conditionModel;
 
-        public ModelContainer(A baseModel) {
+        public ModelContainer(String modid, Function<ModelPart, A> baseModel, String modelLayerLocation) {
+            this.modId = modid;
             this.strategy = Strategy.SINGLE;
-            this.baseModel = baseModel;
+            this.baseModelProvider = ctx -> baseModel.apply(ctx.bakeLayer(mll(modelLayerLocation)));
         }
 
-        public ModelContainer(Function<T, EntityModel<T>> modelMapper, A baseModel) {
+        public ModelContainer(String modid, Function<T, String> modelMapper, Function<ModelPart, A> baseModel, String baseModelLocation) {
+            this.modId = modid;
             this.strategy = Strategy.MAPPER;
-            this.modelMapper = modelMapper;
-            this.baseModel = baseModel;
+            this.modelKeyMapper = modelMapper;
+            this.baseModelProvider = convert(baseModel, baseModelLocation);
         }
 
-        public ModelContainer(Predicate<T> condition, Function<T, EntityModel<T>> modelMapper, A baseModel, EntityModel<T> conditionModel) {
-            this.strategy = Strategy.MAPPER;
-            this.modelMapper = modelMapper;
-            this.baseModel = baseModel;
-            this.conditionModel = conditionModel;
-            this.condition = condition;
-        }
-
-        public ModelContainer(Predicate<T> condition, A trueModel, EntityModel<T> falseModel) {
+        public ModelContainer(String modid, Predicate<T> condition, Function<ModelPart, A> trueModel, String trueLayerLocation, Function<ModelPart, EntityModel<T>> falseModel, String falseLayerLocation) {
+            this.modId = modid;
             this.strategy = Strategy.CONDITION;
             this.condition = condition;
-            this.trueModel = trueModel;
-            this.falseModel = falseModel;
-            this.baseModel = trueModel;
+            this.baseModelProvider = convert(trueModel, trueLayerLocation);
+            this.falseModelProvider = convert(falseModel, falseLayerLocation);
+        }
+
+        private <Z extends EntityModel<T>> Function<EntityRendererProvider.Context, Z> convert(Function<ModelPart, Z> m, String location) {
+            return ctx -> m.apply(ctx.bakeLayer(mll(location)));
+        }
+
+        public void addMapperEntry(Function<ModelPart, EntityModel<T>> modelSupplier, String modelLayerLocation) {
+            modelEntries.add(Pair.of(modelLayerLocation, convert(modelSupplier, modelLayerLocation)));
+        }
+
+        public void provideContext(EntityRendererProvider.Context ctx) {
+            this.baseModel = baseModelProvider.apply(ctx);
+            if(strategy == Strategy.MAPPER) {
+                for (Pair<String, Function<EntityRendererProvider.Context, EntityModel<T>>> pair : modelEntries) {
+                    builtModelMap.put(pair.getLeft(), pair.getRight().apply(ctx));
+                }
+            } else if(strategy == Strategy.CONDITION) {
+                this.trueModel = baseModel;
+                this.falseModel = falseModelProvider.apply(ctx);
+            }
         }
 
         public EntityModel<T> getModel(T entity) {
+            if(baseModel == null) {
+                throw new RuntimeException("getModel called before provideContext!");
+            }
             switch (strategy) {
                 case SINGLE:
                     return baseModel;
                 case MAPPER:
-                    return modelMapper.apply(entity);
+                    return getModelForKey(modelKeyMapper.apply(entity));
                 case CONDITION:
                     return condition.test(entity) ? trueModel : falseModel;
-                case MAPPER_CONDITION:
-                    return condition.test(entity) ? conditionModel : modelMapper.apply(entity);
                 default:
-                    break;
+                    return baseModel;
             }
-            return null;
         }
 
-        public A getBaseModel() {
+        public EntityModel<T> getModelForKey(String key) {
+            return builtModelMap.getOrDefault(key, baseModel);
+        }
+
+        public A getBaseModel(EntityRendererProvider.Context ctx) {
+            if(baseModel == null) {
+                this.provideContext(ctx);
+            }
             return baseModel;
+        }
+
+        private ModelLayerLocation mll(String loc) {
+            return ImplRenderer.mll(modId, loc);
         }
     }
 
@@ -242,7 +276,6 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
         private final float shadow;
         private final ArrayList<Function<BaseRenderer<T, A>, net.minecraft.client.renderer.entity.layers.RenderLayer<T, A>>> layers = new ArrayList<>();
         private final Map<String, ResourceLocation> texMapper = new HashMap<>();
-        private final Map<Class<? extends EntityModel<T>>, EntityModel<T>> modelMapper = new HashMap<>();
         private TextureContainer<T, A> tex;
         private ModelContainer<T, A> model;
         private PreRenderCallback<T> preRender;
@@ -309,11 +342,11 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
             return this;
         }
 
-        public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, String conditionTex) {
-            return tVariantCondition(condition, texMapper, tex(modid, conditionTex));
+        public Builder<T, A> tVariantCondition(Predicate<T> condition, String conditionTex) {
+            return tVariantCondition(condition, tex(modid, conditionTex));
         }
 
-        public Builder<T, A> tVariantCondition(Predicate<T> condition, Function<T, ResourceLocation> texMapper, ResourceLocation conditionTex) {
+        public Builder<T, A> tVariantCondition(Predicate<T> condition, ResourceLocation conditionTex) {
             this.tex = new TextureContainer<>(condition, e -> {
                 if (e instanceof IVariantTypes<?>) {
                     return ((IVariantTypes<?>) e).getVariantTextureOrNull();
@@ -329,26 +362,29 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
                     return e.isBaby();
                 }
                 return false;
-            }, e -> {
-                if (e instanceof IVariantTypes<?>) {
-                    return ((IVariantTypes<?>) e).getVariantTextureOrNull();
-                }
-                return null;
             }, tex(modid, babyTex));
         }
 
-        public Builder<T, A> mSingle(A model) {
-            this.model = new ModelContainer<>(model);
+        public Builder<T, A> mSingle(Function<ModelPart, A> modelSupplier, String layerLocation) {
+            this.model = new ModelContainer<>(modid, modelSupplier, layerLocation);
             return this;
         }
 
-        public Builder<T, A> mMapped(Function<T, Class<? extends EntityModel<T>>> modelMapper, A baseModel) {
-            this.model = new ModelContainer<>(e -> modelStored(modelMapper.apply(e), baseModel), baseModel);
+        public Builder<T, A> mMapped(Function<T, String> modelLocationMapper, Function<ModelPart, A> baseModelSupplier, String baseModelLayerLocation) {
+            this.model = new ModelContainer<>(modid, modelLocationMapper, baseModelSupplier, baseModelLayerLocation);
             return this;
         }
 
-        public Builder<T, A> mCondition(Predicate<T> condition, A trueModel, EntityModel<T> falseModel) {
-            this.model = new ModelContainer<>(condition, trueModel, falseModel);
+        public Builder<T, A> mEntry(Function<ModelPart, EntityModel<T>> modelSupplier, String modelLayerLocation) {
+            if(this.model == null || this.model.strategy != Strategy.MAPPER) {
+                throw new RuntimeException("Must call mMapped before mEntry!");
+            }
+            this.model.addMapperEntry(modelSupplier, modelLayerLocation);
+            return this;
+        }
+
+        public Builder<T, A> mCondition(Predicate<T> condition, Function<ModelPart, A> trueModelSupplier, String trueLayerLocation,Function<ModelPart, EntityModel<T>> falseModelSupplier, String falseLayerLocation) {
+            this.model = new ModelContainer<>(modid, condition, trueModelSupplier, trueLayerLocation, falseModelSupplier, falseLayerLocation);
             return this;
         }
 
@@ -450,20 +486,8 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
             return ctx -> new ImplRenderer<>(ctx, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
         }
 
-
         private ResourceLocation texStored(String location) {
             return texMapper.computeIfAbsent(location, l -> tex(modid, l));
-        }
-
-        private EntityModel<T> modelStored(Class<? extends EntityModel<T>> clazz, A defaultModel) {
-            return modelMapper.computeIfAbsent(clazz, l -> {
-                try {
-                    return clazz.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    e.printStackTrace();
-                    return defaultModel;
-                }
-            });
         }
     }
 
