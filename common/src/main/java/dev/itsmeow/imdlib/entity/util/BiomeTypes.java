@@ -3,10 +3,9 @@ package dev.itsmeow.imdlib.entity.util;
 
 import com.google.common.collect.Lists;
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.architectury.registry.level.biome.BiomeModifications;
 import dev.itsmeow.imdlib.IMDLib;
-import me.shedaniel.architectury.registry.BiomeModifications;
 import net.minecraft.core.Registry;
-import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 
@@ -90,7 +89,7 @@ public class BiomeTypes {
         /*if(computedBiomes.containsKey(type)) {
             return computedBiomes.get(type);
         }*/
-        WritableRegistry<Biome> reg = null;
+        Registry<Biome> reg = null;
         try {
             reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
         } catch(RuntimeException e) {

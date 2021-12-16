@@ -1,7 +1,7 @@
 package dev.itsmeow.imdlib.forge;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.fmllegacy.server.ServerLifecycleHooks;
 
 public class IMDLibImpl {
 

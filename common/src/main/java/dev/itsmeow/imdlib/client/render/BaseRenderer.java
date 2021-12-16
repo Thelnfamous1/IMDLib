@@ -1,7 +1,7 @@
 package dev.itsmeow.imdlib.client.render;
 
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.Mob;
@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 public abstract class BaseRenderer<T extends Mob, A extends EntityModel<T>> extends MobRenderer<T, A> {
 
-    public BaseRenderer(EntityRenderDispatcher renderManagerIn, A entityModelIn, float shadowSizeIn) {
+    public BaseRenderer(EntityRendererProvider.Context renderManagerIn, A entityModelIn, float shadowSizeIn) {
         super(renderManagerIn, entityModelIn, shadowSizeIn);
     }
 

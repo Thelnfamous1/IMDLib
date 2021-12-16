@@ -1,10 +1,9 @@
 package dev.itsmeow.imdlib.client.render;
 
-import me.shedaniel.architectury.registry.entity.EntityRenderers;
-import net.minecraft.client.Minecraft;
+import dev.architectury.registry.level.entity.EntityRendererRegistry;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -14,23 +13,17 @@ import net.minecraft.world.entity.projectile.ItemSupplier;
 
 import java.util.function.Function;
 
-public class RenderFactory {
+public record RenderFactory(String modid) {
 
-    public final String modid;
-
-    public RenderFactory(String modid) {
-        this.modid = modid;
+    public static <T extends Entity> void addRender(EntityType<T> type, EntityRendererProvider renderer) {
+        EntityRendererRegistry.register(() -> type, renderer);
     }
 
-    public static <T extends Entity> void addRender(EntityType<T> clazz, Function<EntityRenderDispatcher, EntityRenderer<T>> renderer) {
-        EntityRenderers.register(clazz, renderer);
+    public static <T extends Entity & ItemSupplier> EntityRendererProvider<T> sprite() {
+        return ThrownItemRenderer::new;
     }
 
-    public static <T extends Entity & ItemSupplier> Function<EntityRenderDispatcher, EntityRenderer<T>> sprite() {
-        return mgr -> new ThrownItemRenderer<>(mgr, Minecraft.getInstance().getItemRenderer());
-    }
-
-    public static <T extends Entity> Function<EntityRenderDispatcher, EntityRenderer<T>> nothing() {
+    public static <T extends Entity> EntityRendererProvider<T> nothing() {
         return r -> new EntityRenderer<T>(r) {
             @Override
             public ResourceLocation getTextureLocation(T entity) {
@@ -43,8 +36,8 @@ public class RenderFactory {
         return ImplRenderer.factory(modid, shadowSize);
     }
 
-    public <T extends Mob, M extends EntityModel<T>> void addRender(EntityType<T> clazz, float shadowSize, Function<ImplRenderer.Builder<T, M>, ImplRenderer.Builder<T, M>> render) {
-        EntityRenderers.register(clazz, render.apply(this.r(shadowSize)).done());
+    public <T extends Mob, M extends EntityModel<T>> void addRender(EntityType<T> type, float shadowSize, Function<ImplRenderer.Builder<T, M>, ImplRenderer.Builder<T, M>> render) {
+        EntityRendererRegistry.register(() -> type, render.apply(this.r(shadowSize)).done());
     }
 
 }

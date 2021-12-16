@@ -1,8 +1,8 @@
 package dev.itsmeow.imdlib.util.config;
 
+import dev.architectury.event.events.common.LifecycleEvent;
 import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationException;
 import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.FiberSerialization;
-import me.shedaniel.architectury.event.events.LifecycleEvent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.level.storage.LevelResource;

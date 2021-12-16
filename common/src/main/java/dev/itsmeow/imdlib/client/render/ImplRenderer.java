@@ -5,10 +5,9 @@ import dev.itsmeow.imdlib.entity.interfaces.IVariantTypes;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.AgableMob;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Mob;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
     private final SuperCallApplyRotations applyRotationsSuper;
     private final RenderLayer<T> renderLayer;
 
-    public ImplRenderer(EntityRenderDispatcher mgr, float shadow, TextureContainer<T, A> textureContainer, ModelContainer<T, A> modelContainer, PreRenderCallback<T> preRenderCallback, HandleRotation<T> handleRotation, ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer) {
+    public ImplRenderer(EntityRendererProvider.Context mgr, float shadow, TextureContainer<T, A> textureContainer, ModelContainer<T, A> modelContainer, PreRenderCallback<T> preRenderCallback, HandleRotation<T> handleRotation, ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer) {
         super(mgr, modelContainer.getBaseModel(), shadow);
         this.textureContainer = textureContainer;
         this.modelContainer = modelContainer;
@@ -326,7 +325,7 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
 
         public Builder<T, A> tBabyVariant(String babyTex) {
             return tVariantCondition(e -> {
-                if (e instanceof AgableMob) {
+                if (e instanceof AgeableMob) {
                     return e.isBaby();
                 }
                 return false;
@@ -396,7 +395,7 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
 
         public Builder<T, A> childScale(float xScale, float yScale, float zScale) {
             preRender((e, s, p) -> {
-                if (e instanceof AgableMob && e.isBaby()) {
+                if (e instanceof AgeableMob && e.isBaby()) {
                     s.scale(xScale, yScale, zScale);
                 }
             });
@@ -409,7 +408,7 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
 
         public Builder<T, A> ageScale(float adultxScale, float adultyScale, float adultzScale, float childxScale, float childyScale, float childzScale) {
             preRender((e, s, p) -> {
-                if (e instanceof AgableMob) {
+                if (e instanceof AgeableMob) {
                     if (e.isBaby()) {
                         s.scale(childxScale, childyScale, childzScale);
                     } else {
@@ -444,13 +443,11 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
             return this;
         }
 
-        //TODO
-
-        public Function<EntityRenderDispatcher, EntityRenderer<T>> done() {
+        public EntityRendererProvider done() {
             if (tex == null || model == null) {
                 throw new IllegalArgumentException("Must define both a texture and a model before calling build()!");
             }
-            return mgr -> new ImplRenderer<>(mgr, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
+            return ctx -> new ImplRenderer<>(ctx, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
         }
 
 

@@ -1,5 +1,8 @@
 package dev.itsmeow.imdlib.util;
 
+import dev.architectury.platform.Platform;
+import dev.architectury.registry.registries.Registries;
+import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.imdlib.block.GenericSkullBlock;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
@@ -8,12 +11,10 @@ import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.entity.util.variant.EntityVariant;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.item.ItemBlockHeadType;
-import me.shedaniel.architectury.platform.Platform;
-import me.shedaniel.architectury.registry.Registries;
-import me.shedaniel.architectury.registry.RegistrySupplier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,8 +100,8 @@ public class HeadType {
 
     protected void setupVariant(Registries registries, IVariant variant, CreativeModeTab group, String id) {
         ResourceLocation rl = new ResourceLocation(this.getMod(), this.getName() + "_" + id);
-        RegistrySupplier<GenericSkullBlock> block = registries.get(Registry.BLOCK_REGISTRY).registerSupplied(rl, () -> new GenericSkullBlock(this, id));
-        RegistrySupplier<ItemBlockHeadType> item = registries.get(Registry.ITEM_REGISTRY).registerSupplied(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
+        RegistrySupplier<GenericSkullBlock> block = registries.get(Registry.BLOCK_REGISTRY).register(rl, () -> new GenericSkullBlock(this, id));
+        RegistrySupplier<ItemBlockHeadType> item = registries.get(Registry.ITEM_REGISTRY).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
         heads.put(variant, Pair.of(block, item));
         blocks.add(block);
         items.add(item);
@@ -163,8 +165,8 @@ public class HeadType {
         return blocks;
     }
 
-    public HeadBlockEntity createTE() {
-        return new HeadBlockEntity(this);
+    public HeadBlockEntity createTE(BlockPos pos, BlockState state) {
+        return new HeadBlockEntity(this, pos, state);
     }
 
     public String getName() {

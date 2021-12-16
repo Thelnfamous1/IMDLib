@@ -1,6 +1,6 @@
 package dev.itsmeow.imdlib.util;
 
-import me.shedaniel.architectury.platform.Platform;
+import dev.architectury.platform.Platform;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.function.Supplier;

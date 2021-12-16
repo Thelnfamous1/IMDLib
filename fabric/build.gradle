@@ -2,17 +2,21 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
 configurations {
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
     shadowImplementation
     implementation.extendsFrom shadowImplementation
     shadowModApi
     modApi.extendsFrom shadowModApi
-}
-
-architectury {
-    platformSetupLoomIde()
-    fabric()
 }
 
 repositories {
@@ -35,7 +39,10 @@ repositories {
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-    modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
+    modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+
     shadowImplementation "me.zeroeightsix:fiber:${rootProject.fiber_version}"
     modApi ("curse.maven:cloth-config-319057:${rootProject.cloth_config_version}") {
         transitive = false
@@ -44,16 +51,6 @@ dependencies {
         transitive = false
     }
     modImplementation ("com.terraformersmc:modmenu:${modmenu_version}") {
-        transitive = false
-    }
-
-    implementation(project(path: ":common", configuration: "dev")) {
-        transitive = false
-    }
-    developmentFabric(project(path: ":common", configuration: "dev")) {
-        transitive = false
-    }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) {
         transitive = false
     }
 }
@@ -112,6 +109,12 @@ sourcesJar {
                 "Built-On-Java": "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
                 "Built-On": "${rootProject.mc_version}-${rootProject.fabric_api_version}"
         )
+    }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
     }
 }
 

@@ -1,9 +1,10 @@
 package dev.itsmeow.imdlib.block;
 
 import dev.itsmeow.imdlib.util.HeadType;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class GenericSkullBlock extends AnimalSkullBlock implements EntityBlock {
 
@@ -16,8 +17,7 @@ public class GenericSkullBlock extends AnimalSkullBlock implements EntityBlock {
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockGetter blockGetter) {
-        return type.createTE();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return type.createTE(pos, state);
     }
-
 }

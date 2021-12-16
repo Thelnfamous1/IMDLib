@@ -43,9 +43,9 @@ public class ItemModFishBucket<T extends Mob & IContainable> extends BucketItem 
     }
 
     @Override
-    public void checkExtraContent(Level worldIn, ItemStack stack, BlockPos pos) {
-        if (!worldIn.isClientSide && worldIn instanceof ServerLevel) {
-            this.placeEntity((ServerLevel) worldIn, stack, pos);
+    public void checkExtraContent(Player player, Level level, ItemStack stack, BlockPos pos) {
+        if (!level.isClientSide && level instanceof ServerLevel) {
+            this.placeEntity((ServerLevel) level, stack, pos);
         }
     }
 

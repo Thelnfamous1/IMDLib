@@ -109,7 +109,7 @@ public class RenderUtil {
     private static Cube getPartBox(ModelPart part) {
         Cube res = cubeList.get(part);
         if (res == null) {
-            res = ((ModelPartAccessor) part).cubes().get(0);
+            res = ((ModelPartAccessor) (Object) part).cubes().get(0);
             cubeList.put(part, res);
         }
         return res;

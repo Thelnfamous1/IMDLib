@@ -2,28 +2,24 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
-configurations {
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
-}
-
 architectury {
     platformSetupLoomIde()
     forge()
 }
 
+configurations {
+    common
+    shadowCommon
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.mc_version}-${rootProject.forge_version}"
-    modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
-
-    implementation(project(path: ":common", configuration: "dev")) {
-        transitive = false
-    }
-    developmentForge(project(path: ":common", configuration: "dev")) {
-        transitive = false
-    }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) {
-        transitive = false
-    }
+    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 
 shadowJar {
@@ -73,6 +69,12 @@ sourcesJar {
                 "Built-On-Java": "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
                 "Built-On": "${rootProject.mc_version}-${rootProject.forge_version}"
         )
+    }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
     }
 }
 

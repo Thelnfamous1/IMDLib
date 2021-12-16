@@ -43,7 +43,7 @@ public interface IContainerItem<T extends Mob & IContainable> {
     @SuppressWarnings("deprecation")
     @Environment(EnvType.CLIENT)
     default <A extends Item & IContainerItem<T>> void addPropertyOverrides(A item) {
-        ItemPropertiesInvoker.invokeRegister(item, new ResourceLocation(item.getContainer().getModId(), "variant"), (stack, world, entity) -> {
+        ItemPropertiesInvoker.invokeRegister(item, new ResourceLocation(item.getContainer().getModId(), "variant"), (stack, world, entity, i) -> {
             String variant = IContainerItem.getVariantIfPresent(stack);
             return !variant.isEmpty() ? item.getContainer().getVariantIndex(item.getContainer().getVariantForName(variant)) + 1 : 0;
         });

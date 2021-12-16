@@ -65,10 +65,10 @@ public interface IContainable {
             this.onPickupSuccess(player, hand, itemstack1);
             if (itemstack.isEmpty()) {
                 player.setItemInHand(hand, itemstack1);
-            } else if (!player.inventory.add(itemstack1)) {
+            } else if (!player.getInventory().add(itemstack1)) {
                 player.drop(itemstack1, false);
             }
-            this.getImplementation().remove();
+            this.getImplementation().discard();
             return true;
         } else {
             return false;

@@ -1,6 +1,6 @@
 package dev.itsmeow.imdlib.util.config;
 
-import me.shedaniel.architectury.event.events.LifecycleEvent;
+import dev.architectury.event.events.common.LifecycleEvent;
 import net.minecraft.util.LazyLoadedValue;
 
 import java.util.HashSet;

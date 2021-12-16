@@ -10,7 +10,7 @@ import dev.itsmeow.imdlib.util.config.ServerFabricConfigContainer;
 import io.github.fablabsmc.fablabs.api.fiber.v1.builder.ConfigTreeBuilder;
 import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationException;
 import io.github.fablabsmc.fablabs.api.fiber.v1.tree.ConfigTree;
-import me.shedaniel.architectury.platform.Platform;
+import dev.architectury.platform.Platform;
 import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import me.shedaniel.clothconfig2.gui.ClothConfigTabButton;
 import me.shedaniel.fiber2cloth.api.Fiber2Cloth;

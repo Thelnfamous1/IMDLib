@@ -3,7 +3,7 @@ package dev.itsmeow.imdlib.entity.interfaces;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.AgableMob;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
@@ -92,8 +92,8 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
     default SpawnGroupData ageableDataFromVariant(IVariant variant, SpawnGroupData livingdata) {
         if (livingdata instanceof AgeableTypeData) {
             variant = ((AgeableTypeData) livingdata).typeData;
-        } else if (livingdata instanceof AgableMob.AgableMobGroupData) {
-            livingdata = new AgeableTypeData((AgableMob.AgableMobGroupData) livingdata, variant);
+        } else if (livingdata instanceof AgeableMob.AgeableMobGroupData) {
+            livingdata = new AgeableTypeData((AgeableMob.AgeableMobGroupData) livingdata, variant);
         } else {
             livingdata = new AgeableTypeData(variant);
         }
@@ -119,7 +119,7 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
         }
     }
 
-    class AgeableTypeData extends AgableMob.AgableMobGroupData {
+    class AgeableTypeData extends AgeableMob.AgeableMobGroupData {
         public IVariant typeData;
         private int indexInGroup = 0;
         private boolean canBabySpawn = true;
@@ -130,7 +130,7 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
             this.typeData = type;
         }
 
-        public AgeableTypeData(AgableMob.AgableMobGroupData data, IVariant type) {
+        public AgeableTypeData(AgeableMob.AgeableMobGroupData data, IVariant type) {
             super(false);
             this.typeData = type;
             this.indexInGroup = data.getGroupSize();

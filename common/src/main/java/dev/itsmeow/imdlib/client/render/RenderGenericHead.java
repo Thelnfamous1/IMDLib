@@ -7,8 +7,8 @@ import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -17,12 +17,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
-public class RenderGenericHead extends BlockEntityRenderer<HeadBlockEntity> {
+public class RenderGenericHead implements BlockEntityRenderer<HeadBlockEntity> {
 
     public static HashMap<HeadType, EntityModel<?>> modelMap = new HashMap<>();
 
-    public RenderGenericHead(BlockEntityRenderDispatcher dispatcher) {
-        super(dispatcher);
+    public RenderGenericHead(BlockEntityRendererProvider.Context context) {
     }
 
     @Override

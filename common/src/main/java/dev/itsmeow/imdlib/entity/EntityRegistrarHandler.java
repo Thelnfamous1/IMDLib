@@ -1,5 +1,8 @@
 package dev.itsmeow.imdlib.entity;
 
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.registry.level.entity.EntityAttributeRegistry;
+import dev.architectury.registry.registries.Registrar;
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
@@ -13,10 +16,7 @@ import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
 import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
-import me.shedaniel.architectury.event.events.LifecycleEvent;
-import me.shedaniel.architectury.registry.Registry;
-import me.shedaniel.architectury.registry.entity.EntityAttributes;
-import net.minecraft.core.WritableRegistry;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -57,7 +57,7 @@ public class EntityRegistrarHandler {
         }
 
         // Containers & eggs
-        Registry<Item> items = IMDLib.getRegistry(net.minecraft.core.Registry.ITEM_REGISTRY);
+        Registrar<Item> items = IMDLib.getRegistry(net.minecraft.core.Registry.ITEM_REGISTRY);
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             if (container instanceof EntityTypeContainerContainable<?, ?>) {
                 EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
@@ -69,17 +69,17 @@ public class EntityRegistrarHandler {
                 }
             }
             if (container.hasEgg()) {
-                container.egg = items.registerSupplied(new ResourceLocation(container.getModId(), container.getEntityName().toLowerCase() + "_spawn_egg"), () -> new ModSpawnEggItem(container));
+                container.egg = items.register(new ResourceLocation(container.getModId(), container.getEntityName().toLowerCase() + "_spawn_egg"), () -> new ModSpawnEggItem(container));
             }
         }
-        Registry<BlockEntityType<?>> blockEntities = IMDLib.getRegistry(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
+        Registrar<BlockEntityType<?>> blockEntities = IMDLib.getRegistry(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
         blockEntities.register(new ResourceLocation(modid, "head"), () -> HeadBlockEntity.HEAD_TYPE);
-        Registry<EntityType<?>> entityTypes = IMDLib.getRegistry(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
+        Registrar<EntityType<?>> entityTypes = IMDLib.getRegistry(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
         //entity types
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             ResourceLocation rl = new ResourceLocation(modid, container.getEntityName());
             entityTypes.register(rl, container::getEntityType);
-            EntityAttributes.register(container::getEntityType, container.getAttributeBuilder());
+            EntityAttributeRegistry.register(container::getEntityType, container.getAttributeBuilder());
         }
 
         CommonConfigAPI.createServerConfig(builder -> {
@@ -91,9 +91,9 @@ public class EntityRegistrarHandler {
         }, server -> {
             ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
-            WritableRegistry<Biome> biomeRegistry = server.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY);
-            for (ResourceLocation key : biomeRegistry.keySet()) {
-                Biome biome = biomeRegistry.get(key);
+            Registry<Biome> biomeRegistrar = server.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY);
+            for (ResourceLocation key : biomeRegistrar.keySet()) {
+                Biome biome = biomeRegistrar.get(key);
                 MobSpawnSettings spawnInfo = biome.getMobSettings();
                 SpawnSettingsAccessor spawnInfoA = (SpawnSettingsAccessor) spawnInfo;
                 // make spawns mutable
