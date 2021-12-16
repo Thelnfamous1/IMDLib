@@ -10,7 +10,7 @@ import java.util.List;
 @Mixin(ClothConfigScreen.class)
 public interface ClothConfigScreenAccessor {
 
-    @Accessor("tabButtons")
+    @Accessor(value = "tabButtons", remap = false)
     List<ClothConfigTabButton> getTabButtons();
 
 }
