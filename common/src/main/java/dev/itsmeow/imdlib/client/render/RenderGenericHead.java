@@ -5,6 +5,7 @@ import dev.itsmeow.imdlib.block.GenericSkullBlock;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -19,9 +20,12 @@ import java.util.HashMap;
 
 public class RenderGenericHead implements BlockEntityRenderer<HeadBlockEntity> {
 
-    public static HashMap<HeadType, EntityModel<?>> modelMap = new HashMap<>();
+    public HashMap<HeadType, EntityModel<?>> modelMap = new HashMap<>();
 
-    public RenderGenericHead(BlockEntityRendererProvider.Context context) {
+    public RenderGenericHead(BlockEntityRendererProvider.Context ctx) {
+        for(HeadType type : HeadType.values()) {
+            modelMap.put(type, type.getModelSupplier().get().apply(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(type.getMod(), type.getModelLocation()), "main"))));
+        }
     }
 
     @Override
@@ -35,15 +39,7 @@ public class RenderGenericHead implements BlockEntityRenderer<HeadBlockEntity> {
         float rotation = -dir.toYRot();
         rotation = (dir == Direction.NORTH || dir == Direction.SOUTH) ? dir.getOpposite().toYRot() : rotation;
         rotation = (dir == Direction.UP) ? te.getTopRotation() : rotation;
-
-        EntityModel<? extends Entity> model = modelMap.get(te.getHeadType());
-        if (model == null) {
-            EntityModel<? extends Entity> newModel = te.getNewModel();
-            modelMap.put(te.getHeadType(), newModel);
-            model = newModel;
-        }
-
-        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), model);
+        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), modelMap.get(te.getHeadType()));
     }
 
     public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, int packedOverlayIn, @Nullable Direction facing, float skullRotation, ResourceLocation texture, EntityModel<? extends Entity> model) {

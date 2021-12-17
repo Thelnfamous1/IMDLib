@@ -7,11 +7,9 @@ import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.EntityModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -35,11 +33,6 @@ public class HeadBlockEntity extends BlockEntity {
     @Environment(EnvType.CLIENT)
     public static void registerTypeRender() {
         BlockEntityRendererRegistry.register(HEAD_TYPE, RenderGenericHead::new);
-    }
-
-    @Environment(EnvType.CLIENT)
-    public EntityModel<? extends Entity> getNewModel() {
-        return this.getHeadType().getModelSupplier().get().get();
     }
 
     private Block getBlock() {

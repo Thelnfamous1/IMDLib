@@ -14,6 +14,7 @@ import dev.itsmeow.imdlib.item.ItemBlockHeadType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
@@ -43,7 +44,8 @@ public class HeadType {
     private final EntityTypeContainer<? extends LivingEntity> container;
     private final String modid;
     @Environment(EnvType.CLIENT)
-    public Supplier<Supplier<EntityModel<? extends Entity>>> modelSupplier;
+    public Supplier<Function<ModelPart, EntityModel<? extends Entity>>> modelSupplier;
+    public String modelLocation;
     private IVariant singletonVariant;
     private final Map<IVariant, Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>>> heads = new HashMap<>();
     private final Set<RegistrySupplier<ItemBlockHeadType>> items = new HashSet<>();
@@ -178,8 +180,12 @@ public class HeadType {
     }
 
     @Environment(EnvType.CLIENT)
-    public Supplier<Supplier<EntityModel<? extends Entity>>> getModelSupplier() {
+    public Supplier<Function<ModelPart, EntityModel<? extends Entity>>> getModelSupplier() {
         return modelSupplier;
+    }
+
+    public String getModelLocation() {
+        return modelLocation;
     }
 
     public EntityTypeContainer<? extends LivingEntity> getContainer() {
@@ -234,7 +240,8 @@ public class HeadType {
         private final B initial;
         private PlacementType placement;
         @Environment(EnvType.CLIENT)
-        private Supplier<Supplier<EntityModel<?>>> modelSupplier;
+        private Supplier<Function<ModelPart, EntityModel<? extends Entity>>> modelSupplier;
+        private String modelLocation;
         private HeadIDMapping idMapping;
         private Function<IVariant, String> customMapper;
         private IVariant singletonVariant;
@@ -281,10 +288,11 @@ public class HeadType {
             return this;
         }
 
-        public Builder<T, C, B> setModel(Supplier<Supplier<EntityModel<? extends Entity>>> modelSupplier) {
+        public Builder<T, C, B> setModel(Supplier<Function<ModelPart, EntityModel<? extends Entity>>> modelSupplier, String modelLocation) {
             if (Platform.getEnv() == EnvType.CLIENT) {
                 this.modelSupplier = modelSupplier;
             }
+            this.modelLocation = modelLocation;
             return this;
         }
 
@@ -300,6 +308,7 @@ public class HeadType {
             HeadType type = new HeadType(initial.getMod(), group, name, placement, idMapping, customMapper, singletonVariant, singletonID, container);
             if (Platform.getEnv() == EnvType.CLIENT) {
                 type.modelSupplier = modelSupplier;
+                type.modelLocation = modelLocation;
             }
             return type;
         }
