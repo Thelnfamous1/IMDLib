@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.entity;
 
+import com.google.common.collect.Lists;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.Registrar;
@@ -17,6 +18,7 @@ import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -27,10 +29,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -97,14 +96,10 @@ public class EntityRegistrarHandler {
                 SpawnSettingsAccessor spawnInfoA = (SpawnSettingsAccessor) spawnInfo;
                 // make spawns mutable
                 spawnInfoA.setSpawners(new HashMap<>(spawnInfoA.getSpawners()));
-                // make spawner lists mutable
-                for (MobCategory classification : MobCategory.values()) {
-                    ArrayList<MobSpawnSettings.SpawnerData> newList = new ArrayList<>();
-                    List<MobSpawnSettings.SpawnerData> oldList = spawnInfoA.getSpawners().get(classification);
-                    if (oldList != null) {
-                        newList.addAll(oldList);
+                for (MobCategory category : MobCategory.values()) {
+                    if (spawnInfoA.getSpawners().get(category) instanceof List<MobSpawnSettings.SpawnerData>) {
+                        spawnInfoA.getSpawners().put(category, new ArrayList<>(spawnInfoA.getSpawners().get(category)));
                     }
-                    spawnInfoA.getSpawners().put(classification, newList);
                 }
                 // make costs mutable
                 spawnInfoA.setMobSpawnCosts(new HashMap<>(spawnInfoA.getMobSpawnCosts()));
@@ -112,9 +107,15 @@ public class EntityRegistrarHandler {
                     EntityTypeContainer<?>.EntityConfiguration config = entry.getConfiguration();
                     if (entry.getDefinition().hasSpawns() && config.doSpawning.get() && config.spawnWeight.get() > 0 && entry.getBiomeIDs().contains(key.toString())) {
                         entry.registerPlacement();
-                        List<MobSpawnSettings.SpawnerData> list = spawnInfoA.getSpawners().get(entry.getDefinition().getSpawnClassification());
+                        Object list = spawnInfoA.getSpawners().get(entry.getDefinition().getSpawnClassification());
                         if (list != null) {
-                            list.add(entry.getSpawnEntry());
+                            if(list instanceof WeightedRandomList w) {
+                                ArrayList<MobSpawnSettings.SpawnerData> l = new ArrayList<>(w.unwrap());
+                                l.add(entry.getSpawnEntry());
+                                ((Map)spawnInfoA.getSpawners()).put(entry.getDefinition().getSpawnClassification(), WeightedRandomList.create(l));
+                            } else if(list instanceof ArrayList l) {
+                                l.add(entry.getSpawnEntry());
+                            }
                         }
                         if (config.spawnCostPer.get() != 0 && config.spawnMaxCost.get() != 0 && entry.getSpawnCostBiomeIDs().contains(key.toString())) {
                             // private constructors be like
