@@ -12,7 +12,6 @@ import dev.itsmeow.imdlib.entity.util.builder.IEntityBuilder;
 import dev.itsmeow.imdlib.item.IContainerItem;
 import dev.itsmeow.imdlib.item.ItemModFishBucket;
 import dev.itsmeow.imdlib.item.ModSpawnEggItem;
-import dev.itsmeow.imdlib.mixin.EntityTypeAccessor;
 import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
@@ -171,9 +170,7 @@ public class EntityRegistrarHandler {
     }
 
     public <T extends Entity> EntityType<T> createEntityType(EntityType.EntityFactory<T> factory, String entityNameIn, MobCategory classification, int trackingRange, int updateInterval, boolean velUpdates, float width, float height) {
-        EntityType<T> type = EntityType.Builder.of(factory, classification).clientTrackingRange(trackingRange).updateInterval(updateInterval).sized(width, height).noSave().build(modid + ":" + entityNameIn.toLowerCase());
-        ((EntityTypeAccessor) type).setSerialize(true);
-        return type;
+        return EntityType.Builder.of(factory, classification).clientTrackingRange(trackingRange).updateInterval(updateInterval).sized(width, height).build(modid + ":" + entityNameIn.toLowerCase());
     }
 
 }
