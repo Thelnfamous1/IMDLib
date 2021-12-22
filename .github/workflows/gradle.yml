@@ -6,11 +6,13 @@ jobs:
     steps:
       - { uses: actions/checkout@v2, with: { fetch-depth: 0 } }
       - { name: 'Set up JDK 16', uses: actions/setup-java@v2, with: { distribution: 'adopt', java-version: '16' } }
-      - name: Build with Gradle
+      - uses: burrunan/gradle-cache-action@v1
+        name: Build with Gradle
         id: build
         env:
           MAVEN_PASSWORD: "${{secrets.MAVEN_PASSWORD}}"
           MAVEN_URL: "${{secrets.MAVEN_URL}}"
           MAVEN_USER: "${{secrets.MAVEN_USER}}"
           SHA_VERSION: '${{ github.event.after }}'
-        run: 'chmod +x gradlew && ./gradlew build publish'
+        arguments: "build publish"
+        gradle-version: "wrapper"
