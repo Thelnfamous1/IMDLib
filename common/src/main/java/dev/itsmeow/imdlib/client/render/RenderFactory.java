@@ -12,11 +12,12 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.projectile.ItemSupplier;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public record RenderFactory(String modid) {
 
-    public static <T extends Entity> void addRender(EntityType<T> type, EntityRendererProvider renderer) {
-        EntityRendererRegistry.register(() -> type, renderer);
+    public static <T extends Entity> void addRender(Supplier<EntityType<? extends T>> type, EntityRendererProvider renderer) {
+        EntityRendererRegistry.register(type, renderer);
     }
 
     public static <T extends Entity & ItemSupplier> EntityRendererProvider<T> sprite() {
@@ -36,8 +37,8 @@ public record RenderFactory(String modid) {
         return ImplRenderer.factory(modid, shadowSize);
     }
 
-    public <T extends Mob, M extends EntityModel<T>> void addRender(EntityType<T> type, float shadowSize, Function<ImplRenderer.Builder<T, M>, ImplRenderer.Builder<T, M>> render) {
-        EntityRendererRegistry.register(() -> type, render.apply(this.r(shadowSize)).done());
+    public <T extends Mob, M extends EntityModel<T>> void addRender(Supplier<EntityType<? extends T>> type, float shadowSize, Function<ImplRenderer.Builder<T, M>, ImplRenderer.Builder<T, M>> render) {
+        EntityRendererRegistry.register(type, render.apply(this.r(shadowSize)).done());
     }
 
 }
