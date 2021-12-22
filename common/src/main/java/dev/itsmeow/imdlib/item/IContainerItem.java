@@ -1,5 +1,7 @@
 package dev.itsmeow.imdlib.item;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.architectury.utils.PlatformExpectedError;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
@@ -40,13 +42,10 @@ public interface IContainerItem<T extends Mob & IContainable> {
         return "";
     }
 
-    @SuppressWarnings("deprecation")
+    @ExpectPlatform
     @Environment(EnvType.CLIENT)
     default <A extends Item & IContainerItem<T>> void addPropertyOverrides(A item) {
-        ItemPropertiesInvoker.invokeRegister(item, new ResourceLocation(item.getContainer().getModId(), "variant"), (stack, world, entity, i) -> {
-            String variant = IContainerItem.getVariantIfPresent(stack);
-            return !variant.isEmpty() ? item.getContainer().getVariantIndex(item.getContainer().getVariantForName(variant)) + 1 : 0;
-        });
+        throw new PlatformExpectedError();
     }
 
     EntityTypeContainer<T> getContainer();
