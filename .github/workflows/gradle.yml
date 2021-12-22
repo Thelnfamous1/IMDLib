@@ -14,5 +14,6 @@ jobs:
           MAVEN_URL: "${{secrets.MAVEN_URL}}"
           MAVEN_USER: "${{secrets.MAVEN_USER}}"
           SHA_VERSION: '${{ github.event.after }}'
-        arguments: "build publish"
-        gradle-version: "wrapper"
+        with:
+          arguments: "build publish"
+          gradle-version: "wrapper"
