@@ -1,9 +1,9 @@
 {
   "required": true,
   "package": "dev.itsmeow.imdlib.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
+  "minVersion": "0.8",
   "mixins": [
-    "ItemPropertiesInvoker",
     "SpawnPlacementsInvoker",
     "ModelPartAccessor",
     "SpawnSettingsAccessor",
