@@ -3,13 +3,13 @@
   "package": "dev.itsmeow.imdlib.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ItemPropertiesInvoker",
     "SpawnPlacementsInvoker",
     "EntityTypeAccessor",
-    "ModelPartAccessor",
     "SpawnSettingsAccessor"
   ],
   "client": [
+    "ModelPartAccessor",
+    "ItemPropertiesInvoker"
   ],
   "injectors": {
     "defaultRequire": 1
