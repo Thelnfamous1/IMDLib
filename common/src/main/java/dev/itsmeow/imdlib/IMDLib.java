@@ -23,7 +23,7 @@ public class IMDLib {
 
     public static <T> Registrar<T> getRegistry(ResourceKey<net.minecraft.core.Registry<T>> key) {
         if(!getRegistries().isPresent()) {
-            throw new RuntimeException("Registries have not been initialized yet! Call IMDLib.setRegistry(modid) or use IMDLib.entityHandler(modid)")
+            throw new RuntimeException("Registries have not been initialized yet! Call IMDLib.setRegistry(modid) or use IMDLib.entityHandler(modid)");
         }
         return getRegistries().get().get(key);
     }
