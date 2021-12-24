@@ -35,7 +35,7 @@ public class ModMenuCompat implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         // Hack the classloader
-        Supplier<Supplier<ConfigScreenFactory<?>>> supplier = () -> () -> new ClothConfigScreenFactory(IMDLib.getRegistries().getModId());
+        Supplier<Supplier<ConfigScreenFactory<?>>> supplier = () -> () -> new ClothConfigScreenFactory(IMDLib.getRegistries().get().getModId());
         return Platform.isModLoaded("cloth-config2") ? supplier.get().get() : screen -> null;
     }
 

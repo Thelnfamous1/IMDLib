@@ -32,7 +32,7 @@ public abstract class FabricConfigContainer {
 
     public FabricConfigContainer(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init) {
         this.type = type;
-        this.name = IMDLib.getRegistries().getModId() + "-" + type.name().toLowerCase();
+        this.name = IMDLib.getRegistries().get().getModId() + "-" + type.name().toLowerCase();
         this.init = init;
     }
 

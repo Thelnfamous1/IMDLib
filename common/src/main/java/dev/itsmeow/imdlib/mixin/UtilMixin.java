@@ -14,7 +14,7 @@ public abstract class UtilMixin {
 
     @Inject(at = @At(value = "FIELD", target = "Lnet/minecraft/Util;LOGGER:Lorg/apache/logging/log4j/Logger;"), method = "doFetchChoiceType(Lcom/mojang/datafixers/DSL$TypeReference;Ljava/lang/String;)Lcom/mojang/datafixers/types/Type;", cancellable = true)
     private static void doFetchChoiceType(DSL.TypeReference typeReference, String string, CallbackInfoReturnable<Type<?>> cir) {
-        if(string != null && string.startsWith(IMDLib.getRegistries().getModId())) {
+        if(string != null && IMDLib.getRegistries().isPresent() && string.startsWith(IMDLib.getRegistries().get().getModId())) {
             cir.setReturnValue(null);
             cir.cancel();
         }

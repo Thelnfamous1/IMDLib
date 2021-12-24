@@ -51,7 +51,7 @@ public class EntityRegistrarHandler {
         });
         BiomeTypes.init();
         for (HeadType type : HeadType.values()) {
-            type.register(IMDLib.getRegistries());
+            type.register(IMDLib.getRegistries().get());
         }
 
         // Containers & eggs

@@ -29,7 +29,7 @@ public abstract class AbstractConfigEntryMixin {
             callbackInfoReturnable.cancel();
         } else {
             String fieldName = field.getString();
-            String modId = IMDLib.getRegistries().getModId();
+            String modId = IMDLib.getRegistries().get().getModId();
             if (fieldName.matches("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities\\.\\w+$")) {
                 fieldName = fieldName.replaceFirst("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities", "");
                 TranslatableComponent c = new TranslatableComponent("entity." + modId + fieldName);
