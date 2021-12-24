@@ -5,11 +5,11 @@
   "minVersion": "0.8",
   "mixins": [
     "SpawnPlacementsInvoker",
-    "ModelPartAccessor",
     "SpawnSettingsAccessor",
     "UtilMixin"
   ],
   "client": [
+    "ModelPartAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
