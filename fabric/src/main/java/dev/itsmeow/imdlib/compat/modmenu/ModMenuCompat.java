@@ -2,6 +2,7 @@ package dev.itsmeow.imdlib.compat.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import dev.itsmeow.imdlib.FabricMixinPlugin;
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.mixin.ClothConfigScreenAccessor;
 import dev.itsmeow.imdlib.util.config.CommonFabricConfigContainer;
@@ -36,7 +37,7 @@ public class ModMenuCompat implements ModMenuApi {
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         // Hack the classloader
         Supplier<Supplier<ConfigScreenFactory<?>>> supplier = () -> () -> new ClothConfigScreenFactory(IMDLib.getRegistries().get().getModId());
-        return Platform.isModLoaded("cloth-config-fabric") ? supplier.get().get() : screen -> null;
+        return FabricMixinPlugin.clothLoaded() ? supplier.get().get() : screen -> null;
     }
 
     public static class ClothConfigScreenFactory implements ConfigScreenFactory<Screen> {

@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib;
 
-import dev.architectury.platform.Platform;
+import jdk.internal.reflect.Reflection;
+import me.shedaniel.clothconfig2.ClothConfigInitializer;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -21,7 +22,16 @@ public class FabricMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return (!mixinClassName.equals("dev.itsmeow.imdlib.mixin.AbstractConfigEntryMixin") && !mixinClassName.equals("dev.itsmeow.imdlib.mixin.ClothConfigScreenAccessor")) || Platform.isModLoaded("cloth-config-fabric");
+        return (!mixinClassName.equals("dev.itsmeow.imdlib.mixin.AbstractConfigEntryMixin") && !mixinClassName.equals("dev.itsmeow.imdlib.mixin.ClothConfigScreenAccessor")) || clothLoaded();
+    }
+
+    public static boolean clothLoaded() {
+        try {
+            Class c = Class.forName("me.shedaniel.clothconfig2.ClothConfigInitializer", false, Reflection.getCallerClass().getClassLoader());
+            return c != null;
+        } catch (ClassNotFoundException | LinkageError | SecurityException e) {
+            return false;
+        }
     }
 
     @Override
