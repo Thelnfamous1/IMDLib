@@ -44,8 +44,9 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     shadowImplementation "me.zeroeightsix:fiber:${rootProject.fiber_version}"
-    modApi ("curse.maven:cloth-config-319057:${rootProject.cloth_config_version}") {
-        transitive = false
+    modApi ("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}") {
+        exclude(group: "net.fabricmc")
+        exclude(group: "net.fabricmc.fabric-api")
     }
     shadowModApi ("me.shedaniel.cloth:fiber2cloth:${rootProject.fiber2cloth_version}") {
         transitive = false

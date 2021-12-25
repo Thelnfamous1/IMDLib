@@ -21,7 +21,7 @@ public class FabricMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return (!mixinClassName.equals("dev.itsmeow.imdlib.mixin.AbstractConfigEntryMixin") && !mixinClassName.equals("dev.itsmeow.imdlib.mixin.ClothConfigScreenAccessor")) || Platform.isModLoaded("cloth-config");
+        return (!mixinClassName.equals("dev.itsmeow.imdlib.mixin.AbstractConfigEntryMixin") && !mixinClassName.equals("dev.itsmeow.imdlib.mixin.ClothConfigScreenAccessor")) || Platform.isModLoaded("cloth-config-fabric");
     }
 
     @Override
