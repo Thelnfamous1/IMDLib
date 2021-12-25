@@ -1,12 +1,12 @@
 package dev.itsmeow.imdlib.util.config;
 
+import dev.itsmeow.imdlib.IMDLib;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fmllegacy.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 
@@ -50,7 +50,7 @@ public class ConfigBuilderForge extends ConfigBuilder {
     private void onLoadForge(ModConfigEvent.Loading configEvent) {
         LogManager.getLogger().debug("Loading {}", configEvent.getConfig().getFileName());
         if(configEvent.getConfig().getSpec() == spec) {
-            this.onLoad(type == CommonConfigAPI.ConfigType.SERVER ? ServerLifecycleHooks.getCurrentServer() : null);
+            this.onLoad(type == CommonConfigAPI.ConfigType.SERVER ? IMDLib.getStaticServerInstance() : null);
         }
     }
 

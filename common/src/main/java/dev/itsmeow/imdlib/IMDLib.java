@@ -1,14 +1,11 @@
 package dev.itsmeow.imdlib;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
-import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.Registries;
-import dev.architectury.utils.PlatformExpectedError;
+import dev.architectury.utils.GameInstance;
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.LazyLoadedValue;
 
 import java.util.Optional;
 
@@ -38,21 +35,14 @@ public class IMDLib {
 
     public static MinecraftServer getStaticServerInstance() {
         if(SERVER == null) {
-            if(Platform.isForge()) {
-                MinecraftServer server = getForgeServer();
-                if(server != null) {
-                    SERVER = server;
-                    return server;
-                }
+            MinecraftServer s = GameInstance.getServer();
+            if(s != null) {
+                SERVER = s;
+                return SERVER;
             }
             throw new RuntimeException("Server not initialized yet! Call IMDLib.setStaticServerInstance(server) or use IMDLib.entityHandler(modid)");
         }
         return SERVER;
-    }
-
-    @ExpectPlatform
-    public static MinecraftServer getForgeServer() {
-        throw new PlatformExpectedError("Expected Platform: IMDLib.getForgeServer()");
     }
 
     public static EntityRegistrarHandler entityHandler(String modid) {

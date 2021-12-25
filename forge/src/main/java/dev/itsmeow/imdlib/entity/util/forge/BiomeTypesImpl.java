@@ -3,9 +3,7 @@ package dev.itsmeow.imdlib.entity.util.forge;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public class BiomeTypesImpl {
 
