@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class FabricMixinPlugin implements IMixinConfigPlugin {
     @Override
-    public void onLoad(String mixinPackage)
+    public void onLoad(String mixinPackage) {
 
     }
 
