@@ -17,7 +17,7 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
     /* Default Methods */
 
     default void registerTypeKey() {
-        this.getImplementation().getEntityData().define(getContainer().getVariantDataKey(), "");
+        this.getImplementation().getEntityData().define(getContainer().getVariantDataKey(), getContainer().getVariants().get(0).getName());
     }
 
     default String getVariantString() {
@@ -38,7 +38,11 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
     }
 
     default void writeType(CompoundTag compound) {
-        compound.putString("VariantId", this.getVariantNameOrEmpty());
+        String variantKey = this.getVariantNameOrEmpty();
+        if(variantKey.isEmpty()) {
+            variantKey = getRandomType().getName();
+        }
+        compound.putString("VariantId", variantKey);
     }
 
     default void readType(CompoundTag compound) {
