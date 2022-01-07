@@ -25,7 +25,7 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
     }
 
     default IVariantTypes<T> setType(String variantKey) {
-        if (getContainer().getVariantForName(variantKey) == null) {
+        if (!getContainer().getVariantForName(variantKey).isPresent()) {
             variantKey = getRandomType().getName();
         }
         this.getImplementation().getEntityData().set(getContainer().getVariantDataKey(), variantKey);
@@ -80,7 +80,7 @@ public interface IVariantTypes<T extends Mob> extends IContainerEntity<T> {
      * Uses optional to ensure null-safety
      */
     default Optional<IVariant> getVariant() {
-        return Optional.ofNullable(this.getContainer().getVariantForName(this.getVariantString()));
+        return this.getContainer().getVariantForName(this.getVariantString());
     }
 
     @Nullable

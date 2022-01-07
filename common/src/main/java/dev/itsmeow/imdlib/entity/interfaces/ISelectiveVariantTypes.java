@@ -45,10 +45,10 @@ public interface ISelectiveVariantTypes<T extends Mob> extends IVariantTypes<T> 
         biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
         String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeTypes.getTypes(biomeKey.get()), reason);
         String varStr = validTypes[this.getImplementation().getRandom().nextInt(validTypes.length)];
-        IVariant variant = this.getContainer().getVariantForName(varStr);
-        if (variant == null || !varStr.equals(variant.getName())) {
+        Optional<IVariant> variant = this.getContainer().getVariantForName(varStr);
+        if (!variant.isPresent() || !varStr.equals(variant.get().getName())) {
             throw new RuntimeException("Received invalid variant \"" + varStr + "\" from selective type on entity " + this.getContainer().getEntityName());
         }
-        return variant;
+        return variant.get();
     }
 }
