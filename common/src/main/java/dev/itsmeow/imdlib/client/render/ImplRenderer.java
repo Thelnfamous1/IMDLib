@@ -444,8 +444,6 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
             return this;
         }
 
-        //TODO
-
         public Function<EntityRenderDispatcher, EntityRenderer<T>> done() {
             if (tex == null || model == null) {
                 throw new IllegalArgumentException("Must define both a texture and a model before calling build()!");
