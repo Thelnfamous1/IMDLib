@@ -5,6 +5,7 @@ import dev.architectury.utils.PlatformExpectedError;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
+import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -22,13 +23,16 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IContainerItem<T extends Mob & IContainable> {
     ITooltipFunction VARIANT_TOOLTIP = (container, stack, world, tooltip) -> {
         CompoundTag compoundnbt = stack.getTag();
         if (compoundnbt != null && compoundnbt.contains("BucketVariantTag", 8)) {
             String id = compoundnbt.getString("BucketVariantTag");
-            tooltip.add((new TranslatableComponent("entity." + container.getModId() + "." + container.getEntityName().toLowerCase() + ".type." + container.getVariantForName(id).getName())).withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
+            Optional<IVariant> variant = container.getVariantForName(id);
+            if(variant.isPresent())
+                tooltip.add((new TranslatableComponent("entity." + container.getModId() + "." + container.getEntityName().toLowerCase() + ".type." + variant.get().getName())).withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
         }
     };
 

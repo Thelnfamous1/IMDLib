@@ -239,12 +239,12 @@ public class EntityTypeContainer<T extends Mob> {
     }
 
     /* Variant getters */
-    public IVariant getVariantForName(String name) {
+    public Optional<IVariant> getVariantForName(String name) {
         return this.variantList.getVariantForName(name);
     }
 
     @Deprecated
-    public IVariant getVariantForIndex(int index) {
+    public Optional<IVariant> getVariantForIndex(int index) {
         return this.variantList.getVariantForIndex(index);
     }
 

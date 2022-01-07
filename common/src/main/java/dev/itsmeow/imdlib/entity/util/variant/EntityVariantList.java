@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class EntityVariantList {
 
-    public static final IVariant EMPTY_VARIANT = new EntityVariant("minecraft", "empty", false);
     private final ArrayList<IVariant> variantList;
     private final HashMap<String, IVariant> nameMap;
 
@@ -17,8 +17,11 @@ public class EntityVariantList {
     }
 
     @Deprecated
-    public IVariant getVariantForIndex(int index) {
-        return variantList.get(index);
+    public Optional<IVariant> getVariantForIndex(int index) {
+        if(index >= variantList.size()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(variantList.get(index));
     }
 
     @Deprecated
@@ -26,8 +29,8 @@ public class EntityVariantList {
         return variantList.indexOf(variant);
     }
 
-    public IVariant getVariantForName(String name) {
-        return nameMap.getOrDefault(name, EMPTY_VARIANT);
+    public Optional<IVariant> getVariantForName(String name) {
+        return Optional.ofNullable(nameMap.get(name));
     }
 
     public ImmutableList<IVariant> getVariantList() {
