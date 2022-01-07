@@ -31,9 +31,7 @@ public interface ISelectiveVariantTypes<T extends Mob> extends IVariantTypes<T> 
     String[] getTypesFor(ResourceKey<Biome> biomeKey, Biome biome, Set<BiomeTypes.Type> types, MobSpawnType reason);
 
     default boolean useSelectiveTypes() {
-        // TODO implement config
-        // return this.getContainer().getConfiguration().biomeVariants.get();
-        return true;
+        return this.getContainer().getConfiguration().biomeVariants.get();
     }
 
     default boolean useSelectiveTypes(MobSpawnType reason) {
