@@ -21,7 +21,7 @@ public class ConfigBuilderFabric extends ConfigBuilder {
 
     public ConfigBuilderFabric(String name, CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
         super(type, init, onLoad);
-        builder = builder.withName(name);
+        builder = builder.withName(name).withComment("This is a " + type.name().toLowerCase() + " configuration file. Configurations with further options are located in: .minecraft/saves/(your world)/serverconfig/. Placing a server configuration in .minecraft/defaultconfigs/ will copy it to newly created worlds automatically.");
     }
 
     public ConfigBuilderFabric(String name, Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
