@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.util.config;
 
+import blue.endless.jankson.JsonObject;
 import dev.itsmeow.imdlib.IMDLib;
 import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationException;
 import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.FiberSerialization;
@@ -12,6 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -22,7 +25,12 @@ public abstract class FabricConfigContainer {
 
     protected static final Logger LOGGER = LogManager.getLogger();
 
-    protected static final JanksonValueSerializer JANKSON_VALUE_SERIALIZER = new JanksonValueSerializer(false);
+    protected final JanksonValueSerializer janksonSerializer = new JanksonValueSerializer(false) {
+        @Override
+        public void writeTarget(JsonObject target, OutputStream out) throws IOException {
+            out.write(("// " + FabricConfigContainer.this.getConfigComment() + "\n" + target.toJson(true, true)).getBytes(StandardCharsets.UTF_8));
+        }
+    };
 
     private final CommonConfigAPI.ConfigType type;
     protected String name;
@@ -34,6 +42,10 @@ public abstract class FabricConfigContainer {
         this.type = type;
         this.name = IMDLib.getRegistries().get().getModId() + "-" + type.name().toLowerCase();
         this.init = init;
+    }
+
+    public String getConfigComment() {
+        return "";
     }
 
     public void invalidate() {
@@ -75,12 +87,12 @@ public abstract class FabricConfigContainer {
     }
 
     public void createOrLoad(Path serverConfigPath) {
-        setupConfigFile(this.getConfigFile(serverConfigPath), this.init(), JANKSON_VALUE_SERIALIZER);
+        setupConfigFile(this.getConfigFile(serverConfigPath), this.init(), janksonSerializer);
     }
 
     public void saveBranch(File configFile, ConfigBranch branch) {
         try {
-            FiberSerialization.serialize(branch, Files.newOutputStream(configFile.toPath()), JANKSON_VALUE_SERIALIZER);
+            FiberSerialization.serialize(branch, Files.newOutputStream(configFile.toPath()), janksonSerializer);
             LOGGER.info("Successfully wrote menu edits to config file '{}'", configFile.toString());
         } catch (IOException e) {
             e.printStackTrace();

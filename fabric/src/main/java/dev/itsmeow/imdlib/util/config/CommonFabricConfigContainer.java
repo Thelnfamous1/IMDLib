@@ -35,4 +35,9 @@ public class CommonFabricConfigContainer extends FabricConfigContainer {
     protected LazyLoadedValue<ConfigBuilderFabric> getBuilder() {
         return builder;
     }
+
+    @Override
+    public String getConfigComment() {
+        return "This is a " + this.getType().name().toLowerCase() + " configuration file. Configurations with further options are located in: .minecraft/saves/(your world)/serverconfig/. Placing a server configuration in .minecraft/defaultconfigs/ will copy it to newly created worlds automatically.";
+    }
 }
