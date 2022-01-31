@@ -31,7 +31,6 @@ public class BiomeTypesImpl {
         BiomeTypes.MESA = get(BiomeDictionary.Type.MESA);
         BiomeTypes.FOREST = get(BiomeDictionary.Type.FOREST);
         BiomeTypes.PLAINS = get(BiomeDictionary.Type.PLAINS);
-        BiomeTypes.MOUNTAIN = get(BiomeDictionary.Type.MOUNTAIN);
         BiomeTypes.HILL = get(BiomeDictionary.Type.HILLS);
         BiomeTypes.SWAMP = get(BiomeDictionary.Type.SWAMP);
         BiomeTypes.SANDY = get(BiomeDictionary.Type.SANDY);
@@ -39,6 +38,10 @@ public class BiomeTypesImpl {
         BiomeTypes.WASTELAND = get(BiomeDictionary.Type.WASTELAND);
         BiomeTypes.BEACH = get(BiomeDictionary.Type.BEACH);
         BiomeTypes.VOID = get(BiomeDictionary.Type.VOID);
+        BiomeTypes.UNDERGROUND = get(BiomeDictionary.Type.UNDERGROUND);
+        BiomeTypes.PEAK = get(BiomeDictionary.Type.PEAK);
+        BiomeTypes.SLOPE = get(BiomeDictionary.Type.SLOPE);
+        BiomeTypes.MOUNTAIN = get(BiomeDictionary.Type.MOUNTAIN);
         BiomeTypes.OVERWORLD = get(BiomeDictionary.Type.OVERWORLD);
         BiomeTypes.NETHER = get(BiomeDictionary.Type.NETHER);
         BiomeTypes.END = get(BiomeDictionary.Type.END);

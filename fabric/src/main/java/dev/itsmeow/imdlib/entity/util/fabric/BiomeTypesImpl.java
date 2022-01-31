@@ -59,7 +59,6 @@ public class BiomeTypesImpl {
         BiomeTypes.MESA = catMatch(Biome.BiomeCategory.MESA);
         BiomeTypes.FOREST = catPathMulti(Biome.BiomeCategory.FOREST, "forest", "taiga");
         BiomeTypes.PLAINS = catPath(Biome.BiomeCategory.PLAINS, "plain");
-        BiomeTypes.MOUNTAIN = catPath(Biome.BiomeCategory.EXTREME_HILLS, "mountain");
         BiomeTypes.HILL = catPath(Biome.BiomeCategory.EXTREME_HILLS, "hill");
         BiomeTypes.SWAMP = catPath(Biome.BiomeCategory.SWAMP, "swamp");
         BiomeTypes.SANDY = catMatch(Biome.BiomeCategory.DESERT);
@@ -67,6 +66,10 @@ public class BiomeTypesImpl {
         BiomeTypes.WASTELAND = pathContains("waste");
         BiomeTypes.BEACH = catMatch(Biome.BiomeCategory.BEACH);
         BiomeTypes.VOID = catMatch(Biome.BiomeCategory.NONE);
+        BiomeTypes.UNDERGROUND = catMatch(Biome.BiomeCategory.UNDERGROUND);
+        BiomeTypes.PEAK = catAndPath(Biome.BiomeCategory.MOUNTAIN, "peak");
+        BiomeTypes.SLOPE = catAndPath(Biome.BiomeCategory.MOUNTAIN, "slope");
+        BiomeTypes.MOUNTAIN = new BiomeTypes.Type(b -> BiomeTypes.PEAK.hasType(b) || BiomeTypes.SLOPE.hasType(b) || cat(b) == Biome.BiomeCategory.MOUNTAIN, ctx -> BiomeTypes.PEAK.hasType(ctx) || BiomeTypes.SLOPE.hasType(ctx) || ctx.getProperties().getCategory() == Biome.BiomeCategory.MOUNTAIN);
         //TODO come up with a better check for overworld
         BiomeTypes.OVERWORLD = catPredicate(c -> c != Biome.BiomeCategory.NETHER && c != Biome.BiomeCategory.THEEND);
         BiomeTypes.NETHER = catPath(Biome.BiomeCategory.NETHER, "nether");
@@ -156,6 +159,10 @@ public class BiomeTypesImpl {
 
     private static BiomeTypes.Type catPath(Biome.BiomeCategory category, String content) {
         return new BiomeTypes.Type(biome -> cat(biome) == category || biome.location().getPath().contains(content), biomeContext -> biomeContext.getProperties().getCategory() == category || biomeContext.getKey().getPath().contains(content));
+    }
+
+    private static BiomeTypes.Type catAndPath(Biome.BiomeCategory category, String content) {
+        return new BiomeTypes.Type(biome -> cat(biome) == category && biome.location().getPath().contains(content), biomeContext -> biomeContext.getProperties().getCategory() == category || biomeContext.getKey().getPath().contains(content));
     }
 
     private static BiomeTypes.Type catMultiPathMulti(Set<Biome.BiomeCategory> category, String... content) {

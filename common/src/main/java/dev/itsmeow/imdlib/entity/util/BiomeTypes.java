@@ -53,7 +53,6 @@ public class BiomeTypes {
     public static Type MESA;
     public static Type FOREST;
     public static Type PLAINS;
-    public static Type MOUNTAIN;
     public static Type HILL;
     public static Type SWAMP;
     public static Type SANDY;
@@ -61,6 +60,12 @@ public class BiomeTypes {
     public static Type WASTELAND;
     public static Type BEACH;
     public static Type VOID;
+    public static Type UNDERGROUND;
+
+    /*Mountain related tags*/
+    public static Type PEAK;
+    public static Type SLOPE;
+    public static Type MOUNTAIN;
 
     /*Tags specifying the dimension a biome generates in. Specifying none implies a biome that generates in a modded dimension*/
     public static Type OVERWORLD;
