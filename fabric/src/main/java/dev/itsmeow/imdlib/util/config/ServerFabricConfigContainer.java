@@ -43,7 +43,7 @@ public class ServerFabricConfigContainer extends FabricConfigContainer {
     }
 
     public void loadFromFile(File file) throws ValueDeserializationException, IOException {
-        FiberSerialization.deserialize(this.init(), Files.newInputStream(file.toPath()), JANKSON_VALUE_SERIALIZER);
+        FiberSerialization.deserialize(this.init(), Files.newInputStream(file.toPath()), janksonSerializer);
     }
 
     @Override
