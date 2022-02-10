@@ -13,7 +13,14 @@ public class CommonConfigAPIImpl {
         new ConfigBuilderForge(type, init, onLoad);
     }
 
+    public static void createClientReplaceConfig(Consumer<ConfigBuilder> init, Runnable onLoad) {
+        new ConfigBuilderForge(CommonConfigAPI.ConfigType.CLIENT, init, onLoad);
+    }
+
     public static void createServerConfig(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
         new ConfigBuilderForge(init, onLoad);
+    }
+
+    public static void loadClientReplace() {
     }
 }

@@ -10,7 +10,8 @@
   ],
   "client": [
     "ModelPartAccessor",
-    "ItemPropertiesInvoker"
+    "ItemPropertiesInvoker",
+    "EntityRenderDispatcherMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -13,8 +13,18 @@ public class CommonConfigAPI {
     }
 
     @ExpectPlatform
+    public static void createClientReplaceConfig(Consumer<ConfigBuilder> init, Runnable onLoad) {
+        throw new RuntimeException("ExpectPlatform CommonConfigAPI.createClientReplaceConfig() failed");
+    }
+
+    @ExpectPlatform
     public static void createServerConfig(Consumer<ConfigBuilder> init, Consumer<MinecraftServer> onLoad) {
         throw new RuntimeException("ExpectPlatform CommonConfigAPI.createServerConfig() failed");
+    }
+
+    @ExpectPlatform
+    public static void loadClientReplace() {
+        throw new RuntimeException("ExpectPlatform CommonConfigAPI.loadClientReplace() failed");
     }
 
     public enum ConfigType {
