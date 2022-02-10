@@ -1,88 +1,71 @@
 package dev.itsmeow.imdlib.client.util;
 
-/*
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
 import dev.itsmeow.imdlib.client.render.ImplRenderer;
-import dev.itsmeow.imdlib.client.render.ImplRenderer.RenderDef;
+import dev.itsmeow.imdlib.mixin.EntityRenderersInvoker;
+import dev.itsmeow.imdlib.util.SafePlatform;
+import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
+import dev.itsmeow.imdlib.util.config.ConfigBuilder;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.client.registry.IRenderFactory;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
- */
 public class ModelReplacementHandler {
-/*
+
+    public static ModelReplacementHandler INSTANCE = null;
+
     public final Logger LOG = LogManager.getLogger();
     public final String parent_modid;
-    protected Map<RegistrationTime, Multimap<Pair<String, String>, Supplier<Supplier<ReplaceDefinition<?>>>>> replaceDefs = new HashMap<>();
-    protected Map<RegistrationTime, Multimap<String, Supplier<Runnable>>> modActions = new HashMap<>();
+    protected Map<Pair<String, String>, Supplier<Supplier<ReplaceDefinition<?>>>> replaceDefs = new HashMap<>();
     protected ReplacementConfig config;
 
     public ModelReplacementHandler(String modid) {
         this.parent_modid = modid;
+        INSTANCE = this;
     }
 
-    public ReplacementConfig getConfig(ForgeConfigSpec.Builder builder) {
-        return this.getConfig(builder, (a, b) -> {
+    public ReplacementConfig getConfig(ConfigBuilder builder) {
+        return this.getConfig(builder, (a, b, c) -> {
         });
     }
 
-    public ReplacementConfig getConfig(ForgeConfigSpec.Builder builder, BiConsumer<ForgeConfigSpec.Builder, Map<String, Map<String, ForgeConfigSpec.BooleanValue>>> manuals) {
+    public ReplacementConfig getConfig(ConfigBuilder builder, TriConsumer<ConfigBuilder, String, Map<String, Supplier<Boolean>>> manuals) {
         return this.config = new ReplacementConfig(this, builder, manuals);
     }
 
-    public void mre() {
-        runActions(RegistrationTime.MODELREGISTRY);
-        overwriteRenders(RegistrationTime.MODELREGISTRY);
-    }
-
-    public void clientSetup() {
-        runActions(RegistrationTime.CLIENTSETUP);
-        overwriteRenders(RegistrationTime.CLIENTSETUP);
-    }
-
-    public void addReplace(RegistrationTime time, String modid, String name, Supplier<Supplier<ReplaceDefinition<?>>> definition) {
-        replaceDefs.putIfAbsent(time, MultimapBuilder.hashKeys().linkedHashSetValues().build());
-        replaceDefs.get(time).put(Pair.of(modid, name), definition);
-        LOG.debug(String.format("[%s] Registering replace for %s from %s at %s", parent_modid, name, modid, time.name()));
-    }
-
-    public void addAction(RegistrationTime time, String modid, Supplier<Runnable> action) {
-        modActions.putIfAbsent(time, MultimapBuilder.hashKeys().linkedHashSetValues().build());
-        modActions.get(time).put(modid, action);
-        LOG.debug(String.format("[%s] Registering action for %s at %s", parent_modid, modid, time.name()));
+    public void addReplace(String modid, String name, Supplier<Supplier<ReplaceDefinition<?>>> definition) {
+        replaceDefs.put(Pair.of(modid, name), definition);
+        LOG.debug(String.format("[%s] Registering replace for %s from %s", parent_modid, name, modid));
     }
 
     public boolean getEnabledAndLoaded(String mod, String override) {
-        Map<String, ForgeConfigSpec.BooleanValue> overrides = config.replace_config.getModsMap().get(mod);
+        Map<String, Supplier<Boolean>> overrides = config.replace_config.getModsMap().get(mod);
         if (overrides == null)
             return false;
         return overrides.containsKey(override) ? overrides.get(override).get() : false;
     }
 
-    protected void overwriteRenders(RegistrationTime phase) {
-        replaceDefs.putIfAbsent(phase, MultimapBuilder.hashKeys().hashSetValues().build());
-        replaceDefs.get(phase).forEach((pair, definitionSupplier) -> {
+    public void initComplete() {
+        CommonConfigAPI.loadClientReplace();
+        this.overwriteRenders();
+    }
+
+    public void overwriteRenders() {
+        replaceDefs.forEach((pair, definitionSupplier) -> {
             boolean doReplace = getEnabledAndLoaded(pair.getLeft(), pair.getRight());
-            if (ModList.get().isLoaded(pair.getLeft()) || pair.getLeft().equals("minecraft")) {
-                ReplaceDefinition<?> def = definitionSupplier.get().get();
+            if (SafePlatform.isModLoaded(pair.getLeft())) {
+                ReplaceDefinition<LivingEntity> def = (ReplaceDefinition<LivingEntity>) definitionSupplier.get().get();
                 if (doReplace) {
-                    IRenderFactory<LivingEntity> factory = manager -> (EntityRenderer<LivingEntity>) def.factory.createRenderFor(manager);
-                    RenderingRegistry.registerEntityRenderingHandler(def.type, factory);
+                    EntityRenderersInvoker.invokeRegister(def.type, def.factory);
                     LOG.debug(String.format("[%s] Overriding %s / %s in %s", parent_modid, pair.getRight(), def.type.getDescription(), pair.getLeft()));
                 } else {
                     LOG.debug(String.format("[%s] Was going to override %s / %s in %s, but it is disabled!", parent_modid, pair.getRight(), def.type.getDescription(), pair.getLeft()));
@@ -93,70 +76,52 @@ public class ModelReplacementHandler {
         });
     }
 
-    protected void runActions(RegistrationTime phase) {
-        modActions.putIfAbsent(phase, MultimapBuilder.hashKeys().hashSetValues().build());
-        modActions.get(phase).forEach((modid, action) -> {
-            if (ModList.get().isLoaded(modid) || modid.equals("minecraft")) {
-                action.get().run();
-                LOG.debug(String.format("[%s] Running action for %s", parent_modid, modid));
-            } else {
-                LOG.debug(String.format("[%s] No action executed for %s, as it is not loaded.", parent_modid, modid));
-            }
-        });
+    public <T extends Mob, A extends EntityModel<T>> ReplaceDefinition<T> lambdaReplace(EntityType<T> type, float shadowSize, ImplRenderer.RenderDef<T, A> renderDef) {
+        return new ReplaceDefinition<T>(type, renderDef.apply(ImplRenderer.factory(parent_modid, shadowSize)).done());
     }
 
-    public <T extends Mob, A extends EntityModel<T>> ReplaceDefinition<T> lambdaReplace(EntityType<T> type, float shadowSize, RenderDef<T, A> renderDef) {
-        return new ReplaceDefinition<>(type, renderDef.apply(ImplRenderer.factory(parent_modid, shadowSize)).done());
-    }
-
-    public enum RegistrationTime {
-        MODELREGISTRY,
-        CLIENTSETUP
-    }
-
-    public static class ReplaceDefinition<T extends LivingEntity> {
-
-        public final EntityType<T> type;
-        public final IRenderFactory<T> factory;
-
-        public ReplaceDefinition(EntityType<T> type, IRenderFactory<T> factory) {
-            this.type = type;
-            this.factory = factory;
-        }
-
-    }
+    public record ReplaceDefinition<T extends LivingEntity>(EntityType<T> type, EntityRendererProvider<T> factory) {}
 
     public static class ReplacementConfig {
 
         public OverridesConfiguration replace_config;
 
-        public ReplacementConfig(ModelReplacementHandler parent, ForgeConfigSpec.Builder builder, BiConsumer<ForgeConfigSpec.Builder, Map<String, Map<String, ForgeConfigSpec.BooleanValue>>> manuals) {
-            Map<String, Map<String, ForgeConfigSpec.BooleanValue>> map = new HashMap<>();
-            parent.replaceDefs.values().forEach(m -> m.keySet().forEach(pair -> addConfig(builder, map, pair.getLeft(), pair.getRight())));
-            manuals.accept(builder, map);
+        public ReplacementConfig(ModelReplacementHandler parent, ConfigBuilder builder, TriConsumer<ConfigBuilder, String, Map<String, Supplier<Boolean>>> manuals) {
+            Map<String, Map<String, Supplier<Supplier<ReplaceDefinition<?>>>>> replaceMap = new HashMap<>();
+            for(Pair<String, String> pair : parent.replaceDefs.keySet()) {
+                replaceMap.putIfAbsent(pair.getLeft(), new HashMap<>());
+                replaceMap.get(pair.getLeft()).put(pair.getRight(), parent.replaceDefs.get(pair));
+            }
+
+            Map<String, Map<String, Supplier<Boolean>>> map = new HashMap<>();
+            for(String modid : replaceMap.keySet()) {
+                map.putIfAbsent(modid, new HashMap<>());
+                builder.push(modid);
+                for (String name : replaceMap.get(modid).keySet()) {
+                    addConfig(builder, map, modid, name);
+                }
+                manuals.accept(builder, modid, map.get(modid));
+                builder.pop();
+            }
             replace_config = new OverridesConfiguration(map);
         }
 
-        public static void addConfig(ForgeConfigSpec.Builder builder, Map<String, Map<String, ForgeConfigSpec.BooleanValue>> map, String modid, String name) {
-            map.putIfAbsent(modid, new HashMap<>());
-            builder.push(modid);
-            ForgeConfigSpec.BooleanValue value = builder.define("replace_" + name, true);
-            map.get(modid).put(name, value);
-            builder.pop();
+        public static void addConfig(ConfigBuilder builder, Map<String, Map<String, Supplier<Boolean>>> map, String modid, String name) {
+            map.get(modid).put(name, builder.define("replace_" + name, true));
         }
 
         public static class OverridesConfiguration {
-            public final Map<String, Map<String, ForgeConfigSpec.BooleanValue>> mods;
+            public final Map<String, Map<String, Supplier<Boolean>>> mods;
 
-            public OverridesConfiguration(Map<String, Map<String, ForgeConfigSpec.BooleanValue>> mods) {
+            public OverridesConfiguration(Map<String, Map<String, Supplier<Boolean>>> mods) {
                 this.mods = mods;
             }
 
-            public Map<String, Map<String, ForgeConfigSpec.BooleanValue>> getModsMap() {
+            public Map<String, Map<String, Supplier<Boolean>>> getModsMap() {
                 return mods;
             }
         }
 
     }
-*/
+
 }

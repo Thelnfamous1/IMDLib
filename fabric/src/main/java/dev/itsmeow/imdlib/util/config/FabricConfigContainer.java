@@ -1,7 +1,7 @@
 package dev.itsmeow.imdlib.util.config;
 
 import blue.endless.jankson.JsonObject;
-import dev.itsmeow.imdlib.IMDLib;
+import dev.itsmeow.imdlib.util.SafePlatform;
 import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationException;
 import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.FiberSerialization;
 import io.github.fablabsmc.fablabs.api.fiber.v1.serialization.JanksonValueSerializer;
@@ -40,7 +40,7 @@ public abstract class FabricConfigContainer {
 
     public FabricConfigContainer(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init) {
         this.type = type;
-        this.name = IMDLib.getRegistries().get().getModId() + "-" + type.name().toLowerCase();
+        this.name = SafePlatform.modId() + "-" + type.name().toLowerCase();
         this.init = init;
     }
 
