@@ -2,15 +2,14 @@ package dev.itsmeow.imdlib.compat.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.mixin.ClothConfigScreenAccessor;
+import dev.itsmeow.imdlib.util.SafePlatform;
 import dev.itsmeow.imdlib.util.config.CommonFabricConfigContainer;
 import dev.itsmeow.imdlib.util.config.FabricConfigContainer;
 import dev.itsmeow.imdlib.util.config.ServerFabricConfigContainer;
 import io.github.fablabsmc.fablabs.api.fiber.v1.builder.ConfigTreeBuilder;
 import io.github.fablabsmc.fablabs.api.fiber.v1.exception.ValueDeserializationException;
 import io.github.fablabsmc.fablabs.api.fiber.v1.tree.ConfigTree;
-import dev.architectury.platform.Platform;
 import me.shedaniel.clothconfig2.gui.ClothConfigScreen;
 import me.shedaniel.clothconfig2.gui.ClothConfigTabButton;
 import me.shedaniel.fiber2cloth.api.Fiber2Cloth;
@@ -35,8 +34,8 @@ public class ModMenuCompat implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         // Hack the classloader
-        Supplier<Supplier<ConfigScreenFactory<?>>> supplier = () -> () -> new ClothConfigScreenFactory(IMDLib.getRegistries().get().getModId());
-        return Platform.isModLoaded("cloth-config2") ? supplier.get().get() : screen -> null;
+        Supplier<Supplier<ConfigScreenFactory<?>>> supplier = () -> () -> new ClothConfigScreenFactory(SafePlatform.modId());
+        return SafePlatform.isModLoaded("cloth-config2") ? supplier.get().get() : screen -> null;
     }
 
     public static class ClothConfigScreenFactory implements ConfigScreenFactory<Screen> {

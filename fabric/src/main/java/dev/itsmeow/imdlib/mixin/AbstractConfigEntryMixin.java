@@ -1,6 +1,6 @@
 package dev.itsmeow.imdlib.mixin;
 
-import dev.itsmeow.imdlib.IMDLib;
+import dev.itsmeow.imdlib.util.SafePlatform;
 import me.shedaniel.clothconfig2.api.AbstractConfigEntry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -29,7 +29,7 @@ public abstract class AbstractConfigEntryMixin {
             callbackInfoReturnable.cancel();
         } else {
             String fieldName = field.getString();
-            String modId = IMDLib.getRegistries().get().getModId();
+            String modId = SafePlatform.modId();
             if (fieldName.matches("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities\\.\\w+$")) {
                 fieldName = fieldName.replaceFirst("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities", "");
                 TranslatableComponent c = new TranslatableComponent("entity." + modId + fieldName);
