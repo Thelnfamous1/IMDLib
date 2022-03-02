@@ -1,6 +1,5 @@
 package dev.itsmeow.imdlib.entity;
 
-import com.google.common.collect.Lists;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.Registrar;

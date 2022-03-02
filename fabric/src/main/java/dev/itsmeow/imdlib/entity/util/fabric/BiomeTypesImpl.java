@@ -2,6 +2,7 @@ package dev.itsmeow.imdlib.entity.util.fabric;
 
 import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
+import dev.itsmeow.imdlib.mixin.BiomeAccessor;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
@@ -21,7 +22,7 @@ public class BiomeTypesImpl {
         BiomeTypes.HOT = new BiomeTypes.Type(biome -> {
             Biome biomeIn = get(biome);
             float temperature = biomeIn.getBaseTemperature();
-            Biome.BiomeCategory category = biomeIn.getBiomeCategory();
+            Biome.BiomeCategory category = c(biomeIn);
             return temperature > 0.85F || category == Biome.BiomeCategory.DESERT;
         }, biomeContext -> {
             float temperature = biomeContext.getProperties().getClimateProperties().getTemperature();
@@ -31,7 +32,7 @@ public class BiomeTypesImpl {
         BiomeTypes.COLD = new BiomeTypes.Type(biome -> {
             Biome biomeIn = get(biome);
             float temperature = biomeIn.getBaseTemperature();
-            Biome.BiomeCategory category = biomeIn.getBiomeCategory();
+            Biome.BiomeCategory category = c(biomeIn);
             return temperature < 0.15F || category == Biome.BiomeCategory.ICY;
         }, biomeContext -> {
             float temperature = biomeContext.getProperties().getClimateProperties().getTemperature();
@@ -141,8 +142,12 @@ public class BiomeTypesImpl {
         return REG.get().get(biome.location());
     }
 
+    private static Biome.BiomeCategory c(Biome b) {
+        return ((BiomeAccessor) (Object) b).getBiomeCategory();
+    }
+
     private static Biome.BiomeCategory cat(ResourceKey<Biome> biome) {
-        return REG.get().get(biome).getBiomeCategory();
+        return c(REG.get().get(biome));
     }
 
     private static BiomeTypes.Type catMatch(Biome.BiomeCategory category) {

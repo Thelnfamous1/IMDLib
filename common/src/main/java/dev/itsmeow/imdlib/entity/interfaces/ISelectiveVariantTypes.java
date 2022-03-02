@@ -2,6 +2,7 @@ package dev.itsmeow.imdlib.entity.interfaces;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Mob;
@@ -40,10 +41,10 @@ public interface ISelectiveVariantTypes<T extends Mob> extends IVariantTypes<T> 
 
     @Nullable
     default IVariant getRandomVariantForBiome(LevelAccessor world, MobSpawnType reason) {
-        Biome biome = world.getBiome(this.getImplementation().blockPosition());
-        Optional<ResourceKey<Biome>> biomeKey = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getResourceKey(biome);
+        Holder<Biome> biome = world.getBiome(this.getImplementation().blockPosition());
+        Optional<ResourceKey<Biome>> biomeKey = biome.unwrapKey();
         biomeKey.orElseThrow(() -> new RuntimeException("Biome provided to selective type generation has no ID found."));
-        String[] validTypes = this.getTypesFor(biomeKey.get(), biome, BiomeTypes.getTypes(biomeKey.get()), reason);
+        String[] validTypes = this.getTypesFor(biomeKey.get(), biome.value(), BiomeTypes.getTypes(biomeKey.get()), reason);
         String varStr = validTypes[this.getImplementation().getRandom().nextInt(validTypes.length)];
         Optional<IVariant> variant = this.getContainer().getVariantForName(varStr);
         if (!variant.isPresent() || !varStr.equals(variant.get().getName())) {
