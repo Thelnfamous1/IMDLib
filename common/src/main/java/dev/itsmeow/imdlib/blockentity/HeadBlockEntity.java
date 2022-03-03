@@ -10,6 +10,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -17,22 +18,22 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class HeadBlockEntity extends BlockEntity {
 
-    public static final BlockEntityType<HeadBlockEntity> HEAD_TYPE = BlockEntityType.Builder.of(HeadBlockEntity::new, HeadType.getAllBlocks()).build(null);
+    public static final LazyLoadedValue<BlockEntityType<HeadBlockEntity>> HEAD_TYPE = new LazyLoadedValue(() -> BlockEntityType.Builder.of(HeadBlockEntity::new, HeadType.getAllBlocks()).build(null));
     private HeadType cachedType = null;
     private IVariant cachedVariant = null;
 
     public HeadBlockEntity(HeadType type, BlockPos pos, BlockState state) {
-        super(HEAD_TYPE, pos, state);
+        super(HEAD_TYPE.get(), pos, state);
         this.cachedType = type;
     }
 
     public HeadBlockEntity(BlockPos pos, BlockState state) {
-        super(HEAD_TYPE, pos, state);
+        super(HEAD_TYPE.get(), pos, state);
     }
 
     @Environment(EnvType.CLIENT)
     public static void registerTypeRender() {
-        BlockEntityRendererRegistry.register(HEAD_TYPE, RenderGenericHead::new);
+        BlockEntityRendererRegistry.register(HEAD_TYPE.get(), RenderGenericHead::new);
     }
 
     private Block getBlock() {

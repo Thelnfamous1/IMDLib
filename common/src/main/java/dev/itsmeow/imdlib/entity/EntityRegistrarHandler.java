@@ -59,11 +59,13 @@ public class EntityRegistrarHandler {
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             if (container instanceof EntityTypeContainerContainable<?, ?>) {
                 EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
-                if (!items.containsValue(c.getContainerItem())) {
-                    items.register(new ResourceLocation(modid, c.getContainerItemName()), c::getContainerItem);
+                ResourceLocation containerKey = new ResourceLocation(modid, c.getContainerItemName());
+                if (!items.contains(containerKey)) {
+                    items.register(containerKey, c::getContainerItem);
                 }
-                if (!items.containsValue(c.getEmptyContainerItem())) {
-                    items.register(new ResourceLocation(modid, c.getEmptyContainerItemName()), c::getEmptyContainerItem);
+                ResourceLocation emptyContainerKey = new ResourceLocation(modid, c.getEmptyContainerItemName());
+                if (!emptyContainerKey.getPath().isEmpty() && !items.contains(emptyContainerKey)) {
+                    items.register(emptyContainerKey, c::getEmptyContainerItem);
                 }
             }
             if (container.hasEgg()) {
@@ -71,7 +73,7 @@ public class EntityRegistrarHandler {
             }
         }
         Registrar<BlockEntityType<?>> blockEntities = IMDLib.getRegistry(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
-        blockEntities.register(new ResourceLocation(modid, "head"), () -> HeadBlockEntity.HEAD_TYPE);
+        blockEntities.register(new ResourceLocation(modid, "head"), HeadBlockEntity.HEAD_TYPE::get);
         Registrar<EntityType<?>> entityTypes = IMDLib.getRegistry(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
         //entity types
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
