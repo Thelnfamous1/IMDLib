@@ -9,6 +9,7 @@ import dev.itsmeow.imdlib.item.IContainerItem.ITooltipFunction;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -21,15 +22,15 @@ import java.util.function.Supplier;
 public class EntityTypeContainerContainable<T extends Mob & IContainable, I extends Item & IContainerItem<T>> extends EntityTypeContainer<T> {
 
     protected EntityDataAccessor<Boolean> fromContainerDataKey;
-    protected I containerItem;
-    protected Item emptyContainerItem;
+    protected LazyLoadedValue<I> containerItem;
+    protected LazyLoadedValue<Item> emptyContainerItem;
     protected String containerItemName;
     protected String emptyContainerItemName;
 
     protected EntityTypeContainerContainable(ContainableEntityTypeDefinition<T, I, EntityTypeContainerContainable<T, I>> def) {
         super(def);
-        this.containerItem = def.getContainerSupplier().apply(this, def.getTooltipFunction());
-        this.emptyContainerItem = def.getEmptyContainerSupplier().apply(this);
+        this.containerItem = new LazyLoadedValue(() -> def.getContainerSupplier().apply(this, def.getTooltipFunction()));
+        this.emptyContainerItem = new LazyLoadedValue(() -> def.getEmptyContainerSupplier().apply(this));
         this.containerItemName = def.getContainerNameSupplier().apply(this);
         this.emptyContainerItemName = def.getEmptyContainerNameSupplier().apply(this);
     }
@@ -42,11 +43,11 @@ public class EntityTypeContainerContainable<T extends Mob & IContainable, I exte
     }
 
     public I getContainerItem() {
-        return this.containerItem;
+        return this.containerItem.get();
     }
 
     public Item getEmptyContainerItem() {
-        return this.emptyContainerItem;
+        return this.emptyContainerItem.get();
     }
 
     public String getEmptyContainerItemName() {
