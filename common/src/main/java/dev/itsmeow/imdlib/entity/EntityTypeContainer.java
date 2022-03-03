@@ -52,12 +52,12 @@ public class EntityTypeContainer<T extends Mob> {
     protected Set<ResourceKey<Biome>> spawnCostBiomesCache = null;
     protected HeadType headType;
     protected RegistrySupplier<ModSpawnEggItem> egg;
-    protected EntityType<T> entityType;
+    protected LazyLoadedValue<EntityType<T>> entityType;
 
     protected final CustomConfigurationHolder<T> customConfigHolder = new CustomConfigurationHolder<>(this);
     protected final CustomConfigurationHolder<T> customConfigHolderClient = new CustomConfigurationHolder<>(this);
 
-    protected final LazyLoadedValue<MobSpawnSettings.SpawnerData> spawnEntry = new LazyLoadedValue<>(() -> new MobSpawnSettings.SpawnerData(this.entityType, config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
+    protected final LazyLoadedValue<MobSpawnSettings.SpawnerData> spawnEntry = new LazyLoadedValue<>(() -> new MobSpawnSettings.SpawnerData(this.entityType.get(), config.spawnWeight.get(), config.spawnMinGroup.get(), config.spawnMaxGroup.get()));
 
     public EntityTypeContainer(IEntityTypeDefinition<T> def) {
         this.definition = def;
@@ -85,7 +85,7 @@ public class EntityTypeContainer<T extends Mob> {
     }
 
     public EntityType<T> getEntityType() {
-        return entityType;
+        return entityType.get();
     }
 
     public EntityConfiguration getConfiguration() {
@@ -165,7 +165,7 @@ public class EntityTypeContainer<T extends Mob> {
     void registerPlacement() {
         if (definition.getPlacementType() != null && definition.getPlacementPredicate() != null && definition.getPlacementHeightMapType() != null) {
             if (!placementRegistered) {
-                SpawnPlacementsInvoker.invokeRegister(this.entityType, definition.getPlacementType(), definition.getPlacementHeightMapType(), definition.getPlacementPredicate());
+                SpawnPlacementsInvoker.invokeRegister(this.entityType.get(), definition.getPlacementType(), definition.getPlacementHeightMapType(), definition.getPlacementPredicate());
                 placementRegistered = true;
             }
         }
@@ -202,7 +202,7 @@ public class EntityTypeContainer<T extends Mob> {
         }
     }
 
-    public void onCreateEntityType() {
+    public void onTypeAdded() {
     }
 
     /* Biome Getter/Setters */

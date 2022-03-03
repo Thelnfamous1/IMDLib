@@ -17,6 +17,7 @@ import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -159,8 +160,8 @@ public class EntityRegistrarHandler {
 
     public <T extends Mob, C extends EntityTypeContainer<T>> C add(IEntityBuilder<T, C, ?> builder) {
         C c = builder.build();
-        c.entityType = this.createEntityType(c);
-        c.onCreateEntityType();
+        c.entityType = new LazyLoadedValue(() -> this.createEntityType(c));
+        c.onTypeAdded();
         ENTITIES.put(c.getEntityName(), c);
         return c;
     }
