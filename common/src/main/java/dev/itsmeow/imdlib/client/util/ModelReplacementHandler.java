@@ -1,8 +1,11 @@
 package dev.itsmeow.imdlib.client.util;
 
 import dev.itsmeow.imdlib.client.render.ImplRenderer;
+import dev.itsmeow.imdlib.mixin.EntityRenderDispatcherAccessor;
 import dev.itsmeow.imdlib.util.SafePlatform;
+import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import dev.itsmeow.imdlib.util.config.ConfigBuilder;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -52,6 +55,11 @@ public class ModelReplacementHandler {
         if (overrides == null)
             return false;
         return overrides.containsKey(override) ? overrides.get(override).get() : false;
+    }
+
+    public void initComplete() {
+        CommonConfigAPI.loadClientReplace();
+        this.overwriteRenders(Minecraft.getInstance().getEntityRenderDispatcher(), ((EntityRenderDispatcherAccessor) Minecraft.getInstance().getEntityRenderDispatcher()).getRenderers());
     }
 
     public void overwriteRenders(EntityRenderDispatcher dispatcher, Map<EntityType<?>, EntityRenderer<?>> renderers) {
