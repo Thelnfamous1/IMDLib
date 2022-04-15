@@ -46,7 +46,7 @@ public class ModelReplacementHandler {
 
     public void addReplace(String modid, String name, Supplier<Supplier<ReplaceDefinition<?>>> definition) {
         replaceDefs.put(Pair.of(modid, name), definition);
-        LOG.debug(String.format("[%s] Registering replace for %s from %s at %s", parent_modid, name, modid));
+        LOG.debug(String.format("[%s] Registering replace for %s from %s", parent_modid, name, modid));
     }
 
     public boolean getEnabledAndLoaded(String mod, String override) {
