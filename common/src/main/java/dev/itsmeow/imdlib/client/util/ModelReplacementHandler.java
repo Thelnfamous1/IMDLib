@@ -3,8 +3,8 @@ package dev.itsmeow.imdlib.client.util;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import dev.itsmeow.imdlib.client.render.ImplRenderer;
+import dev.itsmeow.imdlib.util.SafePlatform;
 import dev.itsmeow.imdlib.util.config.ConfigBuilder;
-import me.shedaniel.architectury.platform.Platform;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -28,7 +28,6 @@ public class ModelReplacementHandler {
     public final Logger LOG = LogManager.getLogger();
     public final String parent_modid;
     protected Multimap<Pair<String, String>, Supplier<Supplier<ReplaceDefinition<?>>>> replaceDefs = MultimapBuilder.hashKeys().linkedHashSetValues().build();
-    protected Multimap<String, Supplier<Runnable>> modActions = MultimapBuilder.hashKeys().linkedHashSetValues().build();
     protected ReplacementConfig config;
 
     public ModelReplacementHandler(String modid) {
@@ -45,14 +44,9 @@ public class ModelReplacementHandler {
         return this.config = new ReplacementConfig(this, builder, manuals);
     }
 
-    public void addReplace(RegistrationTime time, String modid, String name, Supplier<Supplier<ReplaceDefinition<?>>> definition) {
+    public void addReplace(String modid, String name, Supplier<Supplier<ReplaceDefinition<?>>> definition) {
         replaceDefs.put(Pair.of(modid, name), definition);
-        LOG.debug(String.format("[%s] Registering replace for %s from %s at %s", parent_modid, name, modid, time.name()));
-    }
-
-    public void addAction(RegistrationTime time, String modid, Supplier<Runnable> action) {
-        modActions.put(modid, action);
-        LOG.debug(String.format("[%s] Registering action for %s at %s", parent_modid, modid, time.name()));
+        LOG.debug(String.format("[%s] Registering replace for %s from %s at %s", parent_modid, name, modid));
     }
 
     public boolean getEnabledAndLoaded(String mod, String override) {
@@ -65,7 +59,7 @@ public class ModelReplacementHandler {
     public void overwriteRenders(EntityRenderDispatcher dispatcher, Map<EntityType<?>, EntityRenderer<?>> renderers) {
         replaceDefs.forEach((pair, definitionSupplier) -> {
             boolean doReplace = getEnabledAndLoaded(pair.getLeft(), pair.getRight());
-            if (Platform.isModLoaded(pair.getLeft()) || "minecraft".equals(pair.getLeft())) {
+            if (SafePlatform.isModLoaded(pair.getLeft())) {
                 ReplaceDefinition<LivingEntity> def = (ReplaceDefinition<LivingEntity>) definitionSupplier.get().get();
                 if (doReplace) {
                     renderers.put(def.type, def.factory.apply(dispatcher));
@@ -79,24 +73,8 @@ public class ModelReplacementHandler {
         });
     }
 
-    protected void runActions(RegistrationTime phase) {
-        modActions.forEach((modid, action) -> {
-            if (Platform.isModLoaded(modid) || "minecraft".equals(modid)) {
-                action.get().run();
-                LOG.debug(String.format("[%s] Running action for %s", parent_modid, modid));
-            } else {
-                LOG.debug(String.format("[%s] No action executed for %s, as it is not loaded.", parent_modid, modid));
-            }
-        });
-    }
-
     public <T extends Mob, A extends EntityModel<T>> ReplaceDefinition<T> lambdaReplace(EntityType<T> type, float shadowSize, ImplRenderer.RenderDef<T, A> renderDef) {
         return new ReplaceDefinition<>(type, renderDef.apply(ImplRenderer.factory(parent_modid, shadowSize)).done());
-    }
-
-    public enum RegistrationTime {
-        CONSTRUCT,
-        INIT
     }
 
     public static class ReplaceDefinition<T extends LivingEntity> {
