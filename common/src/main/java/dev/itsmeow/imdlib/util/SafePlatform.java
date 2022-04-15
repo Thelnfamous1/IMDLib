@@ -1,6 +1,8 @@
 package dev.itsmeow.imdlib.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.itsmeow.imdlib.IMDLib;
+import dev.itsmeow.imdlib.client.util.ModelReplacementHandler;
 
 public class SafePlatform {
 
@@ -28,4 +30,7 @@ public class SafePlatform {
         throw new RuntimeException("Platform expected");
     }
 
+    public static String modId() {
+        return ModelReplacementHandler.INSTANCE != null ? ModelReplacementHandler.INSTANCE.parent_modid : IMDLib.getRegistries().getModId();
+    }
 }
