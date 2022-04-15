@@ -28,4 +28,8 @@ public class ClientReplaceFabricConfigContainer extends FabricConfigContainer {
         return builder;
     }
 
+    @Override
+    public String getConfigComment() {
+        return "";
+    }
 }

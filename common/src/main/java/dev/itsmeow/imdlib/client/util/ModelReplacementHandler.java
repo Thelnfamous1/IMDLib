@@ -1,7 +1,5 @@
 package dev.itsmeow.imdlib.client.util;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
 import dev.itsmeow.imdlib.client.render.ImplRenderer;
 import dev.itsmeow.imdlib.util.SafePlatform;
 import dev.itsmeow.imdlib.util.config.ConfigBuilder;
@@ -14,10 +12,10 @@ import net.minecraft.world.entity.Mob;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -27,7 +25,7 @@ public class ModelReplacementHandler {
 
     public final Logger LOG = LogManager.getLogger();
     public final String parent_modid;
-    protected Multimap<Pair<String, String>, Supplier<Supplier<ReplaceDefinition<?>>>> replaceDefs = MultimapBuilder.hashKeys().linkedHashSetValues().build();
+    protected Map<Pair<String, String>, Supplier<Supplier<ReplaceDefinition<?>>>> replaceDefs = new HashMap<>();
     protected ReplacementConfig config;
 
     public ModelReplacementHandler(String modid) {
@@ -36,11 +34,11 @@ public class ModelReplacementHandler {
     }
 
     public ReplacementConfig getConfig(ConfigBuilder builder) {
-        return this.getConfig(builder, (a, b) -> {
+        return this.getConfig(builder, (a, b, c) -> {
         });
     }
 
-    public ReplacementConfig getConfig(ConfigBuilder builder, BiConsumer<ConfigBuilder, Map<String, Map<String, Supplier<Boolean>>>> manuals) {
+    public ReplacementConfig getConfig(ConfigBuilder builder, TriConsumer<ConfigBuilder, String, Map<String, Supplier<Boolean>>> manuals) {
         return this.config = new ReplacementConfig(this, builder, manuals);
     }
 
@@ -93,19 +91,28 @@ public class ModelReplacementHandler {
 
         public OverridesConfiguration replace_config;
 
-        public ReplacementConfig(ModelReplacementHandler parent, ConfigBuilder builder, BiConsumer<ConfigBuilder, Map<String, Map<String, Supplier<Boolean>>>> manuals) {
+        public ReplacementConfig(ModelReplacementHandler parent, ConfigBuilder builder, TriConsumer<ConfigBuilder, String, Map<String, Supplier<Boolean>>> manuals) {
+            Map<String, Map<String, Supplier<Supplier<ReplaceDefinition<?>>>>> replaceMap = new HashMap<>();
+            for(Pair<String, String> pair : parent.replaceDefs.keySet()) {
+                replaceMap.putIfAbsent(pair.getLeft(), new HashMap<>());
+                replaceMap.get(pair.getLeft()).put(pair.getRight(), parent.replaceDefs.get(pair));
+            }
+
             Map<String, Map<String, Supplier<Boolean>>> map = new HashMap<>();
-            parent.replaceDefs.keySet().forEach(pair -> addConfig(builder, map, pair.getLeft(), pair.getRight()));
-            manuals.accept(builder, map);
+            for(String modid : replaceMap.keySet()) {
+                map.putIfAbsent(modid, new HashMap<>());
+                builder.push(modid);
+                for (String name : replaceMap.get(modid).keySet()) {
+                    addConfig(builder, map, modid, name);
+                }
+                manuals.accept(builder, modid, map.get(modid));
+                builder.pop();
+            }
             replace_config = new OverridesConfiguration(map);
         }
 
         public static void addConfig(ConfigBuilder builder, Map<String, Map<String, Supplier<Boolean>>> map, String modid, String name) {
-            map.putIfAbsent(modid, new HashMap<>());
-            builder.push(modid);
-            Supplier<Boolean> value = builder.define("replace_" + name, true);
-            map.get(modid).put(name, value);
-            builder.pop();
+            map.get(modid).put(name, builder.define("replace_" + name, true));
         }
 
         public static class OverridesConfiguration {

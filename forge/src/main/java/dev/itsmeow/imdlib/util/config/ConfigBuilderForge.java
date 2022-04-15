@@ -21,11 +21,16 @@ public class ConfigBuilderForge extends ConfigBuilder {
     private CommonConfigAPI.ConfigType type;
 
     public ConfigBuilderForge(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad) {
+        this(type, init, onLoad, true);
+    }
+
+    public ConfigBuilderForge(CommonConfigAPI.ConfigType type, Consumer<ConfigBuilder> init, Runnable onLoad, boolean includeComment) {
         super(type, init, onLoad);
         this.type = type;
         final Pair<ConfigBuilder, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(builder -> {
             this.builder = builder;
-            builder.comment("This is a " + type.name().toLowerCase() + " configuration file. Configurations with further options are located in: .minecraft/saves/(your world)/serverconfig/. Placing a server configuration in .minecraft/defaultconfigs/ will copy it to newly created worlds automatically.");
+            if (includeComment)
+                builder.comment("This is a " + type.name().toLowerCase() + " configuration file. Configurations with further options are located in: .minecraft/saves/(your world)/serverconfig/. Placing a server configuration in .minecraft/defaultconfigs/ will copy it to newly created worlds automatically.");
 
             init.accept(this);
             return this;
