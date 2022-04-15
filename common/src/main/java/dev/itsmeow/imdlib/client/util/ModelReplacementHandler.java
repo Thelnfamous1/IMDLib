@@ -1,14 +1,12 @@
 package dev.itsmeow.imdlib.client.util;
 
 import dev.itsmeow.imdlib.client.render.ImplRenderer;
-import dev.itsmeow.imdlib.mixin.EntityRenderDispatcherAccessor;
+import dev.itsmeow.imdlib.mixin.EntityRenderersInvoker;
 import dev.itsmeow.imdlib.util.SafePlatform;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import dev.itsmeow.imdlib.util.config.ConfigBuilder;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -19,7 +17,6 @@ import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ModelReplacementHandler {
@@ -59,16 +56,16 @@ public class ModelReplacementHandler {
 
     public void initComplete() {
         CommonConfigAPI.loadClientReplace();
-        this.overwriteRenders(Minecraft.getInstance().getEntityRenderDispatcher(), ((EntityRenderDispatcherAccessor) Minecraft.getInstance().getEntityRenderDispatcher()).getRenderers());
+        this.overwriteRenders();
     }
 
-    public void overwriteRenders(EntityRenderDispatcher dispatcher, Map<EntityType<?>, EntityRenderer<?>> renderers) {
+    public void overwriteRenders() {
         replaceDefs.forEach((pair, definitionSupplier) -> {
             boolean doReplace = getEnabledAndLoaded(pair.getLeft(), pair.getRight());
             if (SafePlatform.isModLoaded(pair.getLeft())) {
                 ReplaceDefinition<LivingEntity> def = (ReplaceDefinition<LivingEntity>) definitionSupplier.get().get();
                 if (doReplace) {
-                    renderers.put(def.type, def.factory.apply(dispatcher));
+                    EntityRenderersInvoker.invokeRegister(def.type, def.factory);
                     LOG.debug(String.format("[%s] Overriding %s / %s in %s", parent_modid, pair.getRight(), def.type.getDescription(), pair.getLeft()));
                 } else {
                     LOG.debug(String.format("[%s] Was going to override %s / %s in %s, but it is disabled!", parent_modid, pair.getRight(), def.type.getDescription(), pair.getLeft()));
@@ -80,20 +77,10 @@ public class ModelReplacementHandler {
     }
 
     public <T extends Mob, A extends EntityModel<T>> ReplaceDefinition<T> lambdaReplace(EntityType<T> type, float shadowSize, ImplRenderer.RenderDef<T, A> renderDef) {
-        return new ReplaceDefinition<>(type, renderDef.apply(ImplRenderer.factory(parent_modid, shadowSize)).done());
+        return new ReplaceDefinition<T>(type, renderDef.apply(ImplRenderer.factory(parent_modid, shadowSize)).done());
     }
 
-    public static class ReplaceDefinition<T extends LivingEntity> {
-
-        public final EntityType<T> type;
-        public final Function<EntityRenderDispatcher, EntityRenderer<T>> factory;
-
-        public ReplaceDefinition(EntityType<T> type, Function<EntityRenderDispatcher, EntityRenderer<T>> factory) {
-            this.type = type;
-            this.factory = factory;
-        }
-
-    }
+    public record ReplaceDefinition<T extends LivingEntity>(EntityType<T> type, EntityRendererProvider<T> factory) {}
 
     public static class ReplacementConfig {
 

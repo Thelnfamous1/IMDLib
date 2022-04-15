@@ -31,6 +31,6 @@ public class SafePlatform {
     }
 
     public static String modId() {
-        return ModelReplacementHandler.INSTANCE != null ? ModelReplacementHandler.INSTANCE.parent_modid : IMDLib.getRegistries().getModId();
+        return ModelReplacementHandler.INSTANCE != null ? ModelReplacementHandler.INSTANCE.parent_modid : IMDLib.getRegistries().get().getModId();
     }
 }

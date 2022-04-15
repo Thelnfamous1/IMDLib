@@ -10,7 +10,8 @@
     "UtilMixin"
   ],
   "client": [
-    "ModelPartAccessor"
+    "ModelPartAccessor",
+    "EntityRenderersInvoker"
   ],
   "injectors": {
     "defaultRequire": 1
