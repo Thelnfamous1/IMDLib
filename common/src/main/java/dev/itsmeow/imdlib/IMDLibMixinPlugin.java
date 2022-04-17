@@ -20,7 +20,7 @@ public class IMDLibMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return shouldApplyMixinPlatform();
+        return !mixinClassName.endsWith("UtilMixin") || shouldApplyMixinPlatform();
     }
 
     @ExpectPlatform
