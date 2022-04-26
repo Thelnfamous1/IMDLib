@@ -8,6 +8,7 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Mob;
@@ -26,8 +27,9 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
     private final ApplyRotations<T> applyRotations;
     private final SuperCallApplyRotations applyRotationsSuper;
     private final RenderLayer<T> renderLayer;
+    private final BlockLightLevel<T> blockLightLevel;
 
-    public ImplRenderer(EntityRendererProvider.Context ctx, float shadow, TextureContainer<T, A> textureContainer, ModelContainer<T, A> modelContainer, PreRenderCallback<T> preRenderCallback, HandleRotation<T> handleRotation, ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer) {
+    public ImplRenderer(EntityRendererProvider.Context ctx, float shadow, TextureContainer<T, A> textureContainer, ModelContainer<T, A> modelContainer, PreRenderCallback<T> preRenderCallback, HandleRotation<T> handleRotation, ApplyRotations<T> applyRotations, SuperCallApplyRotations applyRotationsSuper, RenderLayer<T> renderLayer, BlockLightLevel<T> blockLightLevel) {
         super(ctx, modelContainer.getBaseModel(ctx), shadow);
         this.textureContainer = textureContainer;
         this.modelContainer = modelContainer;
@@ -36,6 +38,7 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
         this.applyRotations = applyRotations;
         this.applyRotationsSuper = applyRotationsSuper;
         this.renderLayer = renderLayer;
+        this.blockLightLevel = blockLightLevel;
     }
 
     public static <T extends Mob, A extends EntityModel<T>> Builder<T, A> factory(String modid, float shadow) {
@@ -80,6 +83,11 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
     @Override
     protected RenderType getRenderType(T entity, boolean visible, boolean visibleToPlayer, boolean glowing) {
         return renderLayer == null ? super.getRenderType(entity, visible, visibleToPlayer, glowing) : renderLayer.renderLayer(entity, visible, visibleToPlayer, glowing, this.getTextureLocation(entity));
+    }
+
+    @Override
+    protected int getBlockLightLevel(T entity, BlockPos blockPos) {
+        return blockLightLevel == null ? super.getBlockLightLevel(entity, blockPos) : blockLightLevel.blockLightLevel(entity, blockPos);
     }
 
     @SuppressWarnings("unchecked")
@@ -130,6 +138,11 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
     @FunctionalInterface
     public interface RenderDef<T extends Mob, A extends EntityModel<T>> {
         ImplRenderer.Builder<T, A> apply(ImplRenderer.Builder<T, A> renderer);
+    }
+
+    @FunctionalInterface
+    public interface BlockLightLevel<T extends Mob> {
+        int blockLightLevel(T entity, BlockPos pos);
     }
 
     public static class TextureContainer<T extends Mob, A extends EntityModel<T>> {
@@ -283,6 +296,7 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
         private ApplyRotations<T> applyRotations;
         private SuperCallApplyRotations superCallApplyRotations = SuperCallApplyRotations.NONE;
         private RenderLayer<T> renderLayer;
+        private BlockLightLevel<T> blockLightLevel;
 
         protected Builder(String modid, float shadow) {
             this.modid = modid;
@@ -479,11 +493,16 @@ public class ImplRenderer<T extends Mob, A extends EntityModel<T>> extends BaseR
             return this;
         }
 
+        public Builder<T, A> blockLightLevel(BlockLightLevel<T> blockLightLevel) {
+            this.blockLightLevel = blockLightLevel;
+            return this;
+        }
+
         public EntityRendererProvider done() {
             if (tex == null || model == null) {
                 throw new IllegalArgumentException("Must define both a texture and a model before calling build()!");
             }
-            return ctx -> new ImplRenderer<>(ctx, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer).layers(layers);
+            return ctx -> new ImplRenderer<>(ctx, shadow, tex, model, preRender, handleRotation, applyRotations, superCallApplyRotations, renderLayer, blockLightLevel).layers(layers);
         }
 
         private ResourceLocation texStored(String location) {
