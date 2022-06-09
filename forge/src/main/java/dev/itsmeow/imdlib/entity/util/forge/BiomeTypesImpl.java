@@ -3,52 +3,55 @@ package dev.itsmeow.imdlib.entity.util.forge;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraftforge.common.BiomeDictionary;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraftforge.common.Tags;
 
 public class BiomeTypesImpl {
 
     public static void init() {
-        BiomeTypes.HOT = get(BiomeDictionary.Type.HOT);
-        BiomeTypes.COLD = get(BiomeDictionary.Type.COLD);
-        BiomeTypes.SPARSE = get(BiomeDictionary.Type.SPARSE);
-        BiomeTypes.DENSE = get(BiomeDictionary.Type.DENSE);
-        BiomeTypes.WET = get(BiomeDictionary.Type.WET);
-        BiomeTypes.DRY = get(BiomeDictionary.Type.DRY);
-        BiomeTypes.SAVANNA = get(BiomeDictionary.Type.SAVANNA);
-        BiomeTypes.CONIFEROUS = get(BiomeDictionary.Type.CONIFEROUS);
-        BiomeTypes.JUNGLE = get(BiomeDictionary.Type.JUNGLE);
-        BiomeTypes.SPOOKY = get(BiomeDictionary.Type.SPOOKY);
-        BiomeTypes.DEAD = get(BiomeDictionary.Type.DEAD);
-        BiomeTypes.LUSH = get(BiomeDictionary.Type.LUSH);
-        BiomeTypes.MUSHROOM = get(BiomeDictionary.Type.MUSHROOM);
-        BiomeTypes.MAGICAL = get(BiomeDictionary.Type.MAGICAL);
-        BiomeTypes.RARE = get(BiomeDictionary.Type.RARE);
-        BiomeTypes.PLATEAU = get(BiomeDictionary.Type.PLATEAU);
-        BiomeTypes.MODIFIED = get(BiomeDictionary.Type.MODIFIED);
-        BiomeTypes.OCEAN = get(BiomeDictionary.Type.OCEAN);
-        BiomeTypes.RIVER = get(BiomeDictionary.Type.RIVER);
-        BiomeTypes.WATER = get(BiomeDictionary.Type.WATER);
-        BiomeTypes.MESA = get(BiomeDictionary.Type.MESA);
-        BiomeTypes.FOREST = get(BiomeDictionary.Type.FOREST);
-        BiomeTypes.PLAINS = get(BiomeDictionary.Type.PLAINS);
-        BiomeTypes.HILL = get(BiomeDictionary.Type.HILLS);
-        BiomeTypes.SWAMP = get(BiomeDictionary.Type.SWAMP);
-        BiomeTypes.SANDY = get(BiomeDictionary.Type.SANDY);
-        BiomeTypes.SNOWY = get(BiomeDictionary.Type.SNOWY);
-        BiomeTypes.WASTELAND = get(BiomeDictionary.Type.WASTELAND);
-        BiomeTypes.BEACH = get(BiomeDictionary.Type.BEACH);
-        BiomeTypes.VOID = get(BiomeDictionary.Type.VOID);
-        BiomeTypes.UNDERGROUND = get(BiomeDictionary.Type.UNDERGROUND);
-        BiomeTypes.PEAK = get(BiomeDictionary.Type.PEAK);
-        BiomeTypes.SLOPE = get(BiomeDictionary.Type.SLOPE);
-        BiomeTypes.MOUNTAIN = get(BiomeDictionary.Type.MOUNTAIN);
-        BiomeTypes.OVERWORLD = get(BiomeDictionary.Type.OVERWORLD);
-        BiomeTypes.NETHER = get(BiomeDictionary.Type.NETHER);
-        BiomeTypes.END = get(BiomeDictionary.Type.END);
+        BiomeTypes.HOT = get(Tags.Biomes.IS_HOT);
+        BiomeTypes.COLD = get(Tags.Biomes.IS_COLD);
+        BiomeTypes.SPARSE = get(Tags.Biomes.IS_SPARSE);
+        BiomeTypes.DENSE = get(Tags.Biomes.IS_DENSE);
+        BiomeTypes.WET = get(Tags.Biomes.IS_WET);
+        BiomeTypes.DRY = get(Tags.Biomes.IS_DRY);
+        BiomeTypes.SAVANNA = get(Tags.Biomes.IS_SAVANNA);
+        BiomeTypes.CONIFEROUS = get(Tags.Biomes.IS_CONIFEROUS);
+        BiomeTypes.JUNGLE = get(BiomeTags.IS_JUNGLE);
+        BiomeTypes.SPOOKY = get(Tags.Biomes.IS_SPOOKY);
+        BiomeTypes.DEAD = get(Tags.Biomes.IS_DEAD);
+        BiomeTypes.LUSH = get(Tags.Biomes.IS_LUSH);
+        BiomeTypes.MUSHROOM = get(Tags.Biomes.IS_MUSHROOM);
+        BiomeTypes.MAGICAL = get(Tags.Biomes.IS_MAGICAL);
+        BiomeTypes.RARE = get(Tags.Biomes.IS_RARE);
+        BiomeTypes.PLATEAU = get(Tags.Biomes.IS_PLATEAU);
+        BiomeTypes.MODIFIED = get(Tags.Biomes.IS_MODIFIED);
+        BiomeTypes.OCEAN = get(BiomeTags.IS_OCEAN);
+        BiomeTypes.RIVER = get(BiomeTags.IS_RIVER);
+        BiomeTypes.WATER = get(Tags.Biomes.IS_WATER);
+        BiomeTypes.BADLANDS = get(BiomeTags.IS_BADLANDS);
+        BiomeTypes.FOREST = get(BiomeTags.IS_FOREST);
+        BiomeTypes.PLAINS = get(Tags.Biomes.IS_PLAINS);
+        BiomeTypes.HILL = get(BiomeTags.IS_HILL);
+        BiomeTypes.SWAMP = get(Tags.Biomes.IS_SWAMP);
+        BiomeTypes.SANDY = get(Tags.Biomes.IS_SANDY);
+        BiomeTypes.SNOWY = get(Tags.Biomes.IS_SNOWY);
+        BiomeTypes.WASTELAND = get(Tags.Biomes.IS_WASTELAND);
+        BiomeTypes.BEACH = get(Tags.Biomes.IS_BEACH);
+        BiomeTypes.VOID = get(Tags.Biomes.IS_VOID);
+        BiomeTypes.UNDERGROUND = get(Tags.Biomes.IS_UNDERGROUND);
+        BiomeTypes.PEAK = get(Tags.Biomes.IS_PEAK);
+        BiomeTypes.SLOPE = get(Tags.Biomes.IS_SLOPE);
+        BiomeTypes.MOUNTAIN = get(BiomeTags.IS_MOUNTAIN);
+        BiomeTypes.OVERWORLD = get(Tags.Biomes.IS_OVERWORLD);
+        BiomeTypes.NETHER = get(BiomeTags.IS_NETHER);
+        BiomeTypes.END = get(Tags.Biomes.IS_END);
     }
 
-    private static BiomeTypes.Type get(BiomeDictionary.Type type) {
-        return new BiomeTypes.Type(biome -> BiomeDictionary.hasType(biome, type), biomeContext -> BiomeDictionary.hasType(ResourceKey.create(Registry.BIOME_REGISTRY, biomeContext.getKey()), type)).addDefaults(BiomeDictionary.getBiomes(type).toArray(new ResourceKey[0]));
+    private static BiomeTypes.Type get(TagKey<Biome> tagKey) {
+        return new BiomeTypes.Type(biome -> BiomeTypes.REG.get().getOrCreateHolderOrThrow(ResourceKey.create(Registry.BIOME_REGISTRY, biome.location())).is(tagKey), biomeContext -> BiomeTypes.REG.get().getOrCreateHolderOrThrow(ResourceKey.create(Registry.BIOME_REGISTRY, biomeContext.getKey().get())).is(tagKey));
     }
 
 }

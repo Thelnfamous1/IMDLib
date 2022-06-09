@@ -1,6 +1,6 @@
 package dev.itsmeow.imdlib.client.render;
 
-import dev.architectury.registry.level.entity.EntityRendererRegistry;
+import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

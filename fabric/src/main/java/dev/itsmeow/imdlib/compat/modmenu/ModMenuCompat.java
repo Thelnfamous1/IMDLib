@@ -16,17 +16,18 @@ import me.shedaniel.fiber2cloth.api.Fiber2Cloth;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.storage.LevelStorageException;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.LevelSummary;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 public class ModMenuCompat implements ModMenuApi {
@@ -66,7 +67,7 @@ public class ModMenuCompat implements ModMenuApi {
             }
             try {
                 LevelStorageSource levelSource = Minecraft.getInstance().getLevelSource();
-                for (LevelSummary level : levelSource.getLevelList()) {
+                for (LevelSummary level : levelSource.loadLevelSummaries(levelSource.findLevelCandidates()).get()) {
                     File config = levelSource.getBaseDir().resolve(level.getLevelId()).resolve("serverconfig/" + ServerFabricConfigContainer.INSTANCE.getConfigName() + ".json5").toFile();
                     if (config.exists()) {
                         ServerFabricConfigContainer c = new ServerFabricConfigContainer(level.getLevelId());
@@ -80,9 +81,10 @@ public class ModMenuCompat implements ModMenuApi {
                         serverConfigs.put(config, c);
                     }
                 }
-            } catch (LevelStorageException e) {
+            } catch (LevelStorageException | InterruptedException | ExecutionException e) {
+                LogManager.getLogger().warn("Error reading level data for config menu.");
             }
-            Fiber2Cloth fiber2Cloth = Fiber2Cloth.create(parent, modId, b.build(), modId).setTitleText(new TranslatableComponent("config." + modId)).setSaveRunnable(() -> {
+            Fiber2Cloth fiber2Cloth = Fiber2Cloth.create(parent, modId, b.build(), modId).setTitleText(Component.translatable("config." + modId)).setSaveRunnable(() -> {
                 for (FabricConfigContainer c : CommonFabricConfigContainer.INSTANCES) {
                     c.saveBranch(c.getConfigFile(null), b.lookupBranch(c.getConfigName()));
                 }
@@ -99,7 +101,7 @@ public class ModMenuCompat implements ModMenuApi {
                         if (btn.getMessage().getString().matches("config\\." + modId + "\\.[\\S\\s]+?-" + modId + "-server$")) {
                             String saveName = btn.getMessage().getString().substring(("config." + modId + ".").length(), btn.getMessage().getString().length() - ("-" + modId + "-server").length());
                             String newText = "World: " + saveName;
-                            btn.setMessage(new TextComponent(newText));
+                            btn.setMessage(Component.literal(newText));
                             btn.setWidth(Minecraft.getInstance().font.width(newText) + 8);
                         }
                     }

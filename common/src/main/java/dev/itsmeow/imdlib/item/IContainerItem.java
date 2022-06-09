@@ -12,7 +12,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -32,7 +31,7 @@ public interface IContainerItem<T extends Mob & IContainable> {
             String id = compoundnbt.getString("BucketVariantTag");
             Optional<IVariant> variant = container.getVariantForName(id);
             if(variant.isPresent())
-                tooltip.add((new TranslatableComponent("entity." + container.getModId() + "." + container.getEntityName().toLowerCase() + ".type." + variant.get().getName())).withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("entity." + container.getModId() + "." + container.getEntityName().toLowerCase() + ".type." + variant.get().getName()).withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
         }
     };
 

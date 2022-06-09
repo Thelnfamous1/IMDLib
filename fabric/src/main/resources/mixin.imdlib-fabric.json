@@ -4,9 +4,7 @@
   "plugin": "dev.itsmeow.imdlib.FabricMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
-  "mixins": [
-    "BiomeAccessor"
-  ],
+  "mixins": [],
   "client": [
     "ClothConfigScreenAccessor",
     "AbstractConfigEntryMixin",

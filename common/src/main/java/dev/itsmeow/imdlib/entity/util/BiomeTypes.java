@@ -6,7 +6,9 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.level.biome.BiomeModifications;
 import dev.itsmeow.imdlib.IMDLib;
 import net.minecraft.core.Registry;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.level.biome.Biome;
 
 import java.util.*;
@@ -50,7 +52,7 @@ public class BiomeTypes {
     public static Type WATER;
 
     /*Generic types which a biome can be*/
-    public static Type MESA;
+    public static Type BADLANDS;
     public static Type FOREST;
     public static Type PLAINS;
     public static Type HILL;
@@ -72,6 +74,8 @@ public class BiomeTypes {
     public static Type NETHER;
     public static Type END;
     //private static Map<Type,  Set<ResourceKey<Biome>>> computedBiomes = new HashMap<>();
+
+    public static final LazyLoadedValue<WritableRegistry<Biome>> REG = new LazyLoadedValue(() -> IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY));
 
     static {
         init();
@@ -124,7 +128,10 @@ public class BiomeTypes {
         }
 
         public boolean hasType(BiomeModifications.BiomeContext ctx) {
-            ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, ctx.getKey());
+            if(ctx.getKey().isEmpty()) {
+                return false;
+            }
+            ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, ctx.getKey().get());
             if(DEFAULTS.contains(key)) {
                 return true;
             }

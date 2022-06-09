@@ -1,80 +1,55 @@
 package dev.itsmeow.imdlib.entity.util.fabric;
 
-import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
-import dev.itsmeow.imdlib.mixin.BiomeAccessor;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.util.LazyLoadedValue;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.function.Predicate;
-
 public class BiomeTypesImpl {
 
-    private static final LazyLoadedValue<WritableRegistry<Biome>> REG = new LazyLoadedValue(() -> IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY));
-
     public static void init() {
-        BiomeTypes.HOT = new BiomeTypes.Type(biome -> {
-            Biome biomeIn = get(biome);
-            float temperature = biomeIn.getBaseTemperature();
-            Biome.BiomeCategory category = c(biomeIn);
-            return temperature > 0.85F || category == Biome.BiomeCategory.DESERT;
-        }, biomeContext -> {
-            float temperature = biomeContext.getProperties().getClimateProperties().getTemperature();
-            Biome.BiomeCategory category = biomeContext.getProperties().getCategory();
-            return temperature > 0.85F || category == Biome.BiomeCategory.DESERT;
-        });
-        BiomeTypes.COLD = new BiomeTypes.Type(biome -> {
-            Biome biomeIn = get(biome);
-            float temperature = biomeIn.getBaseTemperature();
-            Biome.BiomeCategory category = c(biomeIn);
-            return temperature < 0.15F || category == Biome.BiomeCategory.ICY;
-        }, biomeContext -> {
-            float temperature = biomeContext.getProperties().getClimateProperties().getTemperature();
-            Biome.BiomeCategory category = biomeContext.getProperties().getCategory();
-            return temperature < 0.15F || category == Biome.BiomeCategory.ICY;
-        });
-        BiomeTypes.SPARSE = pathContains("sparse");
-        BiomeTypes.DENSE = pathContains("dense");
-        BiomeTypes.WET = new BiomeTypes.Type(biome -> get(biome).isHumid(), biomeContext -> biomeContext.getProperties().getClimateProperties().getDownfall() > 0.85F);
-        BiomeTypes.DRY = catPath(Biome.BiomeCategory.DESERT, "arid");
-        BiomeTypes.SAVANNA = catPath(Biome.BiomeCategory.SAVANNA, "savanna");
-        BiomeTypes.CONIFEROUS = catPath(Biome.BiomeCategory.TAIGA, "taiga");
-        BiomeTypes.JUNGLE = catPath(Biome.BiomeCategory.JUNGLE, "jungle");
-        BiomeTypes.SPOOKY = pathContains("spooky");
-        BiomeTypes.DEAD = pathContains("dead");
-        BiomeTypes.LUSH = pathContains("lush");
-        BiomeTypes.MUSHROOM = catMatch(Biome.BiomeCategory.MUSHROOM);
-        BiomeTypes.MAGICAL = pathContains("magic");
-        BiomeTypes.RARE = new BiomeTypes.Type(biome -> biome.location().getPath().contains("rare") || biome.location().getPath().contains("modified"), biomeContext -> biomeContext.getKey().getPath().contains("rare") || biomeContext.getKey().getPath().contains("modified"));
-        BiomeTypes.PLATEAU = pathContains("plateau");
-        BiomeTypes.MODIFIED = pathContains("modified");
-        BiomeTypes.OCEAN = catMatch(Biome.BiomeCategory.OCEAN);
-        BiomeTypes.RIVER = catMatch(Biome.BiomeCategory.RIVER);
-        BiomeTypes.WATER = catPredicate(c -> c == Biome.BiomeCategory.OCEAN || c == Biome.BiomeCategory.RIVER);
-        BiomeTypes.MESA = catMatch(Biome.BiomeCategory.MESA);
-        BiomeTypes.FOREST = catPathMulti(Biome.BiomeCategory.FOREST, "forest", "taiga");
-        BiomeTypes.PLAINS = catPath(Biome.BiomeCategory.PLAINS, "plain");
-        BiomeTypes.HILL = catPath(Biome.BiomeCategory.EXTREME_HILLS, "hill");
-        BiomeTypes.SWAMP = catPath(Biome.BiomeCategory.SWAMP, "swamp");
-        BiomeTypes.SANDY = catMatch(Biome.BiomeCategory.DESERT);
-        BiomeTypes.SNOWY = catPath(Biome.BiomeCategory.ICY, "snow");
-        BiomeTypes.WASTELAND = pathContains("waste");
-        BiomeTypes.BEACH = catMatch(Biome.BiomeCategory.BEACH);
-        BiomeTypes.VOID = catMatch(Biome.BiomeCategory.NONE);
-        BiomeTypes.UNDERGROUND = catMatch(Biome.BiomeCategory.UNDERGROUND);
-        BiomeTypes.PEAK = catAndPath(Biome.BiomeCategory.MOUNTAIN, "peak");
-        BiomeTypes.SLOPE = catAndPath(Biome.BiomeCategory.MOUNTAIN, "slope");
-        BiomeTypes.MOUNTAIN = new BiomeTypes.Type(b -> BiomeTypes.PEAK.hasType(b) || BiomeTypes.SLOPE.hasType(b) || cat(b) == Biome.BiomeCategory.MOUNTAIN, ctx -> BiomeTypes.PEAK.hasType(ctx) || BiomeTypes.SLOPE.hasType(ctx) || ctx.getProperties().getCategory() == Biome.BiomeCategory.MOUNTAIN);
-        //TODO come up with a better check for overworld
-        BiomeTypes.OVERWORLD = catPredicate(c -> c != Biome.BiomeCategory.NETHER && c != Biome.BiomeCategory.THEEND);
-        BiomeTypes.NETHER = catPath(Biome.BiomeCategory.NETHER, "nether");
-        BiomeTypes.END = catMatch(Biome.BiomeCategory.THEEND);
+        BiomeTypes.HOT = get("is_hot", "climate_hot");
+        BiomeTypes.COLD = get("is_cold", "climate_cold");
+        BiomeTypes.SPARSE = get("is_sparse", "vegetation_sparse");
+        BiomeTypes.DENSE = get("is_dense", "vegetation_dense");
+        BiomeTypes.WET = get("is_wet", "climate_wet");
+        BiomeTypes.DRY = get("is_dry", "climate_dry");
+        BiomeTypes.SAVANNA = get("is_savanna", "savanna");
+        BiomeTypes.CONIFEROUS = get("is_coniferous", "tree_coniferous");
+        BiomeTypes.JUNGLE = getVanilla(BiomeTags.IS_JUNGLE, "tree_jungle");
+        BiomeTypes.SPOOKY = get("is_spooky", "spooky");
+        BiomeTypes.DEAD = get("is_dead", "dead");
+        BiomeTypes.LUSH = get("is_lush", "lush");
+        BiomeTypes.MUSHROOM = get("is_mushroom", "mushroom");
+        BiomeTypes.MAGICAL = get("is_magical", "magical");
+        BiomeTypes.RARE = get("is_rare", "rare");
+        BiomeTypes.PLATEAU = get("is_plateau", "plateau");
+        BiomeTypes.MODIFIED = get("is_modified", "modified");
+        BiomeTypes.OCEAN = getVanilla(BiomeTags.IS_OCEAN, "ocean");
+        BiomeTypes.RIVER = getVanilla(BiomeTags.IS_RIVER, "river");
+        BiomeTypes.WATER = getMixTag("is_water", BiomeTags.IS_OCEAN, BiomeTags.IS_RIVER);
+        BiomeTypes.BADLANDS = getVanilla(BiomeTags.IS_BADLANDS, "badlands");
+        BiomeTypes.FOREST = getVanilla(BiomeTags.IS_FOREST, "forest");
+        BiomeTypes.PLAINS = get("is_plains", "plains");
+        BiomeTypes.HILL = getVanilla(BiomeTags.IS_HILL, "hill");
+        BiomeTypes.SWAMP = get("is_swamp", "swamp");
+        BiomeTypes.SANDY = get("is_sandy", "sandy");
+        BiomeTypes.SNOWY = get("is_snowy", "snowy");
+        BiomeTypes.WASTELAND = get("is_wasteland", "wasteland");
+        BiomeTypes.BEACH = get("is_beach", "beach");
+        BiomeTypes.VOID = get("is_void", "void");
+        BiomeTypes.UNDERGROUND = get("is_underground", "underground");
+        BiomeTypes.PEAK = get("is_peak", "mountain_peak");
+        BiomeTypes.SLOPE = get("is_slope", "mountain_slope");
+        BiomeTypes.MOUNTAIN = getVanilla(BiomeTags.IS_MOUNTAIN, "mountain");
+        BiomeTypes.OVERWORLD = get("is_overworld", "in_overworld");
+        BiomeTypes.NETHER = getVanilla(BiomeTags.IS_NETHER, "in_nether");
+        BiomeTypes.END = get("is_end", "in_the_end");
 
         // Hardcoded defaults
         addTypes(Biomes.OCEAN, BiomeTypes.OCEAN, BiomeTypes.OVERWORLD);
@@ -104,8 +79,8 @@ public class BiomeTypesImpl {
         addTypes(Biomes.WINDSWEPT_FOREST, BiomeTypes.MOUNTAIN, BiomeTypes.FOREST, BiomeTypes.SPARSE, BiomeTypes.OVERWORLD);
         addTypes(Biomes.SAVANNA, BiomeTypes.HOT, BiomeTypes.SAVANNA, BiomeTypes.PLAINS, BiomeTypes.SPARSE, BiomeTypes.OVERWORLD);
         addTypes(Biomes.SAVANNA_PLATEAU, BiomeTypes.HOT, BiomeTypes.SAVANNA, BiomeTypes.PLAINS, BiomeTypes.SPARSE, BiomeTypes.RARE, BiomeTypes.OVERWORLD, BiomeTypes.PLATEAU);
-        addTypes(Biomes.BADLANDS, BiomeTypes.MESA, BiomeTypes.SANDY, BiomeTypes.DRY, BiomeTypes.OVERWORLD);
-        addTypes(Biomes.WOODED_BADLANDS, BiomeTypes.MESA, BiomeTypes.SANDY, BiomeTypes.DRY, BiomeTypes.SPARSE, BiomeTypes.OVERWORLD, BiomeTypes.PLATEAU);
+        addTypes(Biomes.BADLANDS, BiomeTypes.BADLANDS, BiomeTypes.SANDY, BiomeTypes.DRY, BiomeTypes.OVERWORLD);
+        addTypes(Biomes.WOODED_BADLANDS, BiomeTypes.BADLANDS, BiomeTypes.SANDY, BiomeTypes.DRY, BiomeTypes.SPARSE, BiomeTypes.OVERWORLD, BiomeTypes.PLATEAU);
         addTypes(Biomes.SMALL_END_ISLANDS, BiomeTypes.END);
         addTypes(Biomes.END_MIDLANDS, BiomeTypes.END);
         addTypes(Biomes.END_HIGHLANDS, BiomeTypes.END);
@@ -138,47 +113,42 @@ public class BiomeTypesImpl {
         }
     }
 
-    private static Biome get(ResourceKey<Biome> biome) {
-        return REG.get().get(biome.location());
+    private static TagKey<Biome> ckey(String key) {
+        return key("c", key);
     }
 
-    private static Biome.BiomeCategory c(Biome b) {
-        return ((BiomeAccessor) (Object) b).getBiomeCategory();
+    private static TagKey<Biome> fkey(String key) {
+        return key("forge", key);
     }
 
-    private static Biome.BiomeCategory cat(ResourceKey<Biome> biome) {
-        return c(REG.get().get(biome));
+    private static TagKey<Biome> key(String space, String key) {
+        return TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(space, key));
     }
 
-    private static BiomeTypes.Type catMatch(Biome.BiomeCategory category) {
-        return new BiomeTypes.Type(biome -> cat(biome) == category, biomeContext -> biomeContext.getProperties().getCategory() == category);
+    private static BiomeTypes.Type get(String forge, String tagKey) {
+        return get(forge, ckey(tagKey));
     }
 
-    private static BiomeTypes.Type catPredicate(Predicate<Biome.BiomeCategory> predicate) {
-        return new BiomeTypes.Type(biome -> predicate.test(cat(biome)), biomeContext -> predicate.test(biomeContext.getProperties().getCategory()));
+    private static BiomeTypes.Type get(String forge, TagKey<Biome> tagKey) {
+        return new BiomeTypes.Type(biome -> hasAny(biome.location(), tagKey, fkey(forge), key(biome.location().getNamespace(), forge)), biomeContext -> hasAny(biomeContext.getKey().get(), tagKey, fkey(forge), key(biomeContext.getKey().get().getNamespace(), forge)));
     }
 
-    private static BiomeTypes.Type pathContains(String content) {
-        return new BiomeTypes.Type(biome -> biome.location().getPath().contains(content), biomeContext -> biomeContext.getKey().getPath().contains(content));
+    private static BiomeTypes.Type getVanilla(TagKey<Biome> tagKey, String additional) {
+        TagKey<Biome> c = ckey(additional);
+        return new BiomeTypes.Type(biome -> hasAny(biome.location(), tagKey, c), biomeContext -> hasAny(biomeContext.getKey().get(), tagKey, c));
     }
 
-    private static BiomeTypes.Type catPath(Biome.BiomeCategory category, String content) {
-        return new BiomeTypes.Type(biome -> cat(biome) == category || biome.location().getPath().contains(content), biomeContext -> biomeContext.getProperties().getCategory() == category || biomeContext.getKey().getPath().contains(content));
+    private static BiomeTypes.Type getMixTag(String forge, TagKey<Biome> tagKey, TagKey<Biome> additional) {
+        return new BiomeTypes.Type(biome -> hasAny(biome.location(), tagKey, additional, fkey(forge), key(biome.location().getNamespace(), forge)), biomeContext -> hasAny(biomeContext.getKey().get(), tagKey, additional, fkey(forge), key(biomeContext.getKey().get().getNamespace(), forge)));
     }
 
-    private static BiomeTypes.Type catAndPath(Biome.BiomeCategory category, String content) {
-        return new BiomeTypes.Type(biome -> cat(biome) == category && biome.location().getPath().contains(content), biomeContext -> biomeContext.getProperties().getCategory() == category || biomeContext.getKey().getPath().contains(content));
-    }
-
-    private static BiomeTypes.Type catMultiPathMulti(Set<Biome.BiomeCategory> category, String... content) {
-        return new BiomeTypes.Type(biome -> category.contains(cat(biome)) || Arrays.stream(content).anyMatch(c -> biome.location().getPath().contains(c)), biomeContext -> category.contains(biomeContext.getProperties().getCategory()) || Arrays.stream(content).anyMatch(c -> biomeContext.getKey().getPath().contains(c)));
-    }
-
-    private static BiomeTypes.Type catPathMulti(Biome.BiomeCategory category, String... content) {
-        return new BiomeTypes.Type(biome -> cat(biome) == category || Arrays.stream(content).anyMatch(c -> biome.location().getPath().contains(c)), biomeContext -> biomeContext.getProperties().getCategory() == category || Arrays.stream(content).anyMatch(c -> biomeContext.getKey().getPath().contains(c)));
-    }
-
-    private static BiomeTypes.Type reject() {
-        return new BiomeTypes.Type(biome -> false, biomeContext -> false);
+    private static boolean hasAny(ResourceLocation biome, TagKey<Biome>... keys) {
+        Holder<Biome> holder = BiomeTypes.REG.get().getOrCreateHolderOrThrow(ResourceKey.create(Registry.BIOME_REGISTRY, biome));
+        for(TagKey<Biome> k : keys) {
+            if(holder.is(k)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

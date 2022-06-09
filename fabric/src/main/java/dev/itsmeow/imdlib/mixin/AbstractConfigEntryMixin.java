@@ -3,9 +3,9 @@ package dev.itsmeow.imdlib.mixin;
 import dev.itsmeow.imdlib.util.SafePlatform;
 import me.shedaniel.clothconfig2.api.AbstractConfigEntry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -16,7 +16,8 @@ import java.util.WeakHashMap;
 @Mixin(AbstractConfigEntry.class)
 public abstract class AbstractConfigEntryMixin {
 
-    private static Map<Component, TranslatableComponent> componentMap = new WeakHashMap<>();
+    @Unique
+    private static Map<Component, Component> componentMap = new WeakHashMap<>();
 
     @Shadow
     public abstract Component getFieldName();
@@ -32,19 +33,19 @@ public abstract class AbstractConfigEntryMixin {
             String modId = SafePlatform.modId();
             if (fieldName.matches("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities\\.\\w+$")) {
                 fieldName = fieldName.replaceFirst("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities", "");
-                TranslatableComponent c = new TranslatableComponent("entity." + modId + fieldName);
+                Component c = Component.translatable("entity." + modId + fieldName);
                 componentMap.put(field, c);
                 callbackInfoReturnable.setReturnValue(c);
                 callbackInfoReturnable.cancel();
             } else if (fieldName.matches("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.\\w+$")) {
                 fieldName = fieldName.replaceFirst("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)", "");
-                TranslatableComponent c = new TranslatableComponent("config." + modId + fieldName);
+                Component c = Component.translatable("config." + modId + fieldName);
                 componentMap.put(field, c);
                 callbackInfoReturnable.setReturnValue(c);
                 callbackInfoReturnable.cancel();
             } else if (fieldName.matches("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities\\.\\w+\\.(\\w+\\.?)+$")) {
                 fieldName = fieldName.replaceFirst("config\\." + modId + "\\.([\\s\\S]+?-)?" + modId + "-(server-default|client|server|common)\\.entities\\.\\w+", "");
-                TranslatableComponent c = new TranslatableComponent("config." + modId + fieldName);
+                Component c = Component.translatable("config." + modId + fieldName);
                 componentMap.put(field, c);
                 callbackInfoReturnable.setReturnValue(c);
                 callbackInfoReturnable.cancel();
