@@ -21,10 +21,10 @@ configurations {
 
 repositories {
     maven {
-        url = "https://maven.modmuss50.me/"
+        url = "https://maven.itsmeow.dev/"
     }
     maven {
-        url = "https://maven.shedaniel.me/"
+        url = "https://maven.modmuss50.me/"
     }
     maven {
         name = "TerraformersMC"
