@@ -17,7 +17,7 @@ public class BiomeTypesImpl {
         BiomeTypes.DENSE = get(Tags.Biomes.IS_DENSE);
         BiomeTypes.WET = get(Tags.Biomes.IS_WET);
         BiomeTypes.DRY = get(Tags.Biomes.IS_DRY);
-        BiomeTypes.SAVANNA = get(Tags.Biomes.IS_SAVANNA);
+        BiomeTypes.SAVANNA = get(BiomeTags.IS_SAVANNA);
         BiomeTypes.CONIFEROUS = get(Tags.Biomes.IS_CONIFEROUS);
         BiomeTypes.JUNGLE = get(BiomeTags.IS_JUNGLE);
         BiomeTypes.SPOOKY = get(Tags.Biomes.IS_SPOOKY);
@@ -39,15 +39,15 @@ public class BiomeTypesImpl {
         BiomeTypes.SANDY = get(Tags.Biomes.IS_SANDY);
         BiomeTypes.SNOWY = get(Tags.Biomes.IS_SNOWY);
         BiomeTypes.WASTELAND = get(Tags.Biomes.IS_WASTELAND);
-        BiomeTypes.BEACH = get(Tags.Biomes.IS_BEACH);
+        BiomeTypes.BEACH = get(BiomeTags.IS_BEACH);
         BiomeTypes.VOID = get(Tags.Biomes.IS_VOID);
         BiomeTypes.UNDERGROUND = get(Tags.Biomes.IS_UNDERGROUND);
         BiomeTypes.PEAK = get(Tags.Biomes.IS_PEAK);
         BiomeTypes.SLOPE = get(Tags.Biomes.IS_SLOPE);
         BiomeTypes.MOUNTAIN = get(BiomeTags.IS_MOUNTAIN);
-        BiomeTypes.OVERWORLD = get(Tags.Biomes.IS_OVERWORLD);
+        BiomeTypes.OVERWORLD = get(BiomeTags.IS_OVERWORLD);
         BiomeTypes.NETHER = get(BiomeTags.IS_NETHER);
-        BiomeTypes.END = get(Tags.Biomes.IS_END);
+        BiomeTypes.END = get(BiomeTags.IS_END);
     }
 
     private static BiomeTypes.Type get(TagKey<Biome> tagKey) {
