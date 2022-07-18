@@ -3,7 +3,7 @@ dependencies {
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 }
 architectury {
-    common()
+    common("forge", "fabric")
 }
 publishing {
     publications {
