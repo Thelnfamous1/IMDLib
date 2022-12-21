@@ -66,15 +66,13 @@ public class ItemBlockSkull extends StandingAndWallBlockItem {
         if (!ctx.canPlace()) {
             return InteractionResult.FAIL;
         } else {
-            if (ctx.getNearestLookingDirection() == Direction.DOWN) {
+            if (ctx.getNearestLookingDirection() == Direction.DOWN || (ctx.getNearestLookingDirection() == Direction.UP && placement != PlacementType.FLOOR_AND_WALL)) {
                 return InteractionResult.FAIL;
             }
             BlockState placementState = this.getPlacementState(ctx);
             if (placementState == null) {
                 return InteractionResult.FAIL;
             } else if (!this.placeBlock(ctx, placementState)) {
-                return InteractionResult.FAIL;
-            } else if (ctx.getNearestLookingDirection() == Direction.UP && placement != PlacementType.FLOOR_AND_WALL) {
                 return InteractionResult.FAIL;
             } else {
                 BlockPos blockpos = ctx.getClickedPos();
