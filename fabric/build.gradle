@@ -67,6 +67,9 @@ processResources {
 shadowJar {
     configurations = [project.configurations.shadowCommon, project.configurations.shadowImplementation, project.configurations.shadowModApi]
     classifier "dev-shadow"
+    relocate "blue.endless.jankson", "dev.itsmeow.imdlib.shadow.jankson"
+    relocate "io.fablabsmc.fablabs", "dev.itsmeow.imdlib.shadow.fablabs"
+    relocate "me.shedaniel.fiber2cloth", "dev.itsmeow.imdlib.shadow.fiber2cloth"
 }
 
 remapJar {
