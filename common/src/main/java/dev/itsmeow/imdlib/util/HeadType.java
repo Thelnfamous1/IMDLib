@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib.util;
 
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.imdlib.IMDLib;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -54,7 +56,7 @@ public class HeadType {
     private final Map<ResourceLocation, IVariant> reverseVariantMap = new HashMap<>();
     private final Consumer<RegistrarManager> registerVariants;
 
-    public HeadType(String modid, CreativeModeTab group, String name, PlacementType placement, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
+    public HeadType(String modid, CreativeModeTab group, CreativeTabRegistry.TabSupplier group_Supplied, String name, PlacementType placement, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
         this.name = name;
         this.modid = modid;
         this.placement = placement;
@@ -67,26 +69,26 @@ public class HeadType {
                 case NAMES:
                     for (IVariant variant : container.getVariants()) {
                         if (variant.hasHead()) {
-                            setupVariant(registries, variant, group, variant.getName());
+                            setupVariant(registries, variant, group, group_Supplied, variant.getName());
                         }
                     }
                     break;
                 case NUMBERS:
                     for (IVariant variant : container.getVariants()) {
                         if (variant.hasHead()) {
-                            setupVariant(registries, variant, group, String.valueOf(container.getVariants().indexOf(variant) + 1));
+                            setupVariant(registries, variant, group, group_Supplied, String.valueOf(container.getVariants().indexOf(variant) + 1));
                         }
                     }
                     break;
                 case CUSTOM:
                     for (IVariant variant : container.getVariants()) {
                         if (variant.hasHead()) {
-                            setupVariant(registries, variant, group, variantMapper.apply(variant));
+                            setupVariant(registries, variant, group, group_Supplied, variantMapper.apply(variant));
                         }
                     }
                     break;
                 case SINGLETON:
-                    setupVariant(registries, singletonVariant, group, singletonID);
+                    setupVariant(registries, singletonVariant, group, group_Supplied, singletonID);
                     this.singletonVariant = singletonVariant;
                     break;
                 default:
@@ -101,10 +103,17 @@ public class HeadType {
         registerVariants.accept(registries);
     }
 
-    protected void setupVariant(RegistrarManager registries, IVariant variant, CreativeModeTab group, String id) {
+    protected void setupVariant(RegistrarManager registries, IVariant variant, CreativeModeTab group, CreativeTabRegistry.TabSupplier group_Supplied, String id) {
         ResourceLocation rl = new ResourceLocation(this.getMod(), this.getName() + "_" + id);
         RegistrySupplier<GenericSkullBlock> block = registries.get(Registries.BLOCK).register(rl, () -> new GenericSkullBlock(this, id));
-        RegistrySupplier<ItemBlockHeadType> item = registries.get(Registries.ITEM).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
+        RegistrySupplier<ItemBlockHeadType> item;
+        if(group != null) {
+            item = registries.get(Registries.ITEM).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
+        } else if (group_Supplied != null) {
+            item = registries.get(Registries.ITEM).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group_Supplied));
+        } else {
+            item = registries.get(Registries.ITEM).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, new Item.Properties()));
+        }
         heads.put(variant, Pair.of(block, item));
         blocks.add(block);
         items.add(item);
@@ -248,6 +257,7 @@ public class HeadType {
         private IVariant singletonVariant;
         private String singletonID;
         private CreativeModeTab group;
+        private CreativeTabRegistry.TabSupplier group_Supplied;
 
         public Builder(B initial, String name) {
             this.initial = initial;
@@ -258,6 +268,11 @@ public class HeadType {
 
         public Builder<T, C, B> itemGroup(CreativeModeTab group) {
             this.group = group;
+            return this;
+        }
+
+        public Builder<T, C, B> itemGroup(CreativeTabRegistry.TabSupplier group) {
+            this.group_Supplied = group;
             return this;
         }
 
@@ -306,7 +321,7 @@ public class HeadType {
             if (idMapping == null) {
                 throw new RuntimeException("No ID mapping set for head builder " + name);
             }
-            HeadType type = new HeadType(initial.getMod(), group, name, placement, idMapping, customMapper, singletonVariant, singletonID, container);
+            HeadType type = new HeadType(initial.getMod(), group, group_Supplied, name, placement, idMapping, customMapper, singletonVariant, singletonID, container);
             if (Platform.getEnv() == EnvType.CLIENT) {
                 type.modelSupplier = modelSupplier;
                 type.modelLocation = modelLocation;
