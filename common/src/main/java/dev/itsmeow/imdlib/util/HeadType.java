@@ -19,6 +19,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -138,7 +139,8 @@ public class HeadType {
     }
 
     public IVariant getVariantForBlock(Block block) {
-        return reverseVariantMap.get(IMDLib.getRegistry(Registries.BLOCK).getKey(block));
+        Optional<ResourceKey<Block>> opt = IMDLib.getRegistry(Registries.BLOCK).getKey(block);
+        return opt.isPresent() ? reverseVariantMap.get(opt.get().location()) : null;
     }
 
     public Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>> getPairForVariant(IVariant variant) {
