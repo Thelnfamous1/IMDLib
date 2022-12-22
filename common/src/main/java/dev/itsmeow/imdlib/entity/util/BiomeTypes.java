@@ -7,6 +7,7 @@ import dev.architectury.registry.level.biome.BiomeModifications;
 import dev.itsmeow.imdlib.IMDLib;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.level.biome.Biome;
@@ -75,7 +76,7 @@ public class BiomeTypes {
     public static Type END;
     //private static Map<Type,  Set<ResourceKey<Biome>>> computedBiomes = new HashMap<>();
 
-    public static final LazyLoadedValue<WritableRegistry<Biome>> REG = new LazyLoadedValue(() -> IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY));
+    public static final LazyLoadedValue<WritableRegistry<Biome>> REG = new LazyLoadedValue(() -> IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registries.BIOME));
 
     static {
         init();
@@ -100,7 +101,7 @@ public class BiomeTypes {
         }*/
         Registry<Biome> reg = null;
         try {
-            reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+            reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registries.BIOME);
         } catch(RuntimeException e) {
             return new HashSet<>();
         }
@@ -131,7 +132,7 @@ public class BiomeTypes {
             if(ctx.getKey().isEmpty()) {
                 return false;
             }
-            ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, ctx.getKey().get());
+            ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, ctx.getKey().get());
             if(DEFAULTS.contains(key)) {
                 return true;
             }

@@ -9,6 +9,7 @@ import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.BiomeListBuilder;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -86,7 +87,7 @@ public abstract class AbstractEntityBuilder<T extends Mob, C extends EntityTypeC
             Set<ResourceKey<Biome>> set = new HashSet<>();
             Registry<Biome> reg = null;
             try {
-                reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+                reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registries.BIOME);
             } catch(RuntimeException e) {
                 return set;
             }

@@ -1,7 +1,7 @@
 package dev.itsmeow.imdlib.client.util;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import dev.itsmeow.imdlib.mixin.ModelPartAccessor;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.ModelPart.Cube;
@@ -29,9 +29,9 @@ public class RenderUtil {
     public static void partTranslateRotate(PoseStack stack, ModelPart... parts) {
         for (ModelPart part : parts) {
             RenderUtil.pointTranslate(stack, part);
-            stack.mulPose(Vector3f.XP.rotation(part.xRot));
-            stack.mulPose(Vector3f.YP.rotation(part.yRot));
-            stack.mulPose(Vector3f.ZP.rotation(part.zRot));
+            stack.mulPose(Axis.XP.rotation(part.xRot));
+            stack.mulPose(Axis.YP.rotation(part.yRot));
+            stack.mulPose(Axis.ZP.rotation(part.zRot));
         }
     }
 
@@ -39,9 +39,9 @@ public class RenderUtil {
         for (ModelPart part : parts) {
             RenderUtil.offsetTranslate(stack, part);
             RenderUtil.pointTranslate(stack, part);
-            stack.mulPose(Vector3f.XP.rotation(part.xRot));
-            stack.mulPose(Vector3f.YP.rotation(part.yRot));
-            stack.mulPose(Vector3f.ZP.rotation(part.zRot));
+            stack.mulPose(Axis.XP.rotation(part.xRot));
+            stack.mulPose(Axis.YP.rotation(part.yRot));
+            stack.mulPose(Axis.ZP.rotation(part.zRot));
         }
     }
 

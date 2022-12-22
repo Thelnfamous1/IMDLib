@@ -2,6 +2,7 @@ package dev.itsmeow.imdlib.entity.util.forge;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
@@ -51,7 +52,7 @@ public class BiomeTypesImpl {
     }
 
     private static BiomeTypes.Type get(TagKey<Biome> tagKey) {
-        return new BiomeTypes.Type(biome -> BiomeTypes.REG.get().getOrCreateHolderOrThrow(ResourceKey.create(Registry.BIOME_REGISTRY, biome.location())).is(tagKey), biomeContext -> BiomeTypes.REG.get().getOrCreateHolderOrThrow(ResourceKey.create(Registry.BIOME_REGISTRY, biomeContext.getKey().get())).is(tagKey));
+        return new BiomeTypes.Type(biome -> BiomeTypes.REG.get().getHolderOrThrow(ResourceKey.create(Registries.BIOME, biome.location())).is(tagKey), biomeContext -> BiomeTypes.REG.get().getHolderOrThrow(ResourceKey.create(Registries.BIOME, biomeContext.getKey().get())).is(tagKey));
     }
 
 }

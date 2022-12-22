@@ -2,7 +2,7 @@ package dev.itsmeow.imdlib.entity.util.fabric;
 
 import dev.itsmeow.imdlib.entity.util.BiomeTypes;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
@@ -122,7 +122,7 @@ public class BiomeTypesImpl {
     }
 
     private static TagKey<Biome> key(String space, String key) {
-        return TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(space, key));
+        return TagKey.create(Registries.BIOME, new ResourceLocation(space, key));
     }
 
     private static BiomeTypes.Type get(String forge, String tagKey) {
@@ -143,7 +143,7 @@ public class BiomeTypesImpl {
     }
 
     private static boolean hasAny(ResourceLocation biome, TagKey<Biome>... keys) {
-        Holder<Biome> holder = BiomeTypes.REG.get().getOrCreateHolderOrThrow(ResourceKey.create(Registry.BIOME_REGISTRY, biome));
+        Holder<Biome> holder = BiomeTypes.REG.get().getHolderOrThrow(ResourceKey.create(Registries.BIOME, biome));
         for(TagKey<Biome> k : keys) {
             if(holder.is(k)) {
                 return true;

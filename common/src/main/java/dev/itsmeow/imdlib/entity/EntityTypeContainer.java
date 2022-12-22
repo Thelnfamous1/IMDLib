@@ -13,6 +13,7 @@ import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.ConfigBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -341,12 +342,12 @@ public class EntityTypeContainer<T extends Mob> {
                     for (String biomeName : configList.get()) {
                         ResourceLocation rl = new ResourceLocation(biomeName);
                         try {
-                            Registry<Biome> reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+                            Registry<Biome> reg = IMDLib.getStaticServerInstance().registryAccess().registryOrThrow(Registries.BIOME);
                             Biome biome = reg.get(rl);
                             if (biome == null) {
                                 LogManager.getLogger().error("Invalid biome \"" + biomeName + "\" for entity " + getEntityName() + ". No biome exists with that name. Skipping.");
                             } else {
-                                biomeKeys.add(ResourceKey.create(Registry.BIOME_REGISTRY, rl));
+                                biomeKeys.add(ResourceKey.create(Registries.BIOME, rl));
                             }
                         } catch (Exception e) {
                             LogManager.getLogger().error("Invalid biome name: \"" + biomeName + "\" for entity " + getEntityName() + ". Is it formatted correctly? Skipping.");

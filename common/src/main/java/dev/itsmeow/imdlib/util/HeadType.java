@@ -1,8 +1,9 @@
 package dev.itsmeow.imdlib.util;
 
 import dev.architectury.platform.Platform;
-import dev.architectury.registry.registries.Registries;
+import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
+import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.block.GenericSkullBlock;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
@@ -16,7 +17,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -51,7 +52,7 @@ public class HeadType {
     private final Set<RegistrySupplier<ItemBlockHeadType>> items = new HashSet<>();
     private final Set<RegistrySupplier<GenericSkullBlock>> blocks = new HashSet<>();
     private final Map<ResourceLocation, IVariant> reverseVariantMap = new HashMap<>();
-    private final Consumer<Registries> registerVariants;
+    private final Consumer<RegistrarManager> registerVariants;
 
     public HeadType(String modid, CreativeModeTab group, String name, PlacementType placement, HeadIDMapping mapping, @Nullable Function<IVariant, String> variantMapper, @Nullable IVariant singletonVariant, @Nullable String singletonID, EntityTypeContainer<? extends LivingEntity> container) {
         this.name = name;
@@ -96,14 +97,14 @@ public class HeadType {
         HEADS_MAP.put(name, this);
     }
 
-    public void register(Registries registries) {
+    public void register(RegistrarManager registries) {
         registerVariants.accept(registries);
     }
 
-    protected void setupVariant(Registries registries, IVariant variant, CreativeModeTab group, String id) {
+    protected void setupVariant(RegistrarManager registries, IVariant variant, CreativeModeTab group, String id) {
         ResourceLocation rl = new ResourceLocation(this.getMod(), this.getName() + "_" + id);
-        RegistrySupplier<GenericSkullBlock> block = registries.get(Registry.BLOCK_REGISTRY).register(rl, () -> new GenericSkullBlock(this, id));
-        RegistrySupplier<ItemBlockHeadType> item = registries.get(Registry.ITEM_REGISTRY).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
+        RegistrySupplier<GenericSkullBlock> block = registries.get(Registries.BLOCK).register(rl, () -> new GenericSkullBlock(this, id));
+        RegistrySupplier<ItemBlockHeadType> item = registries.get(Registries.ITEM).register(rl, () -> new ItemBlockHeadType(block.get(), this, id, variant, group));
         heads.put(variant, Pair.of(block, item));
         blocks.add(block);
         items.add(item);
@@ -128,7 +129,7 @@ public class HeadType {
     }
 
     public IVariant getVariantForBlock(Block block) {
-        return reverseVariantMap.get(Registry.BLOCK.getKey(block));
+        return reverseVariantMap.get(IMDLib.getRegistry(Registries.BLOCK).getKey(block));
     }
 
     public Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>> getPairForVariant(IVariant variant) {

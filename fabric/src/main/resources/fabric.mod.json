@@ -16,7 +16,7 @@
   "depends": {
     "minecraft": "1.19.x",
     "fabricloader": ">=0.12.0",
-    "fabric": ">=0.32.0"
+    "fabric-api": ">=0.32.0"
   },
   "mixins": [
     "mixin.imdlib-fabric.json"

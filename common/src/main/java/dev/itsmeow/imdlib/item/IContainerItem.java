@@ -56,14 +56,13 @@ public interface IContainerItem<T extends Mob & IContainable> {
     }
 
     default void placeEntity(ServerLevel worldIn, ItemStack stack, BlockPos pos) {
-        T entity = this.getEntityType().spawn(worldIn, stack.getTag(), stack.hasCustomHoverName() ? stack.getDisplayName() : null, null, pos, MobSpawnType.BUCKET, true, false);
-        if (entity != null) {
+        this.getEntityType().spawn(worldIn, stack.getTag(), entity -> {
             entity.setFromContainer(true);
             entity.readFromContainer(stack);
             if (stack.getTag() != null) {
                 entity.readFromContainerTag(stack.getTag());
             }
-        }
+        }, pos, MobSpawnType.BUCKET, true, false);
     }
 
     @FunctionalInterface

@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.item;
 
+import dev.architectury.registry.CreativeTabRegistry;
 import dev.itsmeow.imdlib.block.AnimalSkullBlock;
 import dev.itsmeow.imdlib.entity.util.variant.IVariant;
 import dev.itsmeow.imdlib.util.HeadType.PlacementType;
@@ -27,15 +28,16 @@ public class ItemBlockSkull extends StandingAndWallBlockItem {
     public final String id;
     public final IVariant variant;
 
+    public ItemBlockSkull(Block block, PlacementType placement, String id, IVariant variant, CreativeTabRegistry.TabSupplier group) {
+        this(block, placement, id, variant, new Item.Properties().arch$tab(group));
+    }
+
     public ItemBlockSkull(Block block, PlacementType placement, String id, IVariant variant, CreativeModeTab group) {
-        super(block, block, new Item.Properties().tab(group));
-        this.placement = placement;
-        this.id = id;
-        this.variant = variant;
+        this(block, placement, id, variant, new Item.Properties().arch$tab(group));
     }
 
     public ItemBlockSkull(Block block, PlacementType placement, String id, IVariant variant, Properties prop) {
-        super(block, block, prop);
+        super(block, block, prop, Direction.DOWN);
         this.placement = placement;
         this.id = id;
         this.variant = variant;

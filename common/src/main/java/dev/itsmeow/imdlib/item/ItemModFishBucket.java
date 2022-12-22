@@ -1,6 +1,7 @@
 package dev.itsmeow.imdlib.item;
 
 
+import dev.architectury.registry.CreativeTabRegistry;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
@@ -28,14 +29,28 @@ public class ItemModFishBucket<T extends Mob & IContainable> extends BucketItem 
     private final EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer;
     private final ITooltipFunction tooltip;
 
+    public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, CreativeTabRegistry.TabSupplier group) {
+        this(typeContainer, fluid, IContainerItem.VARIANT_TOOLTIP, group);
+    }
+
+    public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ITooltipFunction tooltip, CreativeTabRegistry.TabSupplier group) {
+        super(fluid.get(), new Item.Properties().stacksTo(1).arch$tab(group));
+        this.typeContainer = typeContainer;
+        this.tooltip = tooltip;
+    }
+
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, CreativeModeTab group) {
         this(typeContainer, fluid, IContainerItem.VARIANT_TOOLTIP, group);
     }
 
     public ItemModFishBucket(EntityTypeContainerContainable<T, ItemModFishBucket<T>> typeContainer, Supplier<? extends Fluid> fluid, ITooltipFunction tooltip, CreativeModeTab group) {
-        super(fluid.get(), new Item.Properties().stacksTo(1).tab(group));
+        super(fluid.get(), new Item.Properties().stacksTo(1).arch$tab(group));
         this.typeContainer = typeContainer;
         this.tooltip = tooltip;
+    }
+
+    public static <T extends Mob & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModFishBucket<T>>, ITooltipFunction, ItemModFishBucket<T>> waterBucket(CreativeTabRegistry.TabSupplier group) {
+        return (container, tooltip) -> new ItemModFishBucket<>(container, () -> Fluids.WATER, tooltip, group);
     }
 
     public static <T extends Mob & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModFishBucket<T>>, ITooltipFunction, ItemModFishBucket<T>> waterBucket(CreativeModeTab group) {

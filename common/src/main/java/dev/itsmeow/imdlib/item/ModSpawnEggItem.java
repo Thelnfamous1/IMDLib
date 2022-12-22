@@ -1,19 +1,23 @@
 package dev.itsmeow.imdlib.item;
 
+import dev.itsmeow.imdlib.IMDLib;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.block.DispenserBlock;
+
+import java.util.Optional;
 
 public class ModSpawnEggItem extends SpawnEggItem {
 
@@ -31,7 +35,7 @@ public class ModSpawnEggItem extends SpawnEggItem {
     private final String modid;
 
     public ModSpawnEggItem(EntityTypeContainer<?> container) {
-        super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties().tab(CreativeModeTab.TAB_MISC));
+        super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties()/* TODO .arch$tab(CreativeModeTabs.SPAWN_EGGS) */);
         this.type = container.getEntityType();
         this.modid = container.getModId();
         this.name = container.getEntityName().toLowerCase();
@@ -41,9 +45,9 @@ public class ModSpawnEggItem extends SpawnEggItem {
     @Override
     public String getDescriptionId(ItemStack stack) {
         if (type != null) {
-            ResourceLocation typeRL = Registry.ENTITY_TYPE.getKey(this.type);
-            if(typeRL != null) {
-                ResourceLocation eh = new ResourceLocation(typeRL.getPath());
+            Optional<ResourceKey<EntityType<?>>> typeRL = IMDLib.getRegistry(Registries.ENTITY_TYPE).getKey(this.type);
+            if(typeRL.isPresent()) {
+                ResourceLocation eh = new ResourceLocation(typeRL.get().location().getPath());
                 return "entity." + modid + "." + eh.getPath();
             }
         }

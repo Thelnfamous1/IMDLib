@@ -1,7 +1,7 @@
 package dev.itsmeow.imdlib;
 
 import dev.architectury.registry.registries.Registrar;
-import dev.architectury.registry.registries.Registries;
+import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.utils.GameInstance;
 import dev.itsmeow.imdlib.entity.EntityRegistrarHandler;
 import net.minecraft.resources.ResourceKey;
@@ -11,10 +11,10 @@ import java.util.Optional;
 
 public class IMDLib {
 
-    private static Optional<Registries> REGISTRIES = Optional.empty();
+    private static Optional<RegistrarManager> REGISTRIES = Optional.empty();
     private static MinecraftServer SERVER;
 
-    public static Optional<Registries> getRegistries() {
+    public static Optional<RegistrarManager> getRegistries() {
         return REGISTRIES;
     }
 
@@ -26,7 +26,7 @@ public class IMDLib {
     }
 
     public static void setRegistry(String modid) {
-        REGISTRIES = Optional.of(Registries.get(modid));
+        REGISTRIES = Optional.of(RegistrarManager.get(modid));
     }
 
     public static void setStaticServerInstance(MinecraftServer server) {

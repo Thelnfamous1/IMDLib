@@ -1,5 +1,6 @@
 package dev.itsmeow.imdlib.item;
 
+import dev.architectury.registry.CreativeTabRegistry;
 import dev.itsmeow.imdlib.entity.EntityTypeContainer;
 import dev.itsmeow.imdlib.entity.interfaces.IContainable;
 import dev.itsmeow.imdlib.entity.util.EntityTypeContainerContainable;
@@ -31,17 +32,31 @@ public class ItemModEntityContainer<T extends Mob & IContainable> extends Item i
     protected final EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer;
     protected final ITooltipFunction tooltip;
 
+    public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, CreativeTabRegistry.TabSupplier group) {
+        this(typeContainer, IContainerItem.VARIANT_TOOLTIP, group);
+    }
+
+    public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, ITooltipFunction tooltip, CreativeTabRegistry.TabSupplier group) {
+        super(new Item.Properties().stacksTo(1).arch$tab(group));
+        this.typeContainer = typeContainer;
+        this.tooltip = tooltip;
+    }
+
     public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, CreativeModeTab group) {
         this(typeContainer, IContainerItem.VARIANT_TOOLTIP, group);
     }
 
     public ItemModEntityContainer(EntityTypeContainerContainable<T, ItemModEntityContainer<T>> typeContainer, ITooltipFunction tooltip, CreativeModeTab group) {
-        super(new Item.Properties().stacksTo(1).tab(group));
+        super(new Item.Properties().stacksTo(1).arch$tab(group));
         this.typeContainer = typeContainer;
         this.tooltip = tooltip;
     }
 
     public static <T extends Mob & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModEntityContainer<T>>, ITooltipFunction, ItemModEntityContainer<T>> get(CreativeModeTab group) {
+        return (container, tooltip) -> new ItemModEntityContainer<>(container, tooltip, group);
+    }
+
+    public static <T extends Mob & IContainable> BiFunction<EntityTypeContainerContainable<T, ItemModEntityContainer<T>>, ITooltipFunction, ItemModEntityContainer<T>> get(CreativeTabRegistry.TabSupplier group) {
         return (container, tooltip) -> new ItemModEntityContainer<>(container, tooltip, group);
     }
 

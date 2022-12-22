@@ -16,6 +16,7 @@ import dev.itsmeow.imdlib.mixin.SpawnSettingsAccessor;
 import dev.itsmeow.imdlib.util.HeadType;
 import dev.itsmeow.imdlib.util.config.CommonConfigAPI;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.util.random.WeightedRandomList;
@@ -55,7 +56,7 @@ public class EntityRegistrarHandler {
         }
 
         // Containers & eggs
-        Registrar<Item> items = IMDLib.getRegistry(net.minecraft.core.Registry.ITEM_REGISTRY);
+        Registrar<Item> items = IMDLib.getRegistry(Registries.ITEM);
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             if (container instanceof EntityTypeContainerContainable<?, ?>) {
                 EntityTypeContainerContainable<?, ?> c = (EntityTypeContainerContainable<?, ?>) container;
@@ -72,9 +73,9 @@ public class EntityRegistrarHandler {
                 container.egg = items.register(new ResourceLocation(container.getModId(), container.getEntityName().toLowerCase() + "_spawn_egg"), () -> new ModSpawnEggItem(container));
             }
         }
-        Registrar<BlockEntityType<?>> blockEntities = IMDLib.getRegistry(net.minecraft.core.Registry.BLOCK_ENTITY_TYPE_REGISTRY);
+        Registrar<BlockEntityType<?>> blockEntities = IMDLib.getRegistry(Registries.BLOCK_ENTITY_TYPE);
         blockEntities.register(new ResourceLocation(modid, "head"), HeadBlockEntity.HEAD_TYPE::get);
-        Registrar<EntityType<?>> entityTypes = IMDLib.getRegistry(net.minecraft.core.Registry.ENTITY_TYPE_REGISTRY);
+        Registrar<EntityType<?>> entityTypes = IMDLib.getRegistry(Registries.ENTITY_TYPE);
         //entity types
         for (EntityTypeContainer<?> container : ENTITIES.values()) {
             ResourceLocation rl = new ResourceLocation(modid, container.getEntityName());
@@ -91,7 +92,7 @@ public class EntityRegistrarHandler {
         }, server -> {
             ENTITIES.values().forEach(e -> e.getConfiguration().load());
 
-            Registry<Biome> biomeRegistrar = server.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY);
+            Registry<Biome> biomeRegistrar = server.registryAccess().registryOrThrow(Registries.BIOME);
             for (ResourceLocation key : biomeRegistrar.keySet()) {
                 Biome biome = biomeRegistrar.get(key);
                 MobSpawnSettings spawnInfo = biome.getMobSettings();
