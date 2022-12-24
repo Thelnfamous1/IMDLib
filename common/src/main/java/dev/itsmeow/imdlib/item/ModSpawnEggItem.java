@@ -35,7 +35,7 @@ public class ModSpawnEggItem extends SpawnEggItem {
     private final String modid;
 
     public ModSpawnEggItem(EntityTypeContainer<?> container) {
-        super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties()/* TODO .arch$tab(CreativeModeTabs.SPAWN_EGGS) */);
+        super(container.getEntityType(), container.getDefinition().getEggSolidColor(), container.getDefinition().getEggSpotColor(), new Properties().arch$tab(CreativeModeTabs.SPAWN_EGGS));
         this.type = container.getEntityType();
         this.modid = container.getModId();
         this.name = container.getEntityName().toLowerCase();
