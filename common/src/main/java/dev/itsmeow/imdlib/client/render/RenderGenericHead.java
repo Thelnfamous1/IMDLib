@@ -24,7 +24,7 @@ public class RenderGenericHead implements BlockEntityRenderer<HeadBlockEntity> {
 
     public RenderGenericHead(BlockEntityRendererProvider.Context ctx) {
         for(HeadType type : HeadType.values()) {
-            modelMap.put(type, type.getModelSupplier().get().apply(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(type.getMod(), type.getModelLocation()), "main"))));
+            modelMap.put(type, type.getModelSupplier().get().apply(type.getName()).apply(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(type.getMod(), type.getModelLocation().apply(type.getName())), "main"))));
         }
     }
 

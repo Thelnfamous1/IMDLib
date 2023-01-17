@@ -48,8 +48,8 @@ public class HeadType {
     private final EntityTypeContainer<? extends LivingEntity> container;
     private final String modid;
     @Environment(EnvType.CLIENT)
-    public Supplier<Function<ModelPart, EntityModel<? extends Entity>>> modelSupplier;
-    public String modelLocation;
+    public Supplier<Function<String, Function<ModelPart, EntityModel<? extends Entity>>>> modelSupplier;
+    public Function<String, String> modelLocation;
     private IVariant singletonVariant;
     private final Map<IVariant, Pair<RegistrySupplier<GenericSkullBlock>, RegistrySupplier<ItemBlockHeadType>>> heads = new HashMap<>();
     private final Set<RegistrySupplier<ItemBlockHeadType>> items = new HashSet<>();
@@ -192,11 +192,11 @@ public class HeadType {
     }
 
     @Environment(EnvType.CLIENT)
-    public Supplier<Function<ModelPart, EntityModel<? extends Entity>>> getModelSupplier() {
+    public Supplier<Function<String, Function<ModelPart, EntityModel<? extends Entity>>>> getModelSupplier() {
         return modelSupplier;
     }
 
-    public String getModelLocation() {
+    public Function<String, String> getModelLocation() {
         return modelLocation;
     }
 
@@ -252,8 +252,8 @@ public class HeadType {
         private final B initial;
         private PlacementType placement;
         @Environment(EnvType.CLIENT)
-        private Supplier<Function<ModelPart, EntityModel<? extends Entity>>> modelSupplier;
-        private String modelLocation;
+        private Supplier<Function<String, Function<ModelPart, EntityModel<? extends Entity>>>> modelSupplier;
+        private Function<String, String> modelLocation;
         private HeadIDMapping idMapping;
         private Function<IVariant, String> customMapper;
         private IVariant singletonVariant;
@@ -307,6 +307,14 @@ public class HeadType {
         }
 
         public Builder<T, C, B> setModel(Supplier<Function<ModelPart, EntityModel<? extends Entity>>> modelSupplier, String modelLocation) {
+            if (Platform.getEnv() == EnvType.CLIENT) {
+                this.modelSupplier = () -> s -> t -> modelSupplier.get().apply(t);
+            }
+            this.modelLocation = s -> modelLocation;
+            return this;
+        }
+
+        public Builder<T, C, B> setModelMapped(Supplier<Function<String, Function<ModelPart, EntityModel<? extends Entity>>>> modelSupplier, Function<String, String> modelLocation) {
             if (Platform.getEnv() == EnvType.CLIENT) {
                 this.modelSupplier = modelSupplier;
             }
