@@ -1,8 +1,12 @@
 package dev.itsmeow.imdlib.client.render;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.architectury.registry.registries.RegistrySupplier;
 import dev.itsmeow.imdlib.block.GenericSkullBlock;
 import dev.itsmeow.imdlib.blockentity.HeadBlockEntity;
+import dev.itsmeow.imdlib.item.ItemBlockHeadType;
 import dev.itsmeow.imdlib.util.HeadType;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -20,11 +24,21 @@ import java.util.HashMap;
 
 public class RenderGenericHead implements BlockEntityRenderer<HeadBlockEntity> {
 
-    public HashMap<HeadType, EntityModel<?>> modelMap = new HashMap<>();
+    public HashMap<HeadType, HashMap<String, EntityModel<?>>> modelMap = new HashMap<>();
 
     public RenderGenericHead(BlockEntityRendererProvider.Context ctx) {
         for(HeadType type : HeadType.values()) {
-            modelMap.put(type, type.getModelSupplier().get().apply(type.getName()).apply(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(type.getMod(), type.getModelLocation().apply(type.getName())), "main"))));
+            if(!modelMap.containsKey(type)) {
+                modelMap.put(type, new HashMap<>());
+            }
+            HashMap<String, EntityModel<?>> typeMap = modelMap.get(type);
+            for(RegistrySupplier<ItemBlockHeadType> regObj : type.getItemObjects()) {
+                ItemBlockHeadType headItem = regObj.getOrNull();
+                if(headItem == null) {
+                    continue;
+                }
+                typeMap.put(headItem.id, type.getModelSupplier().get().apply(headItem.id).apply(ctx.bakeLayer(new ModelLayerLocation(new ResourceLocation(type.getMod(), type.getModelLocation().apply(headItem.id)), "main"))));
+            }
         }
     }
 
@@ -39,7 +53,8 @@ public class RenderGenericHead implements BlockEntityRenderer<HeadBlockEntity> {
         float rotation = -dir.toYRot();
         rotation = (dir == Direction.NORTH || dir == Direction.SOUTH) ? dir.getOpposite().toYRot() : rotation;
         rotation = (dir == Direction.UP) ? te.getTopRotation() : rotation;
-        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), modelMap.get(te.getHeadType()));
+        GenericSkullBlock block = (GenericSkullBlock) state.getBlock();
+        this.render(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, dir, rotation, te.getTexture(), modelMap.get(te.getHeadType()).get(block.id));
     }
 
     public void render(PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn, int packedOverlayIn, @Nullable Direction facing, float skullRotation, ResourceLocation texture, EntityModel<? extends Entity> model) {
